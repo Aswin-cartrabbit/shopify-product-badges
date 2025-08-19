@@ -13,9 +13,7 @@ import prisma from "./prisma";
  */
 const freshInstall = async ({ shop }) => {
   try {
-    console.log("This is a fresh install, running onboarding functions");
-
-    await prisma.stores.upsert({
+    const store = await prisma.stores.upsert({
       where: {
         shop: shop,
       },
@@ -28,7 +26,7 @@ const freshInstall = async ({ shop }) => {
         isActive: true,
       },
     });
-
+    return store;
     //Other functions start here
   } catch (e) {
     console.error(

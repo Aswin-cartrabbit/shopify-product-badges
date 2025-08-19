@@ -11,18 +11,35 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model stores {
-  shop     String   @id
-  isActive Boolean? @default(false)
+enum TokenType {
+  OFFLINE
+  ONLINE
+}
 
-  @@index([shop])
+model stores {
+  id       String  @id @unique @default(uuid()) @db.Uuid
+  shop     String  @unique
+  isActive Boolean @default(false)
+
+  // Relationships
+  sessions session[]
+
+  @@index([id])
+  @@index([isActive])
 }
 
 model session {
-  id      String  @id
-  content String? @db.Text
+  id      String    @id
+  type    TokenType
+  content String?   @db.Text
   shop    String?
+  storeId String    @db.Uuid
+  scopes  String?   @db.Text
+  expires DateTime?
 
-  @@index([id])
+  store stores @relation(fields: [storeId], references: [id])
+
   @@index([shop])
+  @@index([storeId])
+  @@index([type])
 }

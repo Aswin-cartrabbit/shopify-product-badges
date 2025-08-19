@@ -9,16 +9,23 @@ import prisma from "./prisma";
  * @returns {Promise<boolean>} Returns true if the operation was successful.
  */
 const storeSession = async (session) => {
+  console.log("=====================================");
+  console.log(session);
+  console.log("=====================================");
   await prisma.session.upsert({
     where: { id: session.id },
     update: {
       content: cryption.encrypt(JSON.stringify(session)),
       shop: session.shop,
+      type: session.isOnline ? "ONLINE" : "OFFLINE",
+      storeId: session.storeId,
     },
     create: {
       id: session.id,
       content: cryption.encrypt(JSON.stringify(session)),
       shop: session.shop,
+      type: session.isOnline ? "ONLINE" : "OFFLINE",
+      storeId: session.storeId,
     },
   });
 

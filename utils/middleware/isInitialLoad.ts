@@ -38,21 +38,26 @@ const isInitialLoad = async (context) => {
         shop,
         requestedTokenType: RequestedTokenType.OnlineAccessToken,
       });
-
-      await sessionHandler.storeSession(offlineSession);
-      await sessionHandler.storeSession(onlineSession);
-
       const isFreshInstall = await prisma.stores.findFirst({
         where: {
           shop: onlineSession.shop,
         },
       });
-
+      let store;
       if (!isFreshInstall || isFreshInstall?.isActive === false) {
         // !isFreshInstall -> New Install
         // isFreshInstall?.isActive === false -> Reinstall
-        await freshInstall({ shop: onlineSession.shop });
+        store = await freshInstall({ shop: onlineSession.shop });
       }
+
+      await sessionHandler.storeSession({
+        ...offlineSession,
+        storeId: store?.id ?? isFreshInstall.id,
+      });
+      await sessionHandler.storeSession({
+        ...onlineSession,
+        storeId: store?.id ?? isFreshInstall.id,
+      });
     } else {
       // The user has visited the page again.
       // We know this because we're not preserving any url params and idToken doesn't exist here
