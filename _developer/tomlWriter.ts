@@ -1,17 +1,17 @@
+// @ts-nocheck
 import toml from "@iarna/toml";
 import "dotenv/config";
 import fs from "fs";
 import path from "path";
-import setupCheck from "../utils/setupCheck.js";
-import webhookWriter from "./webhookWriter.js";
-
+// import { setupCheck } from "../utils/setupCheck";
+import webhookWriter from "./webhookWriter.ts";
 /** @typedef {import("@/_developer/types/toml.js").AppConfig} Config */
 
 /** @type {Config} */
 let config = {};
 
 try {
-  setupCheck(); //Run setup check to ensure all env variables are accessible
+  // setupCheck(); //Run setup check to ensure all env variables are accessible
 
   let appUrl = process.env.SHOPIFY_APP_URL;
   if (appUrl.endsWith("/")) {

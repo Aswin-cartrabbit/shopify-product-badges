@@ -14,7 +14,7 @@ const NavBar = () => {
   const tabs = useMemo(
     () => [
       { path: "/", label: "Dashboard", Icon: ChartNoAxesColumnIncreasing },
-      { path: "/flows", label: "Flows", Icon: Tag },
+      { path: "/badges", label: "Badges", Icon: Tag },
       { path: "/customers", label: "Customers", Icon: PersonIcon },
       { path: "/setup-alert", label: "Setup Alert", Icon: NotificationIcon },
       { path: "/settings", label: "Settings", Icon: SettingsIcon },

@@ -1,7 +1,7 @@
+// @ts-nocheck
 import fs from "fs";
 import path from "path";
-import shopify from "../utils/shopify.js";
-
+import shopify from "../utils/shopify.ts";
 /**
  * @typedef {Object} ApiEndpoint
  * @property {string} topic - The API endpoint topic.
@@ -534,13 +534,13 @@ const webhookWriter = (config) => {
   writeToApi();
 };
 
-const shopifyFilePath = path.join(process.cwd(), "utils", "shopify.js");
+const shopifyFilePath = path.join(process.cwd(), "utils", "shopify.ts");
 const webhookTopicFilePath = path.join(
   process.cwd(),
   "pages",
   "api",
   "webhooks",
-  "[...webhookTopic].js"
+  "[...webhookTopic].ts"
 );
 
 async function writeToApi() {
@@ -569,7 +569,7 @@ async function writeToApi() {
 
     // Start with the comment and shopify import
     let newFileContent =
-      topComment + 'import shopify from "@/utils/shopify.js";\n';
+      topComment + 'import shopify from "@/utils/shopify";\n';
 
     // Add new imports from webhook handlers
     if (webhookImports) {

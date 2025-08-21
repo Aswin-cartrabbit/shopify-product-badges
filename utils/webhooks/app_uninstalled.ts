@@ -5,7 +5,7 @@
  * @typedef { import("@/_developer/types/2025-04/webhooks.js").APP_UNINSTALLED} AppUninstalled
  */
 
-import prisma from "../prisma";
+import prisma from "../prisma.ts";
 
 const appUninstallHandler = async (
   topic,

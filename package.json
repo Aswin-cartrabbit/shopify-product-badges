@@ -23,7 +23,7 @@
     "-----> Shopify <-----": "",
     "g:install": "npm i -g @shopify/cli@latest",
     "shopify": "shopify",
-    "update:config": "node _developer/tomlWriter.js; npm run pretty; shopify app deploy;",
+    "update:config": "ts-node _developer/tomlWriter.ts && npm run pretty && shopify app deploy",
     "update:url": "node _developer/updateDashboard.js",
     "-----> Database <-----": "",
     "pg:create": "mkdir database; pg_ctl -D database init",
@@ -60,6 +60,7 @@
     "npm-check-updates": "^18.0.1",
     "prettier": "^3.6.2",
     "prisma": "^6.12.0",
-    "typescript": "5.8.3"
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
   }
 }
