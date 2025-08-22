@@ -1,15 +1,18 @@
 import React from "react";
 import {
   IndexTable,
-  LegacyCard,
-  useIndexResourceState,
-  Text,
-  Badge,
+  Page,
   Card,
   Button,
+  Badge,
+  Text,
+  useIndexResourceState,
+  InlineStack,
+  BlockStack,
 } from "@shopify/polaris";
-import { BadgeBuilder } from "@/components/forms/badgeCreateForm";
 import { useRouter } from "next/router";
+import { BadgeBuilder } from "@/components/forms/badgeCreateForm";
+
 const index = () => {
   const router = useRouter();
 
@@ -20,8 +23,8 @@ const index = () => {
       date: "Jul 20 at 4:34pm",
       customer: "Jaydon Stanton",
       total: "$969.44",
-      paymentStatus: <Badge progress="complete">Paid</Badge>,
-      fulfillmentStatus: <Badge progress="incomplete">Unfulfilled</Badge>,
+      paymentStatus: <Badge tone="success">Paid</Badge>,
+      fulfillmentStatus: <Badge tone="attention">Unfulfilled</Badge>,
     },
     {
       id: "1019",
@@ -29,8 +32,8 @@ const index = () => {
       date: "Jul 20 at 3:46pm",
       customer: "Ruben Westerfelt",
       total: "$701.19",
-      paymentStatus: <Badge progress="partiallyComplete">Partially paid</Badge>,
-      fulfillmentStatus: <Badge progress="incomplete">Unfulfilled</Badge>,
+      paymentStatus: <Badge tone="warning">Partially paid</Badge>,
+      fulfillmentStatus: <Badge tone="attention">Unfulfilled</Badge>,
     },
     {
       id: "1018",
@@ -38,10 +41,11 @@ const index = () => {
       date: "Jul 20 at 3.44pm",
       customer: "Leo Carder",
       total: "$798.24",
-      paymentStatus: <Badge progress="complete">Paid</Badge>,
-      fulfillmentStatus: <Badge progress="incomplete">Unfulfilled</Badge>,
+      paymentStatus: <Badge tone="success">Paid</Badge>,
+      fulfillmentStatus: <Badge tone="attention">Unfulfilled</Badge>,
     },
   ];
+
   const resourceName = {
     singular: "order",
     plural: "orders",
@@ -62,7 +66,7 @@ const index = () => {
         position={index}
       >
         <IndexTable.Cell>
-          <Text variant="bodyMd" fontWeight="bold" as="span">
+          <Text variant="bodyMd" fontWeight="semibold" as="span">
             {order}
           </Text>
         </IndexTable.Cell>
@@ -78,35 +82,42 @@ const index = () => {
       </IndexTable.Row>
     )
   );
+
   return (
-    <Card>
-      <Button
-        onClick={() => {
-          router.push("/badges/create");
-        }}
-      >
-        Create New Badge
-      </Button>
-      <IndexTable
-        resourceName={resourceName}
-        itemCount={orders.length}
-        selectedItemsCount={
-          allResourcesSelected ? "All" : selectedResources.length
-        }
-        onSelectionChange={handleSelectionChange}
-        headings={[
-          { title: "Order" },
-          { title: "Date" },
-          { title: "Customer" },
-          { title: "Total", alignment: "end" },
-          { title: "Payment status" },
-          { title: "Fulfillment status" },
-        ]}
-      >
-        {rowMarkup}
-      </IndexTable>
-      <BadgeBuilder />
-    </Card>
+    <Page
+      title="Badges"
+      primaryAction={{
+        content: "Create badge",
+        onAction: () => router.push("/badges/new"),
+      }}
+    >
+      <BlockStack gap="400">
+        <Card>
+          <IndexTable
+            resourceName={resourceName}
+            itemCount={orders.length}
+            selectedItemsCount={
+              allResourcesSelected ? "All" : selectedResources.length
+            }
+            onSelectionChange={handleSelectionChange}
+            headings={[
+              { title: "Order" },
+              { title: "Date" },
+              { title: "Customer" },
+              { title: "Total", alignment: "end" },
+              { title: "Payment status" },
+              { title: "Fulfillment status" },
+            ]}
+          >
+            {rowMarkup}
+          </IndexTable>
+        </Card>
+        {/* 
+        <Card>
+          <BadgeBuilder />
+        </Card> */}
+      </BlockStack>
+    </Page>
   );
 };
 
