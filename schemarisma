@@ -1,0 +1,513 @@
+// This is your Prisma schema file for Dynamic Product Labels SaaS
+// Learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+    provider        = "prisma-client-js"
+    output          = "./client"
+    previewFeatures = ["multiSchema"]
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+// ================================
+// ENUMS
+// ================================
+
+enum TokenType {
+    OFFLINE
+    ONLINE
+}
+
+enum PlanType {
+    FREE
+    STARTER
+    PROFESSIONAL
+    ENTERPRISE
+}
+
+enum StoreStatus {
+    ACTIVE
+    INACTIVE
+    SUSPENDED
+    TRIAL
+}
+
+enum BadgeType {
+    TEXT
+    ICON
+    TEXT_WITH_ICON
+    IMAGE
+}
+
+enum BadgeTriggerType {
+    INVENTORY_LEVEL
+    PRODUCT_TAG
+    COLLECTION
+    PRODUCT_TYPE
+    VENDOR
+    CUSTOMER_BEHAVIOR
+    MANUAL
+    SCHEDULE
+    PRICE_BASED
+    DATE_BASED
+    REVIEW_RATING
+    SALES_VELOCITY
+}
+
+enum TargetType {
+    // BASIC TARGETING
+    ALL_PRODUCTS // Apply to all products in store
+    NO_PRODUCTS // Apply to no products (disabled/draft state)
+
+    // SINGLE RESOURCE TYPE TARGETING
+    COLLECTION_ONLY // Target specific collections only
+    PRODUCT_TAG_ONLY // Target products with specific tags only
+    VENDOR_ONLY // Target products from specific vendors only
+    PRODUCT_TYPE_ONLY // Target specific product types only
+    PRODUCT_IDS_ONLY // Target manually selected product IDs only
+
+    // CONDITION-BASED TARGETING
+    PRICE_RANGE_ONLY // Target products within price ranges
+    INVENTORY_LEVEL_ONLY // Target products based on inventory levels
+    DATE_RANGE_ONLY // Target products created/updated within date range
+
+    // BEHAVIORAL TARGETING
+    LOCATION_BASED // Target based on customer location
+    TIME_BASED // Target based on time of day/week/month
+    DEVICE_BASED // Target based on mobile/desktop
+
+    // INVENTORY MANAGEMENT
+    LOW_STOCK_ALERT // Products below reorder threshold
+    OVERSTOCK_CLEARANCE // Products with excessive inventory
+    BACK_IN_STOCK // Recently restocked products
+    DISCONTINUED_ITEMS // Products being phased out
+
+    // EXCLUSION-BASED TARGETING
+    EXCLUDE_COLLECTIONS // All products EXCEPT those in specified collections
+    EXCLUDE_TAGS // All products EXCEPT those with specified tags
+    EXCLUDE_VENDORS // All products EXCEPT those from specified vendors
+    EXCLUDE_PRICE_RANGE // All products EXCEPT those in price range
+    EXCLUDE_PRODUCT_IDS // All products EXCEPT manually specified ones
+}
+
+enum BadgePosition {
+    TOP_LEFT
+    TOP_RIGHT
+    TOP_CENTER
+    BOTTOM_LEFT
+    BOTTOM_RIGHT
+    BOTTOM_CENTER
+    CENTER
+    FLOATING
+}
+
+enum BadgePlacement {
+    PRODUCT_GRID
+    PRODUCT_DETAIL
+    CART_PREVIEW
+    SEARCH_RESULTS
+    COLLECTION_PAGE
+    FOOTER
+    IMAGE_OVERLAY
+}
+
+enum BadgeStatus {
+    ACTIVE
+    INACTIVE
+    DRAFT
+    SCHEDULED
+    EXPIRED
+}
+
+enum AuditAction {
+    CREATE
+    UPDATE
+    DELETE
+    ACTIVATE
+    DEACTIVATE
+    BULK_UPDATE
+    INSTALL
+    UNINSTALL
+}
+
+enum SubscriptionStatus {
+    ACTIVE
+    PAST_DUE
+    CANCELED
+    TRIALING
+    INCOMPLETE
+    INCOMPLETE_EXPIRED
+    UNPAID
+}
+
+// ================================
+// CORE MODELS
+// ================================
+
+model stores {
+    id         String      @id @unique @default(uuid()) @db.Uuid
+    shop       String      @unique
+    shopDomain String?
+    email      String?
+    name       String?
+    timezone   String      @default("UTC")
+    currency   String      @default("USD")
+    status     StoreStatus @default(TRIAL)
+    planType   PlanType    @default(FREE)
+    isActive   Boolean     @default(false)
+
+    // Trial and subscription info
+    trialStartsAt  DateTime?
+    trialEndsAt    DateTime?
+    subscriptionId String?
+
+    // App installation tracking
+    appInstalled  Boolean   @default(false)
+    installedAt   DateTime?
+    uninstalledAt DateTime?
+
+    // Webhooks and API
+    webhookEndpoint String?
+    apiVersion      String?
+
+    // Billing limits
+    monthlyBadgeLimit Int? @default(1000)
+    usedBadgeCount    Int  @default(0)
+
+    // Metadata and settings
+    settings Json? @db.JsonB
+    metadata Json? @db.JsonB
+
+    // Audit fields
+    version   Int       @default(1)
+    createdAt DateTime  @default(now())
+    updatedAt DateTime  @updatedAt
+    deletedAt DateTime?
+
+    // Relationships
+    sessions       session[]
+    badgeTemplates badge_templates[]
+    productBadges  product_badges[]
+    badgeRules     badge_rules[]
+    subscriptions  subscriptions[]
+
+    @@index([id])
+    @@index([shop])
+    @@index([status])
+    @@index([isActive])
+    @@index([planType])
+    @@index([deletedAt])
+    @@map("stores")
+}
+
+model session {
+    id       String    @id
+    type     TokenType
+    content  String?   @db.Text
+    shop     String?
+    storeId  String    @db.Uuid
+    scopes   String?   @db.Text
+    expires  DateTime?
+    isActive Boolean   @default(true)
+
+    // Audit fields
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    // Relationships
+    store stores @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+    @@index([shop])
+    @@index([storeId])
+    @@index([type])
+    @@index([expires])
+    @@map("session")
+}
+
+// ================================
+// SUBSCRIPTION & BILLING
+// ================================
+
+model subscriptions {
+    id         String             @id @default(uuid()) @db.Uuid
+    storeId    String             @db.Uuid
+    externalId String? // Stripe/payment provider ID
+    status     SubscriptionStatus
+    planType   PlanType
+
+    // Pricing
+    monthlyPrice Decimal? @db.Decimal(10, 2)
+    currency     String   @default("USD")
+
+    // Billing cycle
+    currentPeriodStart DateTime?
+    currentPeriodEnd   DateTime?
+    trialStart         DateTime?
+    trialEnd           DateTime?
+
+    // Cancellation
+    canceledAt        DateTime?
+    cancelAtPeriodEnd Boolean   @default(false)
+
+    // Metadata
+    metadata Json? @db.JsonB
+
+    // Audit fields
+    version   Int       @default(1)
+    createdAt DateTime  @default(now())
+    updatedAt DateTime  @updatedAt
+    deletedAt DateTime?
+
+    // Relationships
+    store stores @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+    @@index([storeId])
+    @@index([status])
+    @@index([externalId])
+    @@index([deletedAt])
+    @@map("subscriptions")
+}
+
+// ================================
+// BADGE SYSTEM
+// ================================
+
+model badge_templates {
+    id          String  @id @default(uuid()) @db.Uuid
+    storeId     String  @db.Uuid
+    name        String
+    description String?
+
+    // Badge design
+    badgeType BadgeType @default(TEXT)
+    text      String?
+    iconUrl   String?
+    imageUrl  String?
+
+    // Styling
+    backgroundColor String? @default("#FF6B6B")
+    textColor       String? @default("#FFFFFF")
+    borderColor     String?
+    borderWidth     Int?    @default(0)
+    borderRadius    Int?    @default(4)
+    fontSize        Int?    @default(12)
+    fontWeight      String? @default("600")
+    padding         String? @default("4px 8px")
+
+    // Animation and effects
+    hasAnimation  Boolean @default(false)
+    animationType String?
+    hasTooltip    Boolean @default(false)
+    tooltipText   String?
+
+    // Positioning
+    position BadgePosition @default(TOP_RIGHT)
+    offsetX  Int?          @default(0)
+    offsetY  Int?          @default(0)
+    zIndex   Int?          @default(10)
+
+    // Visibility settings
+    showOnMobile  Boolean @default(true)
+    showOnDesktop Boolean @default(true)
+
+    // Custom CSS
+    customCss String? @db.Text
+
+    // Template management
+    isPublic   Boolean @default(false)
+    isDefault  Boolean @default(false)
+    usageCount Int     @default(0)
+
+    // Audit fields
+    version   Int       @default(1)
+    createdAt DateTime  @default(now())
+    updatedAt DateTime  @updatedAt
+    deletedAt DateTime?
+    createdBy String? // User ID who created this
+
+    // Relationships
+    store         stores           @relation(fields: [storeId], references: [id], onDelete: Cascade)
+    productBadges product_badges[]
+    badgeRules    badge_rules[]
+
+    @@unique([storeId, name])
+    @@index([storeId])
+    @@index([isDefault])
+    @@index([isPublic])
+    @@index([deletedAt])
+    @@map("badge_templates")
+}
+
+model badge_rules {
+    id          String  @id @default(uuid()) @db.Uuid
+    storeId     String  @db.Uuid
+    templateId  String  @db.Uuid
+    name        String
+    description String?
+
+    // RULE-BASED CONDITIONS (replaces individual records)
+    triggerType BadgeTriggerType
+    conditions  Json             @db.JsonB
+    // Enhanced condition examples:
+    // INVENTORY_LEVEL: { "operator": "less_than", "value": 10, "includeVariants": true }
+    // PRODUCT_TAG: { "operator": "contains_any", "tags": ["bestseller", "new"], "matchAll": false }
+    // COLLECTION: { "collectionIds": ["123", "456"], "operator": "in_any" }
+    // PRICE_BASED: { "operator": "between", "min": 100, "max": 500, "currency": "USD" }
+    // VENDOR: { "vendors": ["Nike", "Adidas"], "operator": "equals_any" }
+    // DATE_BASED: { "field": "created_at", "operator": "within_days", "value": 30 }
+    // REVIEW_RATING: { "operator": "greater_than", "rating": 4.5, "minReviews": 10 }
+    // SALES_VELOCITY: { "operator": "greater_than", "salesPerDay": 5, "period": "last_30_days" }
+
+    // TARGET DEFINITION (instead of individual product records)
+    // UNIFIED RESOURCE TARGETING SYSTEM
+    targetType TargetType @default(ALL_PRODUCTS)
+
+    // SINGLE UNIFIED RESOURCE ARRAY
+    // This contains ALL resource identifiers (products, collections, tags, vendors, etc.)
+    // Format: ["product:123", "collection:456", "tag:bestseller", "vendor:nike"]
+    // This replaces all separate arrays for better performance and simplicity
+    resourceIds String[] // Unified resource identifiers
+
+    // DISPLAY SETTINGS
+    placements BadgePlacement[] @default([PRODUCT_GRID])
+    position   BadgePosition    @default(TOP_RIGHT)
+
+    // ADVANCED DISPLAY OPTIONS
+    showOnMobile        Boolean @default(true)
+    showOnDesktop       Boolean @default(true)
+    maxBadgesPerProduct Int     @default(3)
+    badgePriority       Int     @default(1) // Higher number = higher priority
+
+    // SCHEDULING AND AUTOMATION
+    isActive         Boolean   @default(true)
+    startDate        DateTime? // When to start showing badges
+    endDate          DateTime? // When to stop showing badges
+    scheduleTimezone String?   @default("UTC")
+
+    // USAGE TRACKING AND ANALYTICS
+    appliedCount    Int       @default(0) // How many times this rule has been applied
+    lastAppliedAt   DateTime? // Last time badges were generated from this rule
+    impressionCount BigInt    @default(0) // Total badge impressions
+    clickCount      BigInt    @default(0) // Total badge clicks
+    conversionRate  Decimal?  @db.Decimal(5, 4) // Click-to-purchase rate
+
+    // RELATIONSHIPS
+    store         stores           @relation(fields: [storeId], references: [id], onDelete: Cascade)
+    template      badge_templates  @relation(fields: [templateId], references: [id], onDelete: Cascade)
+    childRules    badge_rules[]    @relation("RuleHierarchy")
+    productBadges product_badges[] // Only for manual exceptions and overrides
+
+    @@unique([storeId, name])
+    @@index([storeId])
+    @@index([templateId])
+    @@index([triggerType])
+    @@index([targetType])
+    @@index([isActive])
+    @@index([badgePriority])
+    @@index([startDate])
+    @@index([endDate])
+    @@index([storeId, isActive, badgePriority]) // Compound index for active rules lookup
+    @@index([storeId, triggerType, isActive]) // For trigger-specific queries
+    @@map("badge_rules")
+}
+
+model product_badges {
+    id         String  @id @default(uuid()) @db.Uuid
+    storeId    String  @db.Uuid
+    productId  String // Shopify Product ID
+    variantId  String? // Shopify Variant ID (optional)
+    templateId String  @db.Uuid
+    ruleId     String? @db.Uuid // Null if manually applied
+
+    // Badge state
+    status   BadgeStatus @default(ACTIVE)
+    isManual Boolean     @default(false)
+
+    // Display settings (can override template)
+    position   BadgePosition?
+    placements BadgePlacement[]
+
+    // Scheduling
+    scheduledStart DateTime?
+    scheduledEnd   DateTime?
+
+    // Performance tracking
+    impressions Int       @default(0)
+    clicks      Int       @default(0)
+    lastSeenAt  DateTime?
+
+    // Cache invalidation
+    cacheKey        String?
+    lastCacheUpdate DateTime?
+
+    // Audit fields
+    version   Int       @default(1)
+    createdAt DateTime  @default(now())
+    updatedAt DateTime  @updatedAt
+    deletedAt DateTime?
+
+    // Relationships
+    store    stores          @relation(fields: [storeId], references: [id], onDelete: Cascade)
+    template badge_templates @relation(fields: [templateId], references: [id], onDelete: Cascade)
+    rule     badge_rules?    @relation(fields: [ruleId], references: [id], onDelete: SetNull)
+
+    @@unique([storeId, productId, templateId]) // Prevent duplicate badges
+    @@index([storeId])
+    @@index([productId])
+    @@index([variantId])
+    @@index([templateId])
+    @@index([ruleId])
+    @@index([status])
+    @@index([scheduledStart])
+    @@index([scheduledEnd])
+    @@index([deletedAt])
+    @@map("product_badges")
+}
+
+
+// ================================
+// CONFIGURATION & SETTINGS
+// ================================
+
+model app_settings {
+    id          String  @id @default(uuid()) @db.Uuid
+    key         String  @unique
+    value       Json    @db.JsonB
+    description String?
+    isPublic    Boolean @default(false)
+
+    // Versioning
+    version   Int      @default(1)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@index([key])
+    @@map("app_settings")
+}
+
+model feature_flags {
+    id          String  @id @default(uuid()) @db.Uuid
+    name        String  @unique
+    description String?
+    isEnabled   Boolean @default(false)
+
+    // Targeting
+    enabledStores  String[] // Store IDs
+    enabledPlans   PlanType[]
+    rolloutPercent Int?       @default(0) // 0-100
+
+    // Configuration
+    config Json? @db.JsonB
+
+    // Audit fields
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+    createdBy String?
+
+    @@index([name])
+    @@index([isEnabled])
+    @@map("feature_flags")
+}

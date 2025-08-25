@@ -16,13 +16,22 @@ enum TokenType {
   ONLINE
 }
 
+enum BadgeStatus {
+  ACTIVE
+  INACTIVE
+  DRAFT
+  SCHEDULED
+  EXPIRED
+}
+
 model stores {
   id       String  @id @unique @default(uuid()) @db.Uuid
   shop     String  @unique
   isActive Boolean @default(false)
 
   // Relationships
-  sessions session[]
+  sessions      session[]
+  productBadges product_badges[]
 
   @@index([id])
   @@index([isActive])
@@ -42,4 +51,47 @@ model session {
   @@index([shop])
   @@index([storeId])
   @@index([type])
+}
+
+model product_badges {
+  id        String  @id @default(uuid()) @db.Uuid
+  storeId   String  @db.Uuid
+  productId String // Shopify Product ID
+  variantId String? // Shopify Variant ID (optional)
+
+  // Badge state
+  status   BadgeStatus @default(ACTIVE)
+  isManual Boolean     @default(false)
+
+  // Scheduling
+  scheduledStart DateTime?
+  scheduledEnd   DateTime?
+
+  // Performance tracking
+  impressions Int       @default(0)
+  clicks      Int       @default(0)
+  lastSeenAt  DateTime?
+
+  // Cache invalidation
+  cacheKey        String?
+  lastCacheUpdate DateTime?
+
+  // Audit fields
+  version   Int       @default(1)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  // Relationships
+  store stores @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@unique([storeId, productId]) // Prevent duplicate badges
+  @@index([storeId])
+  @@index([productId])
+  @@index([variantId])
+  @@index([status])
+  @@index([scheduledStart])
+  @@index([scheduledEnd])
+  @@index([deletedAt])
+  @@map("product_badges")
 }

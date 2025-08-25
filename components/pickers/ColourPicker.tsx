@@ -10,13 +10,21 @@ import {
   InlineStack,
 } from "@shopify/polaris";
 
-export default function ColorPickerInput({ label = "" }) {
+export default function ColorPickerInput({
+  label = "",
+  value,
+  onChange,
+}: {
+  label?: string;
+  value: string;
+  onChange: (value: string) => void;
+}) {
   const [color, setColor] = useState({
     hue: 120,
     brightness: 1,
     saturation: 1,
   });
-  const [hex, setHex] = useState("#00FF00");
+  const [hex, setHex] = useState(value || "#7700ffff");
   const [active, setActive] = useState(false);
 
   const toggleActive = useCallback(() => setActive((active) => !active), []);
@@ -25,10 +33,13 @@ export default function ColorPickerInput({ label = "" }) {
     setColor(value);
     const hexValue = hsbToHex(value.hue, value.saturation, value.brightness);
     setHex(hexValue);
+    onChange(hexValue);
   };
 
   const handleHexChange = (value: string) => {
     setHex(value);
+    console.log(value);
+    onChange(value);
     // you can add a hex → hsb converter if needed
   };
 
