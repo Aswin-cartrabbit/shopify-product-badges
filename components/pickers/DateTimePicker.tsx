@@ -55,14 +55,28 @@ export function DateTimePicker({
   const [dateOpen, setDateOpen] = useState(false);
   const [timeOpen, setTimeOpen] = useState(false);
 
+  const lastEmittedValue = useRef(null);
   /* propagate combined value */
   useEffect(() => {
     if (firstRender.current) {
       firstRender.current = false;
       return;
     }
+    if (firstRender.current) {
+      firstRender.current = false;
+      return;
+    }
     if (selectedTime && selectedDates.start) {
-      onChange(new Date(`${dateISO(selectedDates.start)} ${selectedTime}`));
+      const newValue = new Date(
+        `${dateISO(selectedDates.start)} ${selectedTime}`
+      );
+      const newTimestamp = newValue.getTime();
+
+      // Only call onChange if the value actually changed
+      if (lastEmittedValue.current !== newTimestamp) {
+        lastEmittedValue.current = newTimestamp;
+        onChange(newTimestamp); // Send timestamp instead of Date object for better consistency
+      }
     }
   }, [selectedDates, selectedTime, onChange]);
 

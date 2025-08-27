@@ -14,20 +14,18 @@ import {
   TextField,
   FormLayout,
   ChoiceList,
+  Select,
 } from "@shopify/polaris";
 import { useCallback, useState } from "react";
 import { DateTimePicker } from "../pickers/DateTimePicker";
 import { QuestionCircleIcon, CalendarTimeIcon } from "@shopify/polaris-icons";
+import { useBadgeStore } from "@/stores/BadgeStore";
 
 const DisplayForm = () => {
   const [visibility, setVisibility] = useState<"all" | "single" | "multiple">(
     "all"
   );
-  const [selectedProducts, setSelectedProducts] = useState<any[]>([]);
-  const [startDateTime, setStartDateTime] = useState<string>("");
-  const [endDateTime, setEndDateTime] = useState<string>("");
-  const [isScheduled, setIsScheduled] = useState<boolean>(false);
-
+  const { badge, updateDisplay } = useBadgeStore();
   async function openResourcePicker(multiple = false, initQuery = "") {
     const selected = await window?.shopify?.resourcePicker({
       type: "product",
@@ -41,7 +39,22 @@ const DisplayForm = () => {
     });
 
     if (selected && selected.length > 0) {
-      setSelectedProducts(selected);
+      updateDisplay(
+        "resourceIds",
+        selected.map((product) => {
+          return {
+            productTitle: product.title,
+            productHandle: product.handle,
+            productId: product.id,
+            variants: product.variants.map((variant) => {
+              return {
+                variantId: variant.id,
+                variantDisplayName: variant.displayName,
+              };
+            }),
+          };
+        })
+      );
     }
   }
 
@@ -53,16 +66,15 @@ const DisplayForm = () => {
     } else if (value === "multiple") {
       openResourcePicker(true);
     } else {
-      setSelectedProducts([]);
+      updateDisplay("resourceIds", []);
     }
   };
 
   const handleScheduleToggle = () => {
-    setIsScheduled(!isScheduled);
-    if (!isScheduled) {
-      // Reset dates when enabling schedule
-      setStartDateTime("");
-      setEndDateTime("");
+    updateDisplay("isScheduled", !badge.display.isScheduled);
+    if (!badge.display.isScheduled) {
+      updateDisplay("startDateTime", Date.now());
+      updateDisplay("endDateTime", Date.now());
     }
   };
 
@@ -96,20 +108,19 @@ const DisplayForm = () => {
                 </Text>
               </InlineStack>
               <Button variant="plain" onClick={handleScheduleToggle}>
-                {isScheduled ? "Remove Schedule" : "Add Schedule"}
+                {badge.display.isScheduled ? "Remove Schedule" : "Add Schedule"}
               </Button>
             </InlineStack>
 
-            {isScheduled && (
+            {badge.display.isScheduled && (
               <BlockStack gap="300">
-                {/* <InlineStack gap="400"> */}
                 <div style={{ flex: 1 }}>
                   <DateTimePicker
                     dateLabel="Start Date"
                     timeLabel="Start Time"
+                    initialValue={badge.display.startDateTime}
                     onChange={(value) => {
-                      setStartDateTime(value);
-                      console.log("Start date and time:", value);
+                      updateDisplay("startDateTime", value);
                     }}
                   />
                 </div>
@@ -117,19 +128,19 @@ const DisplayForm = () => {
                   <DateTimePicker
                     dateLabel="End Date"
                     timeLabel="End Time"
+                    initialValue={badge.display.startDateTime}
                     onChange={(value) => {
-                      setEndDateTime(value);
-                      console.log("End date and time:", value);
+                      updateDisplay("endDateTime", value);
                     }}
                   />
                 </div>
                 {/* </InlineStack> */}
 
-                {startDateTime && endDateTime && (
+                {badge.display.startDateTime && badge.display.endDateTime && (
                   <InlineStack gap="200">
                     <Badge tone="info">
-                      {`Scheduled: ${new Date(startDateTime).toLocaleDateString()}
-                      - ${new Date(endDateTime).toLocaleDateString()}`}
+                      {`Scheduled: ${new Date(badge.display.startDateTime).toLocaleDateString()}
+                      - ${new Date(badge.display.endDateTime).toLocaleDateString()}`}
                     </Badge>
                   </InlineStack>
                 )}
@@ -167,11 +178,21 @@ const DisplayForm = () => {
                       value: "new_product",
                     },
                     {
-                      label: "Low inventory (less than 10 items)",
-                      value: "low_inventory",
+                      label: "Based on inventory level",
+                      value: "inventory_level",
+                    },
+                    {
+                      label: "Best seller (top 10% of sales)",
+                      value: "best_seller",
+                    },
+                    {
+                      label: "based on price range",
+                      value: "price_range",
                     },
                     { label: "Customer is logged in", value: "logged_in" },
-                    { label: "Customer is VIP/tagged", value: "vip_customer" },
+                    { label: "Based on tags", value: "tags" },
+                    { label: "Based on collections", value: "collection" },
+                    { label: "Based on vendors", value: "vendor" },
                     { label: "Mobile devices only", value: "mobile_only" },
                     { label: "Desktop devices only", value: "desktop_only" },
                   ]}
@@ -180,39 +201,198 @@ const DisplayForm = () => {
                   allowMultiple
                 />
 
-                <FormLayout>
-                  <FormLayout.Group>
-                    <TextField
-                      label="Min Price ($)"
-                      type="number"
-                      value={priceRange.min}
-                      onChange={(value) =>
-                        setPriceRange({ ...priceRange, min: value })
-                      }
-                      autoComplete="off"
-                      placeholder="0.00"
-                    />
-                    <TextField
-                      label="Max Price ($)"
-                      type="number"
-                      value={priceRange.max}
-                      onChange={(value) =>
-                        setPriceRange({ ...priceRange, max: value })
-                      }
-                      autoComplete="off"
-                      placeholder="999.99"
-                    />
-                  </FormLayout.Group>
-                </FormLayout>
+                {selectedConditions.includes("price_range") && (
+                  <Card>
+                    <FormLayout>
+                      <Text variant="headingMd" as="p">
+                        Set Price Range ($)
+                      </Text>
+                      <FormLayout.Group>
+                        <TextField
+                          label="Min Price ($)"
+                          type="number"
+                          value={priceRange.min}
+                          onChange={(value) =>
+                            setPriceRange({ ...priceRange, min: value })
+                          }
+                          autoComplete="off"
+                          placeholder="0.00"
+                        />
+                        <TextField
+                          label="Max Price ($)"
+                          type="number"
+                          value={priceRange.max}
+                          onChange={(value) =>
+                            setPriceRange({ ...priceRange, max: value })
+                          }
+                          autoComplete="off"
+                          placeholder="999.99"
+                        />
+                      </FormLayout.Group>
+                    </FormLayout>
+                  </Card>
+                )}
+                {selectedConditions.includes("tags") && (
+                  <Card>
+                    <FormLayout>
+                      <InlineStack align="space-between" blockAlign="center">
+                        <Text variant="headingMd" as="p">
+                          Specify Product Tags
+                        </Text>
+                        <Tooltip content="Define which product tags will trigger the badge display">
+                          <Icon source={QuestionCircleIcon} tone="subdued" />
+                        </Tooltip>
+                      </InlineStack>
 
-                <TextField
-                  label="Product Tags (comma-separated)"
-                  //   value={selectedProducts}
-                  //   onChange={setSelectedProducts}
-                  placeholder="summer, sale, featured"
-                  helpText="Badge will only show on products with these tags"
-                  autoComplete="off"
-                />
+                      <FormLayout.Group>
+                        <TextField
+                          label="Product Tags (comma-separated)"
+                          //   value={selectedProducts}
+                          //   onChange={setSelectedProducts}
+                          placeholder="summer, sale, featured"
+                          helpText="Badge will only show on products with these tags"
+                          autoComplete="off"
+                        />
+                      </FormLayout.Group>
+                    </FormLayout>
+                  </Card>
+                )}
+                {selectedConditions.includes("collection") && (
+                  <Card>
+                    <FormLayout>
+                      <InlineStack align="space-between" blockAlign="center">
+                        <Text variant="headingMd" as="p">
+                          Specify Product Collections
+                        </Text>
+                        <Tooltip content="Define which product collections will trigger the badge display">
+                          <Icon source={QuestionCircleIcon} tone="subdued" />
+                        </Tooltip>
+                      </InlineStack>
+                      <FormLayout.Group>
+                        <TextField
+                          label="Product Tags (comma-separated)"
+                          //   value={selectedProducts}
+                          //   onChange={setSelectedProducts}
+                          placeholder="summer, sale, featured"
+                          helpText="Badge will only show on products with these collections"
+                          autoComplete="off"
+                        />
+                      </FormLayout.Group>
+                    </FormLayout>
+                  </Card>
+                )}
+                {selectedConditions.includes("vendor") && (
+                  <Card>
+                    <FormLayout>
+                      <InlineStack align="space-between" blockAlign="center">
+                        <Text variant="headingMd" as="p">
+                          Specify Product Tags
+                        </Text>
+                        <Tooltip content="Define which product vendors will trigger the badge display">
+                          <Icon source={QuestionCircleIcon} tone="subdued" />
+                        </Tooltip>
+                      </InlineStack>
+
+                      <FormLayout.Group>
+                        <TextField
+                          label="Product Tags (comma-separated)"
+                          //   value={selectedProducts}
+                          //   onChange={setSelectedProducts}
+                          placeholder="summer, sale, featured"
+                          helpText="Badge will only show on products with these vendors"
+                          autoComplete="off"
+                        />
+                      </FormLayout.Group>
+                    </FormLayout>
+                  </Card>
+                )}
+                {selectedConditions.includes("inventory_level") && (
+                  <Card>
+                    <FormLayout>
+                      <InlineStack align="space-between" blockAlign="center">
+                        <Text variant="headingMd" as="p">
+                          Set Inventory Threshold
+                        </Text>
+                        <Tooltip content="Define the inventory level below which the badge will be displayed">
+                          <Icon source={QuestionCircleIcon} tone="subdued" />
+                        </Tooltip>
+                      </InlineStack>
+
+                      <FormLayout.Group>
+                        <TextField
+                          label="Inventory Threshold (units)"
+                          //   value={selectedProducts}
+                          //   onChange={setSelectedProducts}
+                          placeholder="10"
+                          helpText="Badge will show when inventory is below this number"
+                          autoComplete="off"
+                          min={0}
+                          type="number"
+                          value="10"
+                        />
+                      </FormLayout.Group>
+                    </FormLayout>
+                  </Card>
+                )}
+                {selectedConditions.includes("best_seller") && (
+                  <Card>
+                    <BlockStack gap="300">
+                      <InlineStack align="space-between" blockAlign="center">
+                        <Text as="p" variant="bodyMd" fontWeight="medium">
+                          Best Seller Configuration
+                        </Text>
+                        <Tooltip content="Define what percentage of top-selling products should get the best seller badge">
+                          <Icon source={QuestionCircleIcon} tone="subdued" />
+                        </Tooltip>
+                      </InlineStack>
+                      <FormLayout>
+                        <Select
+                          label="Best seller criteria"
+                          options={[
+                            {
+                              label: "Top 5% of products by sales",
+                              value: "5",
+                            },
+                            {
+                              label: "Top 10% of products by sales",
+                              value: "10",
+                            },
+                            {
+                              label: "Top 15% of products by sales",
+                              value: "15",
+                            },
+                            {
+                              label: "Top 20% of products by sales",
+                              value: "20",
+                            },
+                          ]}
+                          // value={ruleConfig.bestSellerPercentile.toString()}
+                          // onChange={(value) =>
+                          //   updateRuleConfig(
+                          //     "bestSellerPercentile",
+                          //     parseInt(value)
+                          //   )
+                          // }
+                        />
+                        <Select
+                          label="Time period for sales calculation"
+                          options={[
+                            { label: "Last 7 days", value: "7" },
+                            { label: "Last 30 days", value: "30" },
+                            { label: "Last 90 days", value: "90" },
+                            { label: "All time", value: "all" },
+                          ]}
+                          value="30"
+                          onChange={() => {}}
+                        />
+                      </FormLayout>
+                      <Text as="p" variant="bodySm" tone="subdued">
+                        📊 Based on total units sold within the selected time
+                        period
+                      </Text>
+                    </BlockStack>
+                  </Card>
+                )}
               </BlockStack>
             </Collapsible>
           </BlockStack>
@@ -259,26 +439,22 @@ const DisplayForm = () => {
           </BlockStack>
 
           {(visibility === "single" || visibility === "multiple") &&
-            selectedProducts.length > 0 && (
+            badge.display.resourceIds.length > 0 && (
               <Card>
                 <BlockStack gap="200">
                   <Text variant="bodyMd" as="p" fontWeight="medium">
                     {visibility === "single"
                       ? "Selected product:"
-                      : `Selected products (${selectedProducts.length}):`}
+                      : `Selected products (${badge.display.resourceIds.length}):`}
                   </Text>
                   <BlockStack gap="100">
-                    {selectedProducts.map((product) => (
-                      <InlineStack
-                        key={product.id}
-                        gap="200"
-                        blockAlign="center"
-                      >
-                        <Text as="p">• {product.title}</Text>
-                        {product.handle && (
+                    {badge.display.resourceIds.map((product, index) => (
+                      <InlineStack key={index} gap="200" blockAlign="center">
+                        <Text as="p">• {product.productTitle}</Text>
+                        {product.productHandle && (
                           <Link
-                            url={`/products/${product.handle}`}
-                            external
+                            url={`/products/${product.productHandle}`}
+                            target="_blank"
                             removeUnderline
                           >
                             View product
@@ -300,7 +476,6 @@ const DisplayForm = () => {
               </Card>
             )}
         </BlockStack>
-
         <Divider />
 
         {/* Help Section */}
@@ -315,16 +490,6 @@ const DisplayForm = () => {
             </Text>
           </BlockStack>
         </Card>
-
-        <InlineStack gap="200" align="end">
-          <Button>Cancel</Button>
-          <Button
-            variant="primary"
-            disabled={isScheduled && (!startDateTime || !endDateTime)}
-          >
-            Save Display Settings
-          </Button>
-        </InlineStack>
       </BlockStack>
     </Card>
   );

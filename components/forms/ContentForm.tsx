@@ -14,10 +14,9 @@ import { useCallback, useState } from "react";
 import { useBadgeStore } from "@/stores/BadgeStore";
 import React from "react";
 
-const ContentForm = () => {
+const ContentForm = ({ badgeName, setBadgeName }) => {
   const { badge, updateContent } = useBadgeStore();
   // Local state for form elements not directly related to badge data
-  const [badgeName, setBadgeName] = useState("");
 
   const handleBadgeChange = useCallback(
     (newValue: string) => setBadgeName(newValue),
@@ -34,8 +33,6 @@ const ContentForm = () => {
     updateContent("icon", "/icons/truck.png");
     updateContent("iconUploaded", true);
   }, [updateContent]);
-
-
 
   const ctaOptions = [
     { label: "No call to action", value: "noCta" },
@@ -74,14 +71,6 @@ const ContentForm = () => {
           value={badge.content.text}
           onChange={(value) => updateContent("text", value)}
           autoComplete="off"
-        />
-
-        <TextField
-          label="Subheading"
-          value={badge.content.subheading || ""}
-          onChange={(value) => updateContent("subheading", value)}
-          autoComplete="off"
-          placeholder="Optional subheading text"
         />
 
         <BlockStack>
@@ -139,12 +128,12 @@ const ContentForm = () => {
           </div>
         </BlockStack>
 
-        <Select
+        {/* <Select
           label="Call to action"
           options={ctaOptions}
           value={badge.content.callToAction || "noCta"}
           onChange={(value) => updateContent("callToAction", value)}
-        />
+        /> */}
 
         <Text as="p" variant="bodySm" tone="subdued">
           Available with Starter plan.{" "}

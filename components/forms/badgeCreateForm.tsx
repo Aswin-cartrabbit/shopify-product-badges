@@ -1,29 +1,16 @@
 "use client";
-import {
-  Badge,
-  Bleed,
-  BlockStack,
-  Button,
-  Card,
-  Divider,
-  Page,
-  RadioButton,
-  Select,
-  Tabs,
-  Text,
-  TextField,
-  Thumbnail,
-} from "@shopify/polaris";
-import { useCallback, useState } from "react";
-import DesignForm from "./DesignForm";
-import HtmlPreviewer from "../HtmlPreviewer";
-import GridPosition from "../GridPosition";
 import { useBadgeStore } from "@/stores/BadgeStore";
+import { Badge, Card, Page, Tabs } from "@shopify/polaris";
+import { useCallback, useState } from "react";
+import HtmlPreviewer from "../HtmlPreviewer";
 import ContentForm from "./ContentForm";
+import DesignForm from "./DesignForm";
 import DisplayForm from "./DisplayForm";
 import PlacementForm from "./PlacementForm";
+import { getPostOptions } from "@/utils/const/FetchOptions";
 
 export const BadgeBuilder = () => {
+  const { badge } = useBadgeStore();
   const getBadges = (status: "DRAFT" | "ACTIVE") => {
     switch (status) {
       case "DRAFT":
@@ -32,7 +19,8 @@ export const BadgeBuilder = () => {
         return <Badge tone="success">Active</Badge>;
     }
   };
-
+  const [name, setName] = useState("Your label");
+  const [type, setType] = useState("LABEL");
   // Example usage of the getBadges function
   const currentStatus: "DRAFT" | "ACTIVE" = "ACTIVE";
 
@@ -75,7 +63,7 @@ export const BadgeBuilder = () => {
   const renderTabContent = () => {
     switch (selectedTab) {
       case 0:
-        return <ContentForm />;
+        return <ContentForm badgeName={name} setBadgeName={setName} />;
       case 1:
         return <DesignTab />;
       case 2:
@@ -83,7 +71,7 @@ export const BadgeBuilder = () => {
       case 3:
         return <DisplayForm />;
       default:
-        return <ContentForm />;
+        return <></>;
     }
   };
 
@@ -91,14 +79,28 @@ export const BadgeBuilder = () => {
     <Page
       fullWidth
       backAction={{ content: "Products", url: "#" }}
-      title="Your badge"
+      title={name}
       titleMetadata={getBadges(currentStatus)}
       subtitle="Badge ID: 303cad73-3c53-481c-bad5-7f1fd81ea330"
-      // compactTitle
       primaryAction={{
         content: "Save",
         disabled: false,
-        onAction: () => alert("Save action"),
+        onAction: () => {
+          fetch(
+            "/api/badge/create",
+            getPostOptions(
+              { ...badge, name, type },
+              "84951ea2-c070-40d2-92f4-dbbb03119a26"
+            )
+          )
+            .then((response) => response.json())
+            .then((data) => {
+              console.log("Success:", data);
+            })
+            .catch((error) => {
+              console.error("Error:", error);
+            });
+        },
       }}
       secondaryActions={[
         {

@@ -22,6 +22,7 @@ export type BadgeContent = {
 };
 
 export type BadgeDesign = {
+  shape?: string;
   template: string;
   background: string;
   color: string;
@@ -45,12 +46,11 @@ export type BadgePlacement = {
 };
 
 export type BadgeDisplay = {
-  iconSize: string;
-  iconColor: string;
-  useOriginal: boolean;
-  bgColor: string;
-  desktopRow: string;
-  mobileRow: string;
+  isScheduled: boolean;
+  startDateTime?: number;
+  endDateTime?: number;
+  visibility: "all" | "single" | "multiple";
+  resourceIds?: any[];
 };
 
 export type Badge = {
@@ -93,6 +93,7 @@ const useBadgeStore = create<BadgeStore>()((set) => ({
       subheading: "",
     },
     design: {
+      shape: "",
       template: "Black and Yellow",
       background: "gradient",
       color: "#7700ffff",
@@ -114,12 +115,11 @@ const useBadgeStore = create<BadgeStore>()((set) => ({
       position: GridPosition.TOP_RIGHT,
     },
     display: {
-      iconSize: "32",
-      iconColor: "#ffffff",
-      useOriginal: false,
-      bgColor: "#000000",
-      desktopRow: "auto",
-      mobileRow: "auto",
+      isScheduled: false,
+      endDateTime: Date.now(),
+      startDateTime: Date.now(),
+      visibility: "all",
+      resourceIds: [],
     },
   },
 
@@ -208,12 +208,11 @@ const useBadgeStore = create<BadgeStore>()((set) => ({
           position: GridPosition.TOP_RIGHT,
         },
         display: {
-          iconSize: "32",
-          iconColor: "#ffffff",
-          useOriginal: false,
-          bgColor: "#000000",
-          desktopRow: "auto",
-          mobileRow: "auto",
+          isScheduled: false,
+          endDateTime: Date.now(),
+          startDateTime: Date.now(),
+          visibility: "all",
+          resourceIds: [],
         },
       },
     })),

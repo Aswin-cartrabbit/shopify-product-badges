@@ -18,6 +18,7 @@ import {
 import { QuestionCircleIcon } from "@shopify/polaris-icons";
 import ColorPickerInput from "../pickers/ColourPicker";
 import { useBadgeStore } from "@/stores/BadgeStore";
+import LabelGrid from "../LabelGrid";
 
 export default function DesignForm() {
   const {
@@ -59,7 +60,7 @@ export default function DesignForm() {
       value: "helvetica",
     },
     {
-      label: "Arial (Classic and readable)",
+      label: "Arial (ClassNclassNameic and readable)",
       value: "arial",
     },
     {
@@ -109,6 +110,8 @@ export default function DesignForm() {
             onChange={(value) => updateDesign("template", value)}
             helpText="Pre-built designs optimized for conversions. You can customize any template after selection."
           />
+
+          <LabelGrid />
         </BlockStack>
 
         <Bleed marginInline="400">
@@ -228,7 +231,6 @@ export default function DesignForm() {
                 updateDesign("cornerRadius", parseInt(value) || 8)
               }
               autoComplete=""
-              helpText="0px = square, 8px = slightly rounded"
             />
           </div>
         </InlineStack>
@@ -268,9 +270,6 @@ export default function DesignForm() {
             <TooltipIcon content="Inside spacing controls padding within the badge. Outside spacing controls distance from other elements." />
           </InlineStack>
 
-          <Text as="p" variant="bodyMd" tone="subdued">
-            Inside Spacing (Padding)
-          </Text>
           <InlineStack gap="200" wrap={false} align="center" direction={"row"}>
             <TextField
               label="Top padding"
@@ -281,22 +280,19 @@ export default function DesignForm() {
               onChange={(val) => updateSpacing("insideTop", val)}
               helpText="Space above content"
             />
-            <Box paddingBlockStart={"600"}>
-              <TextField
-                label="Bottom padding"
-                type="number"
-                suffix="px"
-                value={badge.design.spacing.insideBottom}
-                onChange={(val) => updateSpacing("insideBottom", val)}
-                autoComplete=""
-                helpText="Space below content"
-              />
-            </Box>
+            {/* <Box paddingBlockStart={"600"}> */}
+            <TextField
+              label="Bottom padding"
+              type="number"
+              suffix="px"
+              value={badge.design.spacing.insideBottom}
+              onChange={(val) => updateSpacing("insideBottom", val)}
+              autoComplete=""
+              helpText="Space below content"
+            />
+            {/* </Box> */}
           </InlineStack>
 
-          <Text as="p" variant="bodyMd" tone="subdued">
-            Outside Spacing (Margins)
-          </Text>
           <InlineStack gap="200" wrap={false}>
             <TextField
               label="Top margin"
@@ -324,7 +320,7 @@ export default function DesignForm() {
         </Bleed>
 
         <BlockStack gap="400">
-          <InlineStack gap="100" align="center">
+          <InlineStack gap="100" align="start">
             <Text variant="headingMd" as={"h3"}>
               Icon Styling
             </Text>
@@ -341,62 +337,50 @@ export default function DesignForm() {
               onChange={(value) => updateDisplay("iconSize", value)}
               autoComplete="off"
               helpText="Recommended: 16-32px"
-            />
-            <TextField
-              label="Icon color (hex code)"
-              value={badge.display.iconColor}
-              onChange={(value) => updateDisplay("iconColor", value)}
-              autoComplete="off"
-              helpText="e.g. #FF0000 for red"
-            />
+            />{" "}
           </InlineStack>
-
-          <Checkbox
-            label="Keep original icon colors"
-            checked={badge.display.useOriginal}
-            onChange={(checked) => updateDisplay("useOriginal", checked)}
-            helpText="When enabled, icons will display in their original colors instead of the custom color above"
-          />
 
           {/* Background color */}
           <Box>
-            <InlineStack gap="100" align="center">
+            <InlineStack gap="100" align="start">
               <Text as="p" variant="bodyMd">
                 Icon Background Color
               </Text>
               <TooltipIcon content="Add a background color behind icons for better visibility" />
             </InlineStack>
             <ColorPickerInput
-              label="Background color"
+              label=""
               onChange={(value: string) => updateDisplay("bgColor", value)}
               value={badge.display.bgColor}
             />
           </Box>
 
           {/* Corner radius */}
-          <Box maxWidth="120px">
-            <InlineStack gap="100" align="center">
+          <Box maxWidth="200px">
+            <InlineStack gap="100" align="start">
               <Text as="p" variant="bodyMd">
-                Icon Corner Roundness
+                Icon Corner
               </Text>
               <TooltipIcon content="Make icon backgrounds more or less rounded" />
             </InlineStack>
-            <TextField
-              label="Corner radius"
-              labelHidden
-              type="number"
-              suffix="px"
-              value={badge.design.cornerRadius.toString()}
-              onChange={(value) =>
-                updateDesign("cornerRadius", parseInt(value) || 8)
-              }
-              autoComplete="off"
-            />
+            <Box maxWidth="120px">
+              <TextField
+                label="Corner radius"
+                labelHidden
+                type="number"
+                suffix="px"
+                value={badge.design.cornerRadius.toString()}
+                onChange={(value) =>
+                  updateDesign("cornerRadius", parseInt(value) || 8)
+                }
+                autoComplete="off"
+              />
+            </Box>
           </Box>
 
           {/* Row display */}
-          <BlockStack gap="200">
-            <InlineStack gap="100" align="center">
+          {/* <BlockStack gap="200">
+            <InlineStack gap="100" align="start">
               <Text as="h4" variant="bodyMd">
                 Icons Per Row
               </Text>
@@ -418,7 +402,7 @@ export default function DesignForm() {
                 helpText="For phones and tablets"
               />
             </InlineStack>
-          </BlockStack>
+          </BlockStack> */}
 
           <Bleed marginInline="400">
             <Divider />
@@ -426,7 +410,7 @@ export default function DesignForm() {
         </BlockStack>
 
         <BlockStack gap="400">
-          <InlineStack gap="100" align="center">
+          <InlineStack gap="100" align="start">
             <Text variant="headingMd" as={"h3"}>
               Text Styling
             </Text>
