@@ -16,11 +16,9 @@ import {
   Thumbnail,
 } from "@shopify/polaris";
 import { useCallback, useState } from "react";
-import DesignForm from "./DesignForm";
 import HtmlPreviewer from "../HtmlPreviewer";
-import GridPosition from "../GridPosition";
-import { useBadgeStore } from "@/stores/BadgeStore";
 import ContentForm from "./ContentForm";
+import DesignForm from "./DesignForm";
 import DisplayForm from "./DisplayForm";
 import PlacementForm from "./PlacementForm";
 import {Modal, TitleBar, useAppBridge} from '@shopify/app-bridge-react';
@@ -36,7 +34,8 @@ export const BadgeBuilder = () => {
         return <Badge tone="success">Active</Badge>;
     }
   };
-
+  const [name, setName] = useState("Your label");
+  const [type, setType] = useState("LABEL");
   // Example usage of the getBadges function
   const currentStatus: "DRAFT" | "ACTIVE" = "ACTIVE";
 

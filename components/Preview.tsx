@@ -40,6 +40,7 @@ export default function getHtmlPreviewCode() {
     font-family: ${content.font === "own_theme" ? "inherit" : content.font.replace("_", " ")};
     margin-top: ${design.spacing.outsideTop}px;
     margin-bottom: ${design.spacing.outsideBottom}px;
+    ${design.shape ? design.shape : "none"};
   `
     .replace(/\s+/g, " ")
     .trim();
@@ -47,7 +48,6 @@ export default function getHtmlPreviewCode() {
   const positionClass = placement.position
     ? positionMap[placement.position]
     : "badge-top-right";
-  console.log(badgeStyles);
   return `<div
   style="display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:start">
   <div>
@@ -56,7 +56,8 @@ export default function getHtmlPreviewCode() {
     <div
       style="background-color:#f8f9fa;aspect-ratio:1;border-radius:0.5rem;margin-bottom:1rem;display:flex;align-items:center;justify-content:center;font-size:1.125rem;color:#6b7280">
     </div>
-    <div class="product-badge ${positionClass}" style="${badgeStyles}">${content.text}</div>
+    <div class="product-badge ${positionClass}" style="${badgeStyles}">${content.text}</div> 
+    ${design.shape}
     </div>
     <div style="display:flex;gap:0.5rem">
       <div

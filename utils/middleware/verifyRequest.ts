@@ -15,12 +15,12 @@ import validateJWT from "../validateJWT";
 const verifyRequest = async (req, res, next) => {
   try {
     const authHeader = req.headers["authorization"];
+    const storeId = req.headers["x-shopify-storefront-id"];
     if (!authHeader) {
       throw Error("No authorization header found.");
     }
-
+    console.log(storeId);
     const payload = validateJWT(authHeader.split(" ")[1]);
-
     let shop = shopify.utils.sanitizeShop(payload.dest.replace("https://", ""));
     if (!shop) {
       throw Error("No shop found, not a valid request");
@@ -34,7 +34,7 @@ const verifyRequest = async (req, res, next) => {
 
     let session = await sessionHandler.loadSession(sessionId);
     if (!session) {
-      session = await getSession({ shop, authHeader });
+      session = await getSession({ shop, authHeader, storeId });
     }
 
     if (
@@ -42,7 +42,7 @@ const verifyRequest = async (req, res, next) => {
       shopify.config.scopes.equals(session?.scope)
     ) {
     } else {
-      session = await getSession({ shop, authHeader });
+      session = await getSession({ shop, authHeader, storeId });
     }
 
     //Add session and shop to the request object so any subsequent routes that use this middleware can access it
@@ -73,7 +73,7 @@ export default verifyRequest;
  * @returns {Promise<Session>} The online session object
  */
 
-async function getSession({ shop, authHeader }) {
+async function getSession({ shop, authHeader, storeId }) {
   try {
     const sessionToken = authHeader.split(" ")[1];
 
@@ -83,7 +83,7 @@ async function getSession({ shop, authHeader }) {
       requestedTokenType: RequestedTokenType.OnlineAccessToken,
     });
 
-    await sessionHandler.storeSession(onlineSession);
+    await sessionHandler.storeSession({ ...onlineSession, storeId });
 
     const { session: offlineSession } = await shopify.auth.tokenExchange({
       sessionToken,
@@ -91,7 +91,7 @@ async function getSession({ shop, authHeader }) {
       requestedTokenType: RequestedTokenType.OfflineAccessToken,
     });
 
-    await sessionHandler.storeSession(offlineSession);
+    await sessionHandler.storeSession({ ...offlineSession, storeId });
 
     return new Session(onlineSession);
   } catch (e) {
