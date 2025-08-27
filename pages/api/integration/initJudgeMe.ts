@@ -5,7 +5,7 @@ const initJudgeMe = async (req, res) => {
   }
 
   const clientId = process.env.JUDGEME_CLIENT_ID;
-  const redirectUri = `${process.env.SHOPIFY_APP_URL}/api/judgeme/callback`;
+  const redirectUri = `${process.env.SHOPIFY_APP_URL}/api/auth/judgeme/callback`;
   const scopes = "reviews.read reviews.write"; // adjust based on Judge.me docs
   const state = "randomstring123"; // ideally a cryptographically secure random string
 
