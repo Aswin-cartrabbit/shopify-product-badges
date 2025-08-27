@@ -1,4 +1,5 @@
 import ReviewBanner from "@/components/banners/ReviewBanner";
+import isInitialLoad from "@/utils/middleware/isInitialLoad";
 import {
   Page,
   Card,
@@ -14,7 +15,10 @@ import {
 } from "@shopify/polaris";
 import { AppsIcon } from "@shopify/polaris-icons";
 import { useRouter } from "next/router";
-
+export async function getServerSideProps(context) {
+  //DO NOT REMOVE THIS.
+  return await isInitialLoad(context);
+}
 export default function Dashboard() {
   const recommendedApps = [
     {
