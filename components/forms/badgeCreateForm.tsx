@@ -15,7 +15,8 @@ import {
   TextField,
   Thumbnail,
 } from "@shopify/polaris";
-import { useCallback, useState } from "react";
+import { useCallback, useState, useEffect } from "react";
+import { useBadgeStore } from "@/stores/BadgeStore";
 import HtmlPreviewer from "../HtmlPreviewer";
 import ContentForm from "./ContentForm";
 import DesignForm from "./DesignForm";
@@ -23,7 +24,19 @@ import DisplayForm from "./DisplayForm";
 import PlacementForm from "./PlacementForm";
 import {Modal, TitleBar, useAppBridge} from '@shopify/app-bridge-react';
 
-export const BadgeBuilder = () => {
+interface BadgeBuilderProps {
+  type?: "BADGE" | "LABEL";
+  selectedTemplate?: any;
+  onSave?: (data: any) => void;
+  onCancel?: () => void;
+}
+
+export const BadgeBuilder = ({ 
+  type = "BADGE", 
+  selectedTemplate, 
+  onSave,
+  onCancel 
+}: BadgeBuilderProps) => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(true);
   
   const getBadges = (status: "DRAFT" | "ACTIVE") => {
@@ -34,12 +47,80 @@ export const BadgeBuilder = () => {
         return <Badge tone="success">Active</Badge>;
     }
   };
-  const [name, setName] = useState("Your label");
-  const [type, setType] = useState("LABEL");
+  const [name, setName] = useState(`Your ${type.toLowerCase()}`);
+  const [componentType, setComponentType] = useState(type);
   // Example usage of the getBadges function
   const currentStatus: "DRAFT" | "ACTIVE" = "ACTIVE";
 
   const [selectedTab, setSelectedTab] = useState<number>(0);
+  const [formData, setFormData] = useState<any>({
+    name: selectedTemplate?.text || selectedTemplate?.alt || name,
+    type: componentType,
+    design: selectedTemplate || {},
+    display: {},
+    placement: {},
+    settings: {}
+  });
+
+  // Update formData when selectedTemplate changes
+  useEffect(() => {
+    if (selectedTemplate) {
+      setFormData(prev => ({
+        ...prev,
+        name: selectedTemplate.text || selectedTemplate.alt || `New ${componentType.toLowerCase()}`,
+        design: selectedTemplate
+      }));
+    }
+  }, [selectedTemplate, componentType]);
+
+  const { updateContent, updateDesign, clearBadge } = useBadgeStore();
+
+  // Initialize the badge store with selected template data
+  useEffect(() => {
+    // Clear previous badge data to avoid state issues
+    clearBadge();
+    
+    if (selectedTemplate) {
+      // For text templates
+      if (selectedTemplate.text && !selectedTemplate.src) {
+        updateContent("text", selectedTemplate.text);
+        updateContent("icon", "");
+        updateContent("iconUploaded", false);
+        
+        if (selectedTemplate.style) {
+          // Convert template styles to badge store format
+          if (selectedTemplate.style.background) {
+            updateDesign("color", selectedTemplate.style.background);
+            updateDesign("background", "solid");
+          }
+          
+          if (selectedTemplate.style.borderRadius) {
+            const radius = typeof selectedTemplate.style.borderRadius === 'string' 
+              ? parseInt(selectedTemplate.style.borderRadius.replace('px', '')) 
+              : parseInt(selectedTemplate.style.borderRadius);
+            updateDesign("cornerRadius", radius || 0);
+          }
+          
+          // Handle clip-path as shape
+          if (selectedTemplate.style.clipPath) {
+            updateDesign("shape", `clip-path: ${selectedTemplate.style.clipPath}`);
+          }
+          
+          // Set template identifier
+          updateDesign("template", `Template_${selectedTemplate.id}`);
+        }
+      }
+      
+      // For image templates
+      if (selectedTemplate.src) {
+        updateContent("icon", selectedTemplate.src);
+        updateContent("iconUploaded", true);
+        updateContent("text", selectedTemplate.alt || "");
+        // No shapes for image templates
+        updateDesign("shape", "");
+      }
+    }
+  }, [selectedTemplate, updateContent, updateDesign, clearBadge]);
 
   const handleTabChange = useCallback(
     (selectedTabIndex: any) => {
@@ -49,20 +130,80 @@ export const BadgeBuilder = () => {
     []
   );
 
+  const handleSave = async () => {
+    try {
+      const { badge } = useBadgeStore.getState();
+      
+      const payload = {
+        name: formData.name || name,
+        type: componentType,
+        design: {
+          templates: selectedTemplate ? {
+            id: selectedTemplate.id,
+            type: selectedTemplate.src ? "image" : "text",
+            data: selectedTemplate
+          } : badge.design,
+          ...badge.design
+        },
+        display: {
+          rules: badge.display,
+          ...formData.display
+        },
+        settings: {
+          content: badge.content,
+          placement: badge.placement,
+          ...formData.settings
+        },
+        status: "DRAFT"
+      };
+
+      console.log("Saving payload:", payload);
+
+      if (onSave) {
+        onSave(payload);
+      } else {
+        // Default API call if no custom onSave handler
+        const response = await fetch('/api/badge/create', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        });
+
+        if (response.ok) {
+          console.log(`${componentType} created successfully`);
+          setIsModalOpen(false);
+        } else {
+          console.error(`Failed to create ${componentType}`);
+        }
+      }
+    } catch (error) {
+      console.error(`Error creating ${componentType}:`, error);
+    }
+  };
+
+  const handleCancel = () => {
+    if (onCancel) {
+      onCancel();
+    } else {
+      setIsModalOpen(false);
+    }
+  };
+
   return (
     <Modal variant="max" open={isModalOpen}>
       <TitleBar title="Badge Editor" />
       <Page
         fullWidth
         backAction={{ content: "Products", url: "#" }}
-        title="Your badge"
+        title={`Your ${componentType.toLowerCase()}`}
         titleMetadata={getBadges(currentStatus)}
-        subtitle="Badge ID: 303cad73-3c53-481c-bad5-7f1fd81ea330"
-        // compactTitle
+        subtitle={`${componentType.charAt(0) + componentType.slice(1).toLowerCase()} Editor`}
         primaryAction={{
           content: "Save",
           disabled: false,
-          onAction: () => alert("Save action"),
+          onAction: handleSave,
         }}
         secondaryActions={[
           {
@@ -76,7 +217,7 @@ export const BadgeBuilder = () => {
           },
           {
             content: "Close",
-            onAction: () => setIsModalOpen(false),
+            onAction: handleCancel,
           },
         ]}
       >
@@ -119,10 +260,37 @@ export const BadgeBuilder = () => {
           }}
         >
           <div>
-            {selectedTab === 0 && <ContentForm />}
-            {selectedTab === 1 && <DesignForm />}
-            {selectedTab === 2 && <PlacementForm />}
-            {selectedTab === 3 && <DisplayForm />}
+            {selectedTab === 0 && (
+              <ContentForm 
+                data={selectedTemplate}
+                onChange={(data) => setFormData({...formData, ...data})}
+                type={componentType}
+                badgeName={formData.name}
+                setBadgeName={(name) => setFormData({...formData, name})}
+              />
+            )}
+            {selectedTab === 1 && (
+              <DesignForm 
+                data={formData}
+                onChange={(data) => setFormData({...formData, design: data})}
+                selectedTemplate={selectedTemplate}
+                type={componentType}
+              />
+            )}
+            {selectedTab === 2 && (
+              <PlacementForm 
+                data={formData}
+                onChange={(data) => setFormData({...formData, placement: data})}
+                type={componentType}
+              />
+            )}
+            {selectedTab === 3 && (
+              <DisplayForm 
+                data={formData}
+                onChange={(data) => setFormData({...formData, display: data})}
+                type={componentType}
+              />
+            )}
           </div>
           <div
             style={{
@@ -133,7 +301,7 @@ export const BadgeBuilder = () => {
             }}
           >
             <Card>
-              <HtmlPreviewer />
+              <HtmlPreviewer selectedTemplate={selectedTemplate} />
             </Card>
           </div>
         </div>

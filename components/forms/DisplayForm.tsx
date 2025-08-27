@@ -21,7 +21,13 @@ import { DateTimePicker } from "../pickers/DateTimePicker";
 import { QuestionCircleIcon, CalendarTimeIcon } from "@shopify/polaris-icons";
 import { useBadgeStore } from "@/stores/BadgeStore";
 
-const DisplayForm = () => {
+interface DisplayFormProps {
+  data?: any;
+  onChange?: (data: any) => void;
+  type?: string;
+}
+
+const DisplayForm = ({ data, onChange, type }: DisplayFormProps) => {
   const [visibility, setVisibility] = useState<"all" | "single" | "multiple">(
     "all"
   );

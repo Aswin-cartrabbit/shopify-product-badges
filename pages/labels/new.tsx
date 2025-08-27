@@ -12,7 +12,7 @@ import { useEffect, useState } from "react";
 import { BadgeBuilder } from "@/components/forms/badgeCreateForm";
 import { getTemplateById } from "@/utils/templateData";
 
-export default function ChooseBadgeType() {
+export default function ChooseLabelType() {
   const router = useRouter();
   const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
   const [showBuilder, setShowBuilder] = useState(false);
@@ -35,7 +35,7 @@ export default function ChooseBadgeType() {
     }
   }, [router.query]);
 
-  const handleSave = async (badgeData: any) => {
+  const handleSave = async (labelData: any) => {
     try {
       const response = await fetch('/api/badge/create', {
         method: 'POST',
@@ -43,37 +43,38 @@ export default function ChooseBadgeType() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          ...badgeData,
-          type: 'BADGE'
+          ...labelData,
+          type: 'LABEL'
         }),
       });
 
       if (response.ok) {
-        router.push('/badges');
+        router.push('/labels');
       } else {
-        console.error('Failed to create badge');
+        console.error('Failed to create label');
       }
     } catch (error) {
-      console.error('Error creating badge:', error);
+      console.error('Error creating label:', error);
     }
   };
 
   const handleCancel = () => {
-    router.push('/badges');
+    router.push('/labels');
   };
 
   if (showBuilder) {
     return (
       <BadgeBuilder 
-        type="BADGE"
+        type="LABEL"
         selectedTemplate={selectedTemplate}
         onSave={handleSave}
         onCancel={handleCancel}
       />
     );
   }
+
   return (
-    <Page title="Choose badge type">
+    <Page title="Choose label type">
       <InlineStack gap="400" align="start" wrap={false}>
         {/* Product Page */}
         <Card>
@@ -96,10 +97,10 @@ export default function ChooseBadgeType() {
             <Button
               fullWidth
               onClick={() => {
-                router.push("/badges/create");
+                router.push("/labels/create");
               }}
             >
-              Select this badge type
+              Select this label type
             </Button>
           </BlockStack>
         </Card>
@@ -122,16 +123,16 @@ export default function ChooseBadgeType() {
                 <Badge tone="info">Essential plan</Badge>
               </InlineStack>
               <Text variant="bodyMd" as="p">
-                Add a badge block to cart page or cart drawer.
+                Add a label block to cart page or cart drawer.
               </Text>
             </BlockStack>
             <Button
               fullWidth
               onClick={() => {
-                router.push("/badges/create");
+                router.push("/labels/create");
               }}
             >
-              Select this badge type
+              Select this label type
             </Button>
           </BlockStack>
         </Card>
@@ -166,7 +167,7 @@ export default function ChooseBadgeType() {
             <Button
               fullWidth
               onClick={() => {
-                router.push("/badges/create");
+                router.push("/labels/create");
               }}
             >
               View app

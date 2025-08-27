@@ -10,29 +10,92 @@ import {
   Text,
   Badge,
 } from "@shopify/polaris";
-import { useCallback, useState } from "react";
+import { useCallback, useState, useEffect } from "react";
 import { useBadgeStore } from "@/stores/BadgeStore";
 import React from "react";
 
-const ContentForm = ({ badgeName, setBadgeName }) => {
+interface ContentFormProps {
+  data?: any;
+  onChange?: (data: any) => void;
+  type?: string;
+  badgeName?: string;
+  setBadgeName?: (name: string) => void;
+}
+
+const ContentForm = ({ data, onChange, type = "BADGE", badgeName, setBadgeName }: ContentFormProps) => {
   const { badge, updateContent } = useBadgeStore();
+  
+  // Local state for form fields
+  const [localName, setLocalName] = useState("");
+  const [localText, setLocalText] = useState("");
+
+  // Initialize local state from props/data
+  useEffect(() => {
+    if (data) {
+      const initialName = badgeName || 
+        data?.name || 
+        (data?.text ? `${data.text} ${type.toLowerCase()}` : "") ||
+        (data?.alt ? `${data.alt} ${type.toLowerCase()}` : "") ||
+        `New ${type.toLowerCase()}`;
+      
+      setLocalName(initialName);
+      setLocalText(data?.text || badge.content.text || "");
+    }
+  }, [data?.id, data?.text, data?.alt, badgeName, type]); // Only trigger when template actually changes
+
   // Local state for form elements not directly related to badge data
 
   const handleBadgeChange = useCallback(
-    (newValue: string) => setBadgeName(newValue),
-    []
+    (newValue: string) => {
+      setLocalName(newValue);
+      if (setBadgeName) {
+        setBadgeName(newValue);
+      }
+      if (onChange) {
+        onChange({ name: newValue });
+      }
+    },
+    [setBadgeName, onChange]
+  );
+
+  const handleTextChange = useCallback(
+    (newValue: string) => {
+      setLocalText(newValue);
+      updateContent("text", newValue);
+      if (onChange) {
+        onChange({ text: newValue });
+      }
+    },
+    [updateContent, onChange]
+  );
+
+  const handleContentChange = useCallback(
+    (field: keyof import('@/stores/BadgeStore').BadgeContent, value: any) => {
+      updateContent(field, value);
+      if (onChange) {
+        onChange({ [field]: value });
+      }
+    },
+    [updateContent, onChange]
   );
 
   const handleRemoveIcon = useCallback(() => {
     updateContent("icon", "");
     updateContent("iconUploaded", false);
-  }, [updateContent]);
+    if (onChange) {
+      onChange({ icon: "", iconUploaded: false });
+    }
+  }, [updateContent, onChange]);
 
   const handleUploadIcon = useCallback(() => {
     // You'd trigger file input here
-    updateContent("icon", "/icons/truck.png");
+    const iconUrl = "/icons/truck.png";
+    updateContent("icon", iconUrl);
     updateContent("iconUploaded", true);
-  }, [updateContent]);
+    if (onChange) {
+      onChange({ icon: iconUrl, iconUploaded: true });
+    }
+  }, [updateContent, onChange]);
 
   const ctaOptions = [
     { label: "No call to action", value: "noCta" },
@@ -44,10 +107,10 @@ const ContentForm = ({ badgeName, setBadgeName }) => {
     <Card>
       <BlockStack>
         <TextField
-          label="Badge name"
-          value={badgeName}
+          label={`${type.charAt(0) + type.slice(1).toLowerCase()} name`}
+          value={localName}
           onChange={handleBadgeChange}
-          placeholder="Your badge"
+          placeholder={`Your ${type.toLowerCase()}`}
           autoComplete="off"
           helpText={
             <Text variant="bodySm" tone="subdued" as="p">
@@ -68,8 +131,8 @@ const ContentForm = ({ badgeName, setBadgeName }) => {
       <BlockStack gap={"400"}>
         <TextField
           label="Title"
-          value={badge.content.text}
-          onChange={(value) => updateContent("text", value)}
+          value={localText}
+          onChange={handleTextChange}
           autoComplete="off"
         />
 

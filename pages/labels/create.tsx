@@ -22,7 +22,7 @@ import {
 
 export default function CreateLabel() {
   const [selectedTab, setSelectedTab] = useState(0);
-  const [selectedLabel, setSelectedLabel] = useState<string | null>(null);
+
   const [selectedCategory, setSelectedCategory] = useState("Sales");
   const [aiPrompt, setAiPrompt] = useState("");
   const router = useRouter();
@@ -567,7 +567,19 @@ export default function CreateLabel() {
   ];
 
   const handleLabelSelect = (labelId: string) => {
-    setSelectedLabel(labelId);
+    // Find the selected template data
+    const selectedTemplate = [...textLabels, ...imageLabels].find(
+      (template) => template.id === labelId
+    );
+    
+    // Immediately navigate to customization page with selected template
+    router.push({
+      pathname: "/labels/new",
+      query: { 
+        template: labelId,
+        templateData: JSON.stringify(selectedTemplate)
+      }
+    });
   };
 
   const renderTextLabels = () => {
@@ -783,12 +795,12 @@ export default function CreateLabel() {
           
           {/* Select Button */}
           <Button 
-            variant={selectedLabel === label.id ? "primary" : "secondary"}
+            variant="secondary"
             onClick={() => handleLabelSelect(label.id)}
             size="medium"
             fullWidth
           >
-            {selectedLabel === label.id ? "Selected" : "Select"}
+            Select
           </Button>
         </div>
         ))}
@@ -982,12 +994,12 @@ export default function CreateLabel() {
           
           {/* Select Button */}
           <Button 
-            variant={selectedLabel === label.id ? "primary" : "secondary"}
+            variant="secondary"
             onClick={() => handleLabelSelect(label.id)}
             size="medium"
             fullWidth
           >
-            {selectedLabel === label.id ? "Selected" : "Select"}
+            Select
           </Button>
         </div>
         ))}
@@ -1264,31 +1276,7 @@ export default function CreateLabel() {
           </div>
         </Card>
 
-        {/* Footer actions */}
-        {selectedLabel && (
-          <div style={{ 
-            position: "fixed", 
-            bottom: "20px", 
-            right: "20px",
-            zIndex: 1000
-          }}>
-            <InlineStack gap="200">
-              <Button onClick={() => setSelectedLabel(null)}>
-                Cancel
-              </Button>
-              <Button 
-                variant="primary"
-                onClick={() => {
-                  // Navigate to customization page with selected template
-                  console.log("Selected label:", selectedLabel);
-                  // router.push(`/labels/customize?template=${selectedLabel}`);
-                }}
-              >
-                Customize Label
-              </Button>
-            </InlineStack>
-          </div>
-        )}
+
       </div>
     </div>
     </>

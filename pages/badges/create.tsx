@@ -22,7 +22,7 @@ import {
 
 export default function CreateBadge() {
   const [selectedTab, setSelectedTab] = useState(0);
-  const [selectedBadge, setSelectedBadge] = useState<string | null>(null);
+
   const [selectedCategory, setSelectedCategory] = useState("Sales");
   const [aiPrompt, setAiPrompt] = useState("");
   const router = useRouter();
@@ -567,7 +567,19 @@ export default function CreateBadge() {
   ];
 
   const handleBadgeSelect = (badgeId: string) => {
-    setSelectedBadge(badgeId);
+    // Find the selected template data
+    const selectedTemplate = [...textBadges, ...imageBadges].find(
+      (template) => template.id === badgeId
+    );
+    
+    // Immediately navigate to customization page with selected template
+    router.push({
+      pathname: "/badges/new",
+      query: { 
+        template: badgeId,
+        templateData: JSON.stringify(selectedTemplate)
+      }
+    });
   };
 
   const renderTextBadges = () => {
@@ -783,12 +795,12 @@ export default function CreateBadge() {
           
           {/* Select Button */}
           <Button 
-            variant={selectedBadge === badge.id ? "primary" : "secondary"}
+            variant="secondary"
             onClick={() => handleBadgeSelect(badge.id)}
             size="medium"
             fullWidth
           >
-            {selectedBadge === badge.id ? "Selected" : "Select"}
+            Select
           </Button>
         </div>
         ))}
@@ -982,12 +994,12 @@ export default function CreateBadge() {
           
           {/* Select Button */}
           <Button 
-            variant={selectedBadge === badge.id ? "primary" : "secondary"}
+            variant="secondary"
             onClick={() => handleBadgeSelect(badge.id)}
             size="medium"
             fullWidth
           >
-            {selectedBadge === badge.id ? "Selected" : "Select"}
+            Select
           </Button>
         </div>
         ))}
@@ -1223,31 +1235,7 @@ export default function CreateBadge() {
           </div>
         </Card>
 
-        {/* Footer actions */}
-        {selectedBadge && (
-          <div style={{ 
-            position: "fixed", 
-            bottom: "20px", 
-            right: "20px",
-            zIndex: 1000
-          }}>
-            <InlineStack gap="200">
-              <Button onClick={() => setSelectedBadge(null)}>
-                Cancel
-              </Button>
-              <Button 
-                variant="primary"
-                onClick={() => {
-                  // Navigate to customization page with selected template
-                  console.log("Selected badge:", selectedBadge);
-                  // router.push(`/badges/customize?template=${selectedBadge}`);
-                }}
-              >
-                Customize Badge
-              </Button>
-            </InlineStack>
-          </div>
-        )}
+
       </div>
     </div>
     </>

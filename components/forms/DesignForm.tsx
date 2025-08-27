@@ -20,7 +20,14 @@ import ColorPickerInput from "../pickers/ColourPicker";
 import { useBadgeStore } from "@/stores/BadgeStore";
 import LabelGrid from "../LabelGrid";
 
-export default function DesignForm() {
+interface DesignFormProps {
+  data?: any;
+  onChange?: (data: any) => void;
+  selectedTemplate?: any;
+  type?: string;
+}
+
+export default function DesignForm({ data, onChange, selectedTemplate, type }: DesignFormProps) {
   const {
     badge,
     updateContent,
@@ -29,6 +36,14 @@ export default function DesignForm() {
     updateDisplay,
     updateSpacing,
   } = useBadgeStore();
+
+  // Enhanced updateDesign with onChange notification
+  const handleDesignChange = (key: any, value: any) => {
+    updateDesign(key, value);
+    if (onChange) {
+      onChange({ [key]: value });
+    }
+  };
 
   const templateOptions = [
     {
@@ -107,7 +122,7 @@ export default function DesignForm() {
             labelHidden
             options={templateOptions}
             value={badge.design.template}
-            onChange={(value) => updateDesign("template", value)}
+            onChange={(value) => handleDesignChange("template", value)}
             helpText="Pre-built designs optimized for conversions. You can customize any template after selection."
           />
 
@@ -135,7 +150,7 @@ export default function DesignForm() {
             checked={badge.design.background === "single"}
             id="single"
             name="background"
-            onChange={() => updateDesign("background", "single")}
+            onChange={() => handleDesignChange("background", "single")}
             helpText="Perfect for minimal, professional looks"
           />
           <RadioButton
@@ -143,7 +158,7 @@ export default function DesignForm() {
             checked={badge.design.background === "gradient"}
             id="gradient"
             name="background"
-            onChange={() => updateDesign("background", "gradient")}
+            onChange={() => handleDesignChange("background", "gradient")}
             helpText="Creates depth and draws attention"
           />
         </BlockStack>
@@ -164,7 +179,7 @@ export default function DesignForm() {
               value={badge.design.gradientAngle}
               onChange={(value) => {
                 if (typeof value === "number") {
-                  updateDesign("gradientAngle", value);
+                  handleDesignChange("gradientAngle", value);
                 }
               }}
               output
@@ -179,7 +194,7 @@ export default function DesignForm() {
                   <TooltipIcon content="The color your gradient starts with" />
                 </InlineStack>
                 <ColorPickerInput
-                  onChange={(value: string) => updateDesign("gradient1", value)}
+                  onChange={(value: string) => handleDesignChange("gradient1", value)}
                   value={badge.design.gradient1}
                 />
               </Box>
@@ -191,7 +206,7 @@ export default function DesignForm() {
                   <TooltipIcon content="The color your gradient transitions to" />
                 </InlineStack>
                 <ColorPickerInput
-                  onChange={(value: string) => updateDesign("gradient2", value)}
+                  onChange={(value: string) => handleDesignChange("gradient2", value)}
                   value={badge.design.gradient2}
                 />
               </Box>
@@ -207,7 +222,7 @@ export default function DesignForm() {
             </InlineStack>
             <ColorPickerInput
               value={badge.design.color}
-              onChange={(value: string) => updateDesign("color", value)}
+              onChange={(value: string) => handleDesignChange("color", value)}
             />
           </Box>
         )}
@@ -228,7 +243,7 @@ export default function DesignForm() {
               suffix="px"
               value={badge.design.cornerRadius.toString()}
               onChange={(value) =>
-                updateDesign("cornerRadius", parseInt(value) || 8)
+                handleDesignChange("cornerRadius", parseInt(value) || 8)
               }
               autoComplete=""
             />
@@ -249,14 +264,14 @@ export default function DesignForm() {
             suffix="px"
             value={badge.design.borderSize.toString()}
             onChange={(value) =>
-              updateDesign("borderSize", parseInt(value) || 0)
+              handleDesignChange("borderSize", parseInt(value) || 0)
             }
             autoComplete=""
             helpText="0px = no border"
           />
           <ColorPickerInput
             label="Border color"
-            onChange={(value: string) => updateDesign("borderColor", value)}
+            onChange={(value: string) => handleDesignChange("borderColor", value)}
             value={badge.design.borderColor}
           />
         </InlineStack>
@@ -371,7 +386,7 @@ export default function DesignForm() {
                 suffix="px"
                 value={badge.design.cornerRadius.toString()}
                 onChange={(value) =>
-                  updateDesign("cornerRadius", parseInt(value) || 8)
+                  handleDesignChange("cornerRadius", parseInt(value) || 8)
                 }
                 autoComplete="off"
               />
