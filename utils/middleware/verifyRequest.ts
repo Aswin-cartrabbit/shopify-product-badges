@@ -2,6 +2,7 @@ import sessionHandler from "@/utils/sessionHandler";
 import shopify from "@/utils/shopify";
 import { RequestedTokenType, Session } from "@shopify/shopify-api";
 import validateJWT from "../validateJWT";
+import prisma from "../prisma";
 
 /**
  *
@@ -15,12 +16,12 @@ import validateJWT from "../validateJWT";
 const verifyRequest = async (req, res, next) => {
   try {
     const authHeader = req.headers["authorization"];
-    const storeId = req.headers["x-shopify-storefront-id"];
     if (!authHeader) {
       throw Error("No authorization header found.");
     }
-    console.log(storeId);
+
     const payload = validateJWT(authHeader.split(" ")[1]);
+
     let shop = shopify.utils.sanitizeShop(payload.dest.replace("https://", ""));
     if (!shop) {
       throw Error("No shop found, not a valid request");
@@ -34,7 +35,7 @@ const verifyRequest = async (req, res, next) => {
 
     let session = await sessionHandler.loadSession(sessionId);
     if (!session) {
-      session = await getSession({ shop, authHeader, storeId });
+      session = await getSession({ shop, authHeader });
     }
 
     if (
@@ -42,13 +43,17 @@ const verifyRequest = async (req, res, next) => {
       shopify.config.scopes.equals(session?.scope)
     ) {
     } else {
-      session = await getSession({ shop, authHeader, storeId });
+      session = await getSession({ shop, authHeader });
     }
 
     //Add session and shop to the request object so any subsequent routes that use this middleware can access it
     req.user_session = session;
     req.user_shop = session.shop;
-
+    req.store = await prisma.stores.findUnique({
+      where: {
+        shop: req.user_shop,
+      },
+    });
     await next();
 
     return;
@@ -73,7 +78,7 @@ export default verifyRequest;
  * @returns {Promise<Session>} The online session object
  */
 
-async function getSession({ shop, authHeader, storeId }) {
+async function getSession({ shop, authHeader }) {
   try {
     const sessionToken = authHeader.split(" ")[1];
 
@@ -83,7 +88,7 @@ async function getSession({ shop, authHeader, storeId }) {
       requestedTokenType: RequestedTokenType.OnlineAccessToken,
     });
 
-    await sessionHandler.storeSession({ ...onlineSession, storeId });
+    await sessionHandler.storeSession(onlineSession);
 
     const { session: offlineSession } = await shopify.auth.tokenExchange({
       sessionToken,
@@ -91,7 +96,7 @@ async function getSession({ shop, authHeader, storeId }) {
       requestedTokenType: RequestedTokenType.OfflineAccessToken,
     });
 
-    await sessionHandler.storeSession({ ...offlineSession, storeId });
+    await sessionHandler.storeSession(offlineSession);
 
     return new Session(onlineSession);
   } catch (e) {

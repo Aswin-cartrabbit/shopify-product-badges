@@ -49,7 +49,6 @@ const isInitialLoad = async (context) => {
         // isFreshInstall?.isActive === false -> Reinstall
         store = await freshInstall({ shop: onlineSession.shop });
       }
-
       await sessionHandler.storeSession({
         ...offlineSession,
         storeId: store?.id ?? isFreshInstall.id,

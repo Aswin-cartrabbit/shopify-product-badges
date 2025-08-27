@@ -1,4 +1,3 @@
-import { useSessionStore } from "@/stores/sessionStore";
 import { getGetOptions } from "@/utils/const/FetchOptions";
 import {
   Badge,
@@ -50,7 +49,6 @@ export function DataTable() {
         return value;
     }
   };
-  const { storeId } = useSessionStore();
   // State management
   const [components, setComponents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -266,7 +264,6 @@ export function DataTable() {
   const handleTaggedWithRemove = useCallback(() => setTaggedWith(""), []);
 
   const handleQueryValueRemove = useCallback(() => setQueryValue(""), []);
-  console.log({ storeId });
 
   const handleFiltersClearAll = useCallback(() => {
     handleComponentTypeRemove();
@@ -320,7 +317,7 @@ export function DataTable() {
 
       const response = await fetch(
         `/api/badge?${params}`,
-        getGetOptions(storeId)
+        getGetOptions()
       );
 
       const data = await response.json();
