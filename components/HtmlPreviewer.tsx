@@ -44,13 +44,7 @@ export default function HtmlPreviewer() {
           >
             Desktop
           </Button>
-          <Button
-            pressed={device === "tablet"}
-            onClick={() => setDevice("tablet")}
-            icon={MobileIcon}
-          >
-            Tablet
-          </Button>
+         
           <Button
             pressed={device === "mobile"}
             onClick={() => setDevice("mobile")}
