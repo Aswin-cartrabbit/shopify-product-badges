@@ -66,7 +66,7 @@ export default function TrustBadges() {
             </Text>
             <Text as="p" tone="subdued">
               Enhance store's credibility and professionalism with trust badges.{" "}
-              <Button variant="plain" textDecorationLine="underline">
+              <Button variant="plain">
                 About trust badges
               </Button>
             </Text>
