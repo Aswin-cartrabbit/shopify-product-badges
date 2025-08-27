@@ -65,9 +65,9 @@ export default function Banners() {
                   Join now
                 </Button>
               </div>
-              <div style={{ padding: "12px", textAlign: "center" }}>
-                <Button variant="plain">Select</Button>
-              </div>
+                             <div style={{ padding: "12px", textAlign: "center" }}>
+                 <Button variant="primary">Select</Button>
+                </div>
             </Card>
 
             {/* Banner Template 2 - Back to School */}
@@ -85,9 +85,9 @@ export default function Banners() {
                   BACK TO SCHOOL - FREE SHIPPING FOR ORDER $50+ 🎒
                 </Text>
               </div>
-              <div style={{ padding: "12px", textAlign: "center" }}>
-                <Button variant="plain">Select</Button>
-              </div>
+                             <div style={{ padding: "12px", textAlign: "center" }}>
+                 <Button variant="primary">Select</Button>
+                </div>
             </Card>
 
             {/* Banner Template 3 - 20% Off */}
@@ -116,9 +116,9 @@ export default function Banners() {
                   Get deals now
                 </Button>
               </div>
-              <div style={{ padding: "12px", textAlign: "center" }}>
-                <Button variant="plain">Select</Button>
-              </div>
+                             <div style={{ padding: "12px", textAlign: "center" }}>
+                 <Button variant="primary">Select</Button>
+                </div>
             </Card>
 
             {/* Banner Template 4 - Collection */}
@@ -139,9 +139,9 @@ export default function Banners() {
                   Discover now
                 </Button>
               </div>
-              <div style={{ padding: "12px", textAlign: "center" }}>
-                <Button variant="plain">Select</Button>
-              </div>
+                             <div style={{ padding: "12px", textAlign: "center" }}>
+                 <Button variant="primary">Select</Button>
+                </div>
             </Card>
 
             {/* Banner Template 5 - Free Shipping */}
@@ -162,9 +162,9 @@ export default function Banners() {
                   Shop now
                 </Button>
               </div>
-              <div style={{ padding: "12px", textAlign: "center" }}>
-                <Button variant="plain">Select</Button>
-              </div>
+                             <div style={{ padding: "12px", textAlign: "center" }}>
+                 <Button variant="primary">Select</Button>
+                </div>
             </Card>
 
             {/* Banner Template 6 - Create Your Own */}
@@ -183,9 +183,9 @@ export default function Banners() {
                   Create your own design
                 </Text>
               </div>
-              <div style={{ padding: "12px", textAlign: "center" }}>
-                <Button variant="plain">Select</Button>
-              </div>
+                             <div style={{ padding: "12px", textAlign: "center" }}>
+                 <Button variant="primary">Select</Button>
+                </div>
             </Card>
           </div>
         </Card>

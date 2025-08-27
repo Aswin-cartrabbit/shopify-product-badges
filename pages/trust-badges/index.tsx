@@ -106,15 +106,15 @@ export default function TrustBadges() {
                           {template.title}
                         </Text>
                       </div>
-                      <Button 
-                        variant="plain"
-                        onClick={() => {
-                          // Handle template selection
-                          console.log('Selected template:', template.id);
-                        }}
-                      >
-                        {template.subtitle}
-                      </Button>
+                                          <Button 
+                      variant="primary"
+                      onClick={() => {
+                        // Handle template selection
+                        console.log('Selected template:', template.id);
+                      }}
+                    >
+                      {template.subtitle}
+                    </Button>
                     </InlineStack>
                   </div>
                 </div>
