@@ -8,8 +8,9 @@ import {
   EmptyState,
 } from "@shopify/polaris";
 import { useRouter } from "next/router";
+import {Modal, TitleBar, useAppBridge} from '@shopify/app-bridge-react';
 
-export default function Badges() {
+export default function Labels() {
   const router = useRouter();
 
   return (
@@ -23,12 +24,12 @@ export default function Badges() {
         <div style={{ marginBottom: "24px" }}>
           <BlockStack gap="200">
             <Text as="h1" variant="headingXl" fontWeight="medium">
-              Badges
+              Labels
             </Text>
             <Text as="p" tone="subdued">
-              Design eye-catching badges to showcase discounts, new arrivals, or special offers on your products.{" "}
-              <Button variant="plain">
-                About badges
+              Show labels inside the product image on product pages, collection pages or more.{" "}
+              <Button variant="plain" >
+                About labels
               </Button>
             </Text>
           </BlockStack>
@@ -45,10 +46,10 @@ export default function Badges() {
           }}>
             <div style={{ maxWidth: "500px", textAlign: "center" }}>
               <EmptyState
-                heading="There is no badge here"
+                heading="There is no label here"
                 action={{
-                  content: "Create badge",
-                  onAction: () => router.push("/badges/create"),
+                  content: "Create label",
+                  onAction: () => router.push("/labels/create"),
                 }}
                 secondaryAction={{
                   content: "Learn more",
@@ -56,9 +57,9 @@ export default function Badges() {
                     // Add learn more functionality
                   },
                 }}
-                image="https://u6rrdvqerrb6efrx-74627055920.shopifypreview.com/cdn/shop/files/1_a80ab60f-ca0e-4cbe-8223-6d3ac5a87cc1_720x.png?v=1754897563"
+                image="https://u6rrdvqerrb6efrx-74627055920.shopifypreview.com/cdn/shop/files/1_ef0e920c-660d-4694-8b5c-454f22a6e1d2_720x.png?v=1754898246"
               >
-                <p>Start creating badges or watch guidelines.</p>
+                <p>Start creating labels or watch guidelines.</p>
               </EmptyState>
             </div>
           </div>

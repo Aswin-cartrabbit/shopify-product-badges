@@ -56,8 +56,10 @@ const App = ({ Component, pageProps }) => {
       <PolarisProvider i18n={translations}>
         <AppBridgeProvider>
           <ui-nav-menu>
+            <Link href="/labels">Labels</Link>
             <Link href="/badges">Badges</Link>
-            <Link href="/settings">Settings</Link>
+            <Link href="/trust-badges">Trust badges</Link>
+            <Link href="/banners">Banners</Link>
           </ui-nav-menu>
           <AppLayout>
             <Component {...pageProps} />
