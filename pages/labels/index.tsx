@@ -9,7 +9,7 @@ import {
 } from "@shopify/polaris";
 import { useRouter } from "next/router";
 
-export default function Badges() {
+export default function Labels() {
   const router = useRouter();
 
   return (
@@ -23,22 +23,22 @@ export default function Badges() {
         <div style={{ marginBottom: "24px" }}>
           <BlockStack gap="200">
             <Text as="h1" variant="headingXl" fontWeight="medium">
-              Badges
+              Labels
             </Text>
             <Text as="p" tone="subdued">
-              Design eye-catching badges to showcase discounts, new arrivals, or special offers on your products.{" "}
+              Show labels inside the product image on product pages, collection pages or more.{" "}
               <Button variant="plain" textDecorationLine="underline">
-                About badges
+                About labels
               </Button>
             </Text>
           </BlockStack>
         </div>
 
-        {/* Badge Templates Gallery */}
+        {/* Label Templates Gallery */}
         <Card padding="500">
           <div style={{ marginBottom: "24px" }}>
             <Text as="h2" variant="headingMd" fontWeight="medium">
-              Badge templates
+              Label templates
             </Text>
           </div>
           
@@ -47,7 +47,7 @@ export default function Badges() {
             gridTemplateColumns: "repeat(2, 1fr)", 
             gap: "20px"
           }}>
-            {/* Badge Template 1 */}
+            {/* Label Template 1 */}
             <Card padding="400">
               <div style={{
                 display: "flex",
@@ -58,7 +58,7 @@ export default function Badges() {
               }}>
                 <img 
                   src="https://y9vv34fayuioeiup-89428984115.shopifypreview.com/cdn/shop/files/1_1_c26769d6-0a30-428d-b794-4b41dbf3699e.webp?v=1753243238"
-                  alt="Badge Template 1"
+                  alt="Label Template 1"
                   style={{
                     maxWidth: "100%",
                     height: "auto",
@@ -70,7 +70,7 @@ export default function Badges() {
                   <Button 
                     variant="plain"
                     onClick={() => {
-                      console.log('Selected badge template 1');
+                      console.log('Selected label template 1');
                     }}
                   >
                     Select
@@ -79,7 +79,7 @@ export default function Badges() {
               </div>
             </Card>
 
-            {/* Badge Template 2 */}
+            {/* Label Template 2 */}
             <Card padding="400">
               <div style={{
                 display: "flex",
@@ -90,7 +90,7 @@ export default function Badges() {
               }}>
                 <img 
                   src="https://y9vv34fayuioeiup-89428984115.shopifypreview.com/cdn/shop/files/2_5.webp?v=1753243238"
-                  alt="Badge Template 2"
+                  alt="Label Template 2"
                   style={{
                     maxWidth: "100%",
                     height: "auto",
@@ -102,7 +102,7 @@ export default function Badges() {
                   <Button 
                     variant="plain"
                     onClick={() => {
-                      console.log('Selected badge template 2');
+                      console.log('Selected label template 2');
                     }}
                   >
                     Select
@@ -111,7 +111,7 @@ export default function Badges() {
               </div>
             </Card>
 
-            {/* Badge Template 3 */}
+            {/* Label Template 3 */}
             <Card padding="400">
               <div style={{
                 display: "flex",
@@ -122,7 +122,7 @@ export default function Badges() {
               }}>
                 <img 
                   src="https://y9vv34fayuioeiup-89428984115.shopifypreview.com/cdn/shop/files/4_1.webp?v=1753243238"
-                  alt="Badge Template 3"
+                  alt="Label Template 3"
                   style={{
                     maxWidth: "100%",
                     height: "auto",
@@ -134,7 +134,7 @@ export default function Badges() {
                   <Button 
                     variant="plain"
                     onClick={() => {
-                      console.log('Selected badge template 3');
+                      console.log('Selected label template 3');
                     }}
                   >
                     Select
@@ -143,7 +143,7 @@ export default function Badges() {
               </div>
             </Card>
 
-            {/* Badge Template 4 */}
+            {/* Label Template 4 */}
             <Card padding="400">
               <div style={{
                 display: "flex",
@@ -154,7 +154,7 @@ export default function Badges() {
               }}>
                 <img 
                   src="https://y9vv34fayuioeiup-89428984115.shopifypreview.com/cdn/shop/files/5_1.webp?v=1753243238"
-                  alt="Badge Template 4"
+                  alt="Label Template 4"
                   style={{
                     maxWidth: "100%",
                     height: "auto",
@@ -166,7 +166,7 @@ export default function Badges() {
                   <Button 
                     variant="plain"
                     onClick={() => {
-                      console.log('Selected badge template 4');
+                      console.log('Selected label template 4');
                     }}
                   >
                     Select
