@@ -2,6 +2,8 @@ import sessionHandler from "@/utils/sessionHandler";
 import shopify from "@/utils/shopify";
 import { RequestedTokenType, Session } from "@shopify/shopify-api";
 import validateJWT from "../validateJWT";
+import freshInstall from "../freshInstall";
+import prisma from "../prisma";
 
 /**
  *
@@ -77,13 +79,29 @@ async function getSession({ shop, authHeader, storeId }) {
   try {
     const sessionToken = authHeader.split(" ")[1];
 
+    // Ensure we have a valid storeId by finding or creating the store
+    let resolvedStoreId = storeId;
+    if (!resolvedStoreId) {
+      // Look up existing store by shop
+      let store = await prisma.stores.findUnique({
+        where: { shop: shop }
+      });
+      
+      // If no store exists, create one
+      if (!store) {
+        store = await freshInstall({ shop });
+      }
+      
+      resolvedStoreId = store.id;
+    }
+
     const { session: onlineSession } = await shopify.auth.tokenExchange({
       sessionToken,
       shop,
       requestedTokenType: RequestedTokenType.OnlineAccessToken,
     });
 
-    await sessionHandler.storeSession({ ...onlineSession, storeId });
+    await sessionHandler.storeSession({ ...onlineSession, storeId: resolvedStoreId });
 
     const { session: offlineSession } = await shopify.auth.tokenExchange({
       sessionToken,
@@ -91,12 +109,13 @@ async function getSession({ shop, authHeader, storeId }) {
       requestedTokenType: RequestedTokenType.OfflineAccessToken,
     });
 
-    await sessionHandler.storeSession({ ...offlineSession, storeId });
+    await sessionHandler.storeSession({ ...offlineSession, storeId: resolvedStoreId });
 
     return new Session(onlineSession);
   } catch (e) {
     console.error(
       `---> Error happened while pulling session from Shopify: ${e.message}`
     );
+    throw e;
   }
 }
