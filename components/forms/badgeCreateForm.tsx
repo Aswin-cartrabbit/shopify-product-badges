@@ -14,11 +14,67 @@ import {
   Select,
   LegacyCard,
   Tabs,
+  Toast,
+  Frame,
+  Spinner,
 } from "@shopify/polaris";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useState, useEffect } from "react";
+import { useRouter } from "next/router";
 import DesignForm from "./DesignForm";
+import { useBadges, useBadge } from "@/components/hooks/useBadges";
+import { useSubscription } from "@/components/hooks/useSubscription";
+import { Badge as BadgeType, CreateBadgeData, UpdateBadgeData } from "@/utils/api/badges";
 
 export const BadgeBuilder = () => {
+  const router = useRouter();
+  const { id: badgeId } = router.query;
+  const isEditing = !!badgeId;
+  
+  // Hooks
+  const { createBadge, updateBadge } = useBadges();
+  const { badge, loading: badgeLoading, updateBadge: updateSingleBadge } = useBadge(badgeId as string);
+  const { usage } = useSubscription();
+  
+  // UI State
+  const [saving, setSaving] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [selectedTab, setSelectedTab] = useState<number>(0);
+  
+  // Form State
+  const [badgeType, setBadgeType] = useState("single");
+  const [badgeName, setBadgeName] = useState("");
+  const [status, setStatus] = useState<"DRAFT" | "ACTIVE" | "PAUSED" | "ARCHIVED">("DRAFT");
+
+  const [title, setTitle] = useState("");
+  const [subheading, setSubheading] = useState("");
+  const [icon, setIcon] = useState("");
+  const [iconUploaded, setIconUploaded] = useState(false);
+  const [ctaText, setCtaText] = useState("");
+  const [ctaUrl, setCtaUrl] = useState("");
+  
+  // Design state
+  const [designData, setDesignData] = useState<any>({});
+  const [placementData, setPlacementData] = useState<any>({});
+  const [targetingData, setTargetingData] = useState<any[]>([]);
+  
+  // Load existing badge data when editing
+  useEffect(() => {
+    if (badge && isEditing) {
+      setBadgeName(badge.name || "");
+      setBadgeType(getFormBadgeType(badge.type));
+      setStatus(badge.status);
+      setTitle(badge.title || "");
+      setSubheading(badge.subheading || "");
+      setIcon(badge.iconUrl || "");
+      setIconUploaded(!!badge.iconUrl);
+      setCtaText(badge.ctaText || "");
+      setCtaUrl(badge.ctaUrl || "");
+      setDesignData(badge.design || {});
+      setPlacementData(badge.placement || {});
+      setTargetingData(badge.targeting || []);
+    }
+  }, [badge, isEditing]);
+  
   const getBadges = (status: "DRAFT" | "ACTIVE") => {
     switch (status) {
       case "DRAFT":
@@ -27,23 +83,38 @@ export const BadgeBuilder = () => {
         return <Badge tone="success">Active</Badge>;
     }
   };
-
-  // Example usage of the getBadges function
-  const currentStatus: "DRAFT" | "ACTIVE" = "ACTIVE";
-  const [badgeType, setBadgeType] = useState("single");
-  const [badgeName, setBadgeName] = useState("");
-
+  
+  const getFormBadgeType = (apiType: string) => {
+    switch (apiType) {
+      case "SINGLE_BANNER":
+        return "single";
+      case "ICON_BLOCK":
+        return "icon";
+      case "PAYMENT_ICONS":
+        return "payment";
+      default:
+        return "single";
+    }
+  };
+  
+  const getApiBadgeType = (formType: string) => {
+    switch (formType) {
+      case "single":
+        return "SINGLE_BANNER";
+      case "icon":
+        return "ICON_BLOCK";
+      case "payment":
+        return "PAYMENT_ICONS";
+      default:
+        return "SINGLE_BANNER";
+    }
+  };
+  
   const handleBadgeChange = useCallback(
     (newValue) => setBadgeName(newValue),
     []
   );
   const handleBadgeTypeChange = useCallback((value) => setBadgeType(value), []);
-  const [title, setTitle] = useState("Free Shipping");
-  const [subheading, setSubheading] = useState(
-    "Delivered to Your doorstep, on us!"
-  );
-  const [icon, setIcon] = useState("/icons/truck.png"); // Example placeholder
-  const [iconUploaded, setIconUploaded] = useState(true);
 
   const handleTitleChange = useCallback((value) => setTitle(value), []);
   const handleSubheadingChange = useCallback(
@@ -68,6 +139,54 @@ export const BadgeBuilder = () => {
   const [selected, setSelected] = useState("noCta");
 
   const handleSelectChange = useCallback((value) => setSelected(value), []);
+  
+  const handleSave = async (shouldActivate = false) => {
+    if (!badgeName.trim()) {
+      setToastMessage("Badge name is required");
+      return;
+    }
+    
+    if (usage && !isEditing && usage.badges.current >= usage.badges.limit) {
+      setToastMessage("Badge limit reached. Please upgrade your plan.");
+      return;
+    }
+    
+    setSaving(true);
+    
+    try {
+      const badgeData = {
+        name: badgeName,
+        type: getApiBadgeType(badgeType) as any,
+        title: title || undefined,
+        subheading: subheading || undefined,
+        iconUrl: icon || undefined,
+        ctaText: ctaText || undefined,
+        ctaUrl: ctaUrl || undefined,
+        status: shouldActivate ? "ACTIVE" : status,
+        design: Object.keys(designData).length > 0 ? designData : undefined,
+        placement: Object.keys(placementData).length > 0 ? placementData : undefined,
+        targeting: targetingData.length > 0 ? targetingData : undefined,
+      };
+      
+      if (isEditing) {
+        await updateSingleBadge(badgeData as UpdateBadgeData);
+        setToastMessage("Badge updated successfully");
+      } else {
+        const newBadge = await createBadge(badgeData as CreateBadgeData);
+        setToastMessage("Badge created successfully");
+        router.push(`/badges/create?id=${newBadge.id}`);
+      }
+      
+      if (shouldActivate) {
+        setStatus("ACTIVE");
+      }
+    } catch (error) {
+      setToastMessage(error instanceof Error ? error.message : "Failed to save badge");
+    } finally {
+      setSaving(false);
+    }
+  };
+  
   const tabs = [
     {
       id: "content",
@@ -86,7 +205,6 @@ export const BadgeBuilder = () => {
       panelID: "placement",
     },
   ];
-  const [selectedTab, setSelectedTab] = useState<number>(0);
 
   const handleTabChange = useCallback(
     (selectedTabIndex: any) => setSelectedTab(selectedTabIndex),
@@ -261,12 +379,33 @@ export const BadgeBuilder = () => {
           <Divider />
         </Bleed>
       </div>
-      <Button fullWidth>Continue to design</Button>
+      <InlineStack gap="200">
+        <Button 
+          fullWidth 
+          loading={saving}
+          onClick={() => handleSave(false)}
+        >
+          Save as Draft
+        </Button>
+        <Button 
+          fullWidth 
+          variant="primary"
+          loading={saving}
+          onClick={() => handleSave(true)}
+        >
+          Save & Activate
+        </Button>
+      </InlineStack>
     </Card>
   );
 
   // Design Tab Component
-  const DesignTab = () => <DesignForm />;
+  const DesignTab = () => (
+    <DesignForm 
+      data={designData} 
+      onChange={setDesignData}
+    />
+  );
 
   // Placement Tab Component
   const PlacementTab = () => (
@@ -324,7 +463,23 @@ export const BadgeBuilder = () => {
           placeholder="custom-badge-class"
         />
 
-        <Button fullWidth>Save Placement Settings</Button>
+        <InlineStack gap="200">
+          <Button 
+            fullWidth 
+            loading={saving}
+            onClick={() => handleSave(false)}
+          >
+            Save as Draft
+          </Button>
+          <Button 
+            fullWidth 
+            variant="primary"
+            loading={saving}
+            onClick={() => handleSave(true)}
+          >
+            Save & Activate
+          </Button>
+        </InlineStack>
       </BlockStack>
     </Card>
   );
@@ -343,31 +498,50 @@ export const BadgeBuilder = () => {
     }
   };
 
+  if (badgeLoading && isEditing) {
+    return (
+      <Page title="Loading...">
+        <Card>
+          <div style={{ textAlign: "center", padding: "40px" }}>
+            <Spinner size="large" />
+            <Text as="p">Loading badge...</Text>
+          </div>
+        </Card>
+      </Page>
+    );
+  }
+  
   return (
-    <Page
-      fullWidth
-      backAction={{ content: "Products", url: "#" }}
-      title="Your badge"
-      titleMetadata={getBadges(currentStatus)}
-      subtitle="Badge ID: 303cad73-3c53-481c-bad5-7f1fd81ea330"
-      // compactTitle
-      primaryAction={{
-        content: "Save",
-        disabled: false,
-        onAction: () => alert("Save action"),
-      }}
-      secondaryActions={[
-        {
-          content: "Duplicate",
-          accessibilityLabel: "Secondary action label",
-          onAction: () => alert("Duplicate action"),
-        },
-        {
-          content: "View on your store",
-          onAction: () => alert("View on your store action"),
-        },
-      ]}
-    >
+    <Frame>
+      <Page
+        fullWidth
+        backAction={{ 
+          content: "Badges", 
+          onAction: () => router.push("/badges")
+        }}
+        title={isEditing ? `Edit: ${badgeName || "Badge"}` : "Create Badge"}
+        titleMetadata={isEditing ? getBadges(status === "PAUSED" || status === "ARCHIVED" ? "DRAFT" : status as "DRAFT" | "ACTIVE") : undefined}
+        subtitle={isEditing && badge ? `Badge ID: ${badge.id}` : "Create a new badge for your store"}
+        primaryAction={{
+          content: isEditing ? "Update Badge" : "Save Badge",
+          loading: saving,
+          onAction: () => handleSave(false),
+        }}
+        secondaryActions={isEditing ? [
+          {
+            content: status === "ACTIVE" ? "Deactivate" : "Activate",
+            loading: saving,
+            onAction: () => handleSave(status !== "ACTIVE"),
+          },
+          {
+            content: "Duplicate",
+            onAction: () => {
+              // This would be handled by the parent component
+              setToastMessage("Duplicate functionality coming soon");
+            },
+          },
+        ] : []}
+      >
       <Tabs tabs={tabs} selected={selectedTab} onSelect={handleTabChange} />
       <div
         style={{
@@ -388,12 +562,21 @@ export const BadgeBuilder = () => {
 
             <div style={{ marginTop: "1rem" }}>
               <p>
-                <strong>Current Status:</strong> {getBadges(currentStatus)}
+                <strong>Current Status:</strong> {getBadges(status as "DRAFT" | "ACTIVE")}
               </p>
             </div>
           </div>
         </Card>
       </div>
+      
+      {/* Toast Messages */}
+      {toastMessage && (
+        <Toast 
+          content={toastMessage} 
+          onDismiss={() => setToastMessage(null)} 
+        />
+      )}
     </Page>
+    </Frame>
   );
 };

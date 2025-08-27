@@ -13,44 +13,87 @@ import {
   Box,
   Checkbox,
 } from "@shopify/polaris";
-import { useState } from "react";
+import { useState, useCallback, useEffect } from "react";
 import ColorPickerInput from "../pickers/ColourPicker";
 import { label } from "next-api-middleware";
 
-export default function DesignForm() {
-  const [template, setTemplate] = useState("Black and Yellow");
-  const [background, setBackground] = useState("gradient");
-  const [gradientAngle, setGradientAngle] = useState(0);
-  const [cornerRadius, setCornerRadius] = useState("8");
-  const [borderSize, setBorderSize] = useState("0");
-  const [borderColor, setBorderColor] = useState("#c5c8d1");
-  const [color, setColor] = useState({
-    hue: 300,
-    brightness: 1,
-    saturation: 0.7,
-    alpha: 0.7,
-  });
-  const [gradient1, setGradient1] = useState("#DDDDDD");
-  const [gradient2, setGradient2] = useState("#FFFFFF");
+interface DesignFormProps {
+  data?: any;
+  onChange?: (data: any) => void;
+}
+
+export default function DesignForm({ data = {}, onChange }: DesignFormProps) {
+  // Initialize state from props or defaults
+  const [template, setTemplate] = useState(data.template || "custom");
+  const [background, setBackground] = useState(data.backgroundType || "single");
+  const [gradientAngle, setGradientAngle] = useState(data.gradientAngle || 0);
+  const [cornerRadius, setCornerRadius] = useState(String(data.cornerRadius || 8));
+  const [borderSize, setBorderSize] = useState(String(data.borderSize || 0));
+  const [borderColor, setBorderColor] = useState(data.borderColor || "#c5c8d1");
+  const [backgroundColor, setBackgroundColor] = useState(data.backgroundColor || "#000000");
+  const [gradient1, setGradient1] = useState(data.gradientColor1 || "#DDDDDD");
+  const [gradient2, setGradient2] = useState(data.gradientColor2 || "#FFFFFF");
 
   const [spacing, setSpacing] = useState({
-    insideTop: "16",
-    insideBottom: "16",
-    outsideTop: "20",
-    outsideBottom: "20",
+    insideTop: String(data.paddingTop || 16),
+    insideBottom: String(data.paddingBottom || 16),
+    outsideTop: String(data.marginTop || 20),
+    outsideBottom: String(data.marginBottom || 20),
   });
 
   const templateOptions = [
-    { label: "Black and Yellow", value: "Black and Yellow" },
-    { label: "Blue and White", value: "Blue and White" },
-    { label: "Custom", value: "Custom" },
+    { label: "Custom", value: "custom" },
+    { label: "Black and Yellow", value: "black_yellow" },
+    { label: "Blue and White", value: "blue_white" },
   ];
-  const [iconSize, setIconSize] = useState("32");
-  const [iconColor, setIconColor] = useState("#ffffff");
-  const [useOriginal, setUseOriginal] = useState(false);
-  const [bgColor, setBgColor] = useState("#000000");
-  const [desktopRow, setDesktopRow] = useState("auto");
-  const [mobileRow, setMobileRow] = useState("auto");
+  const [iconSize, setIconSize] = useState(String(data.iconSize || 32));
+  const [iconColor, setIconColor] = useState(data.iconColor || "#ffffff");
+  const [useOriginal, setUseOriginal] = useState(data.useOriginalIcon || false);
+  const [desktopRow, setDesktopRow] = useState(String(data.iconsPerRowDesktop || 4));
+  const [mobileRow, setMobileRow] = useState(String(data.iconsPerRowMobile || 2));
+  const [fontFamily, setFontFamily] = useState(data.fontFamily || "own_theme");
+
+  // Update parent component when data changes
+  const updateData = useCallback(() => {
+    if (onChange) {
+      onChange({
+        template,
+        backgroundType: background,
+        backgroundColor,
+        gradientColor1: gradient1,
+        gradientColor2: gradient2,
+        gradientAngle,
+        cornerRadius: parseInt(cornerRadius) || 8,
+        borderSize: parseInt(borderSize) || 0,
+        borderColor,
+        paddingTop: parseInt(spacing.insideTop) || 16,
+        paddingBottom: parseInt(spacing.insideBottom) || 16,
+        paddingLeft: parseInt(spacing.insideTop) || 16, // Using same as top for simplicity
+        paddingRight: parseInt(spacing.insideTop) || 16,
+        marginTop: parseInt(spacing.outsideTop) || 20,
+        marginBottom: parseInt(spacing.outsideBottom) || 20,
+        marginLeft: 0,
+        marginRight: 0,
+        iconSize: parseInt(iconSize) || 32,
+        iconColor,
+        useOriginalIcon: useOriginal,
+        iconsPerRowDesktop: parseInt(desktopRow) || 4,
+        iconsPerRowMobile: parseInt(mobileRow) || 2,
+        fontFamily,
+        titleFontSize: 16,
+        titleColor: "#000000",
+        titleWeight: "semibold",
+        subtitleFontSize: 14,
+        subtitleColor: "#666666",
+        subtitleWeight: "normal",
+      });
+    }
+  }, [template, background, backgroundColor, gradient1, gradient2, gradientAngle, cornerRadius, borderSize, borderColor, spacing, iconSize, iconColor, useOriginal, desktopRow, mobileRow, fontFamily, onChange]);
+
+  // Update data when any field changes
+  useEffect(() => {
+    updateData();
+  }, [updateData]);
 
   const rowOptions = [
     { label: "Auto", value: "auto" },
@@ -144,7 +187,10 @@ export default function DesignForm() {
             </InlineStack>
           </BlockStack>
         ) : (
-          <ColorPickerInput />
+          <ColorPickerInput 
+            value={backgroundColor}
+            onChange={setBackgroundColor}
+          />
         )}
 
         {/* Corner radius */}
@@ -306,11 +352,11 @@ export default function DesignForm() {
             label="Font"
             labelHidden
             options={fontOptions}
-            value={mobileRow}
-            onChange={setMobileRow}
+            value={fontFamily}
+            onChange={setFontFamily}
             helpText={
               <Text as="p" variant="bodySm">
-                Theme fonts are not available in the preview mode. Publish timer
+                Theme fonts are not available in the preview mode. Publish badge
                 to preview it in store.
               </Text>
             }

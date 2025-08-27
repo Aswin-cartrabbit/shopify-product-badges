@@ -23,9 +23,25 @@ model stores {
 
   // Relationships
   sessions session[]
+  badges badges[]
+  analytics badgeAnalytics[]
+  subscriptions subscriptions[]
 
   @@index([id])
   @@index([isActive])
+}
+
+// Schema versioning table to track database state
+model schemaVersions {
+  id             String   @id @default(uuid()) @db.Uuid
+  version        String   @unique
+  appliedAt      DateTime @default(now())
+  description    String?
+  checksum       String?
+  migrationFile  String?
+
+  @@index([version])
+  @@index([appliedAt])
 }
 
 model session {
@@ -42,4 +58,246 @@ model session {
   @@index([shop])
   @@index([storeId])
   @@index([type])
+}
+
+enum BadgeType {
+  SINGLE_BANNER
+  ICON_BLOCK
+  PAYMENT_ICONS
+  FREE_SHIPPING_BAR
+}
+
+enum BadgeStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  ARCHIVED
+}
+
+enum PlacementLocation {
+  PRODUCT_PAGE
+  COLLECTION_PAGE
+  CART_PAGE
+  CHECKOUT_PAGE
+  HOME_PAGE
+}
+
+enum PlacementPosition {
+  TOP_LEFT
+  TOP_RIGHT
+  TOP_CENTER
+  BOTTOM_LEFT
+  BOTTOM_RIGHT
+  BOTTOM_CENTER
+  CENTER
+  BEFORE_ADD_TO_CART
+  AFTER_ADD_TO_CART
+  CUSTOM
+}
+
+enum TargetingRule {
+  ALL_PRODUCTS
+  SPECIFIC_PRODUCTS
+  COLLECTIONS
+  PRODUCT_TAGS
+  PRODUCT_TYPE
+  VENDOR
+  PRICE_RANGE
+}
+
+model badges {
+  id          String      @id @default(uuid()) @db.Uuid
+  name        String
+  type        BadgeType
+  status      BadgeStatus @default(DRAFT)
+  storeId     String      @db.Uuid
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  
+  // Content
+  title       String?
+  subheading  String?
+  iconUrl     String?
+  ctaText     String?
+  ctaUrl      String?
+  
+  // Relationships
+  store       stores @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  design      badgeDesigns?
+  placement   badgePlacements?
+  targeting   badgeTargeting[]
+  analytics   badgeAnalytics[]
+  translations badgeTranslations[]
+
+  @@index([storeId])
+  @@index([status])
+  @@index([type])
+}
+
+model badgeDesigns {
+  id              String  @id @default(uuid()) @db.Uuid
+  badgeId         String  @unique @db.Uuid
+  
+  // Template & Background
+  template        String? @default("custom")
+  backgroundType  String? @default("single") // single, gradient
+  backgroundColor String? @default("#000000")
+  gradientColor1  String?
+  gradientColor2  String?
+  gradientAngle   Int?    @default(0)
+  
+  // Border & Spacing
+  cornerRadius    Int?    @default(8)
+  borderSize      Int?    @default(0)
+  borderColor     String? @default("#c5c8d1")
+  
+  // Spacing (padding/margin)
+  paddingTop      Int?    @default(16)
+  paddingBottom   Int?    @default(16)
+  paddingLeft     Int?    @default(16)
+  paddingRight    Int?    @default(16)
+  marginTop       Int?    @default(20)
+  marginBottom    Int?    @default(20)
+  marginLeft      Int?    @default(0)
+  marginRight     Int?    @default(0)
+  
+  // Icon Design
+  iconSize        Int?    @default(32)
+  iconColor       String? @default("#ffffff")
+  useOriginalIcon Boolean @default(false)
+  iconBackground  String?
+  iconRadius      Int?    @default(0)
+  iconsPerRowDesktop Int? @default(4)
+  iconsPerRowMobile  Int? @default(2)
+  
+  // Typography
+  fontFamily      String? @default("own_theme")
+  titleFontSize   Int?    @default(16)
+  titleColor      String? @default("#000000")
+  titleWeight     String? @default("semibold")
+  subtitleFontSize Int?   @default(14)
+  subtitleColor   String? @default("#666666")
+  subtitleWeight  String? @default("normal")
+  
+  // Animation & Effects
+  animation       String? @default("none")
+  shadow          String?
+  opacity         Float?  @default(1.0)
+  
+  badge badges @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+  
+  @@index([badgeId])
+}
+
+model badgePlacements {
+  id               String            @id @default(uuid()) @db.Uuid
+  badgeId          String            @unique @db.Uuid
+  
+  location         PlacementLocation @default(PRODUCT_PAGE)
+  position         PlacementPosition @default(TOP_RIGHT)
+  customSelector   String?
+  customCss        String?
+  zIndex           Int?              @default(1000)
+  
+  // Display Rules
+  showOnDesktop    Boolean           @default(true)
+  showOnMobile     Boolean           @default(true)
+  showOnTablet     Boolean           @default(true)
+  
+  // Timing
+  displayDelay     Int?              @default(0) // in seconds
+  autoHide         Boolean           @default(false)
+  autoHideDelay    Int?              @default(5) // in seconds
+  
+  badge badges @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+  
+  @@index([badgeId])
+  @@index([location])
+}
+
+model badgeTargeting {
+  id           String        @id @default(uuid()) @db.Uuid
+  badgeId      String        @db.Uuid
+  ruleType     TargetingRule
+  ruleValue    String        // JSON or comma-separated values
+  isInclusive  Boolean       @default(true) // true = include, false = exclude
+  
+  badge badges @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+  
+  @@index([badgeId])
+  @@index([ruleType])
+}
+
+model badgeAnalytics {
+  id          String   @id @default(uuid()) @db.Uuid
+  badgeId     String   @db.Uuid
+  storeId     String   @db.Uuid
+  
+  // Metrics
+  views       Int      @default(0)
+  clicks      Int      @default(0)
+  conversions Int      @default(0)
+  revenue     Float?   @default(0)
+  
+  // Time period
+  date        DateTime @default(now()) @db.Date
+  hour        Int?     // for hourly analytics
+  
+  // Context
+  location    PlacementLocation?
+  deviceType  String?  // desktop, mobile, tablet
+  country     String?
+  
+  badge badges @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+  store stores @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  
+  @@unique([badgeId, date, hour])
+  @@index([badgeId])
+  @@index([storeId])
+  @@index([date])
+}
+
+model badgeTranslations {
+  id          String @id @default(uuid()) @db.Uuid
+  badgeId     String @db.Uuid
+  language    String // ISO language code (en, fr, es, etc.)
+  
+  title       String?
+  subheading  String?
+  ctaText     String?
+  
+  badge badges @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+  
+  @@unique([badgeId, language])
+  @@index([badgeId])
+  @@index([language])
+}
+
+// Store subscription and billing
+model subscriptions {
+  id              String    @id @default(uuid()) @db.Uuid
+  storeId         String    @db.Uuid
+  planName        String    // free, starter, essential, pro
+  status          String    @default("active") // active, canceled, expired
+  billingCycle    String?   // monthly, yearly
+  amount          Float?    @default(0)
+  currency        String?   @default("USD")
+  
+  // Shopify billing
+  shopifyChargeId String?   @unique
+  
+  // Plan limits
+  maxBadges       Int?      @default(1)
+  maxTranslations Boolean   @default(false)
+  analytics       Boolean   @default(false)
+  customCss       Boolean   @default(false)
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  expiresAt       DateTime?
+  
+  store stores @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  
+  @@index([storeId])
+  @@index([status])
 }

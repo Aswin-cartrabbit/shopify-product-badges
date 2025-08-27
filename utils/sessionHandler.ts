@@ -12,20 +12,38 @@ const storeSession = async (session) => {
   console.log("=====================================");
   console.log(session);
   console.log("=====================================");
+  
+  let storeId = session.storeId;
+  
+  // If session doesn't have a storeId, find or create the store
+  if (!storeId && session.shop) {
+    const store = await prisma.stores.upsert({
+      where: { shop: session.shop },
+      update: { isActive: true },
+      create: { shop: session.shop, isActive: true },
+    });
+    storeId = store.id;
+  }
+  
+  // If we still don't have a storeId, something is wrong
+  if (!storeId) {
+    throw new Error(`Unable to determine storeId for session ${session.id}. Session must have either storeId or shop property.`);
+  }
+
   await prisma.session.upsert({
     where: { id: session.id },
     update: {
       content: cryption.encrypt(JSON.stringify(session)),
       shop: session.shop,
       type: session.isOnline ? "ONLINE" : "OFFLINE",
-      storeId: session.storeId,
+      storeId: storeId,
     },
     create: {
       id: session.id,
       content: cryption.encrypt(JSON.stringify(session)),
       shop: session.shop,
       type: session.isOnline ? "ONLINE" : "OFFLINE",
-      storeId: session.storeId,
+      storeId: storeId,
     },
   });
 

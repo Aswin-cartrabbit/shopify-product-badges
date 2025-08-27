@@ -2,6 +2,7 @@ import sessionHandler from "@/utils/sessionHandler";
 import shopify from "@/utils/shopify";
 import { RequestedTokenType, Session } from "@shopify/shopify-api";
 import validateJWT from "../validateJWT";
+import prisma from "../prisma";
 
 /**
  *
@@ -48,6 +49,19 @@ const verifyRequest = async (req, res, next) => {
     //Add session and shop to the request object so any subsequent routes that use this middleware can access it
     req.user_session = session;
     req.user_shop = session.shop;
+    
+    // Get the storeId from the session for API endpoints
+    if (session?.storeId) {
+      req.user_id = session.storeId;
+    } else {
+      // If session doesn't have storeId, try to get it from the database
+      const store = await prisma.stores.findUnique({
+        where: { shop: session.shop }
+      });
+      if (store) {
+        req.user_id = store.id;
+      }
+    }
 
     await next();
 
@@ -77,13 +91,22 @@ async function getSession({ shop, authHeader }) {
   try {
     const sessionToken = authHeader.split(" ")[1];
 
+    // Find or create the store first
+    const store = await prisma.stores.upsert({
+      where: { shop },
+      update: { isActive: true },
+      create: { shop, isActive: true },
+    });
+
     const { session: onlineSession } = await shopify.auth.tokenExchange({
       sessionToken,
       shop,
       requestedTokenType: RequestedTokenType.OnlineAccessToken,
     });
 
-    await sessionHandler.storeSession(onlineSession);
+    // Add storeId to the session before storing
+    const onlineSessionWithStore = { ...onlineSession, storeId: store.id };
+    await sessionHandler.storeSession(onlineSessionWithStore);
 
     const { session: offlineSession } = await shopify.auth.tokenExchange({
       sessionToken,
@@ -91,9 +114,11 @@ async function getSession({ shop, authHeader }) {
       requestedTokenType: RequestedTokenType.OfflineAccessToken,
     });
 
-    await sessionHandler.storeSession(offlineSession);
+    // Add storeId to the session before storing
+    const offlineSessionWithStore = { ...offlineSession, storeId: store.id };
+    await sessionHandler.storeSession(offlineSessionWithStore);
 
-    return new Session(onlineSession);
+    return new Session(onlineSessionWithStore);
   } catch (e) {
     console.error(
       `---> Error happened while pulling session from Shopify: ${e.message}`
