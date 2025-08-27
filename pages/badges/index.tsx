@@ -27,7 +27,7 @@ export default function Badges() {
             </Text>
             <Text as="p" tone="subdued">
               Design eye-catching badges to showcase discounts, new arrivals, or special offers on your products.{" "}
-              <Button variant="plain" textDecorationLine="underline">
+              <Button variant="plain">
                 About badges
               </Button>
             </Text>

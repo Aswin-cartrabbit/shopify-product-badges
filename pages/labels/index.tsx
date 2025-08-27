@@ -8,6 +8,7 @@ import {
   EmptyState,
 } from "@shopify/polaris";
 import { useRouter } from "next/router";
+import {Modal, TitleBar, useAppBridge} from '@shopify/app-bridge-react';
 
 export default function Labels() {
   const router = useRouter();
@@ -27,7 +28,7 @@ export default function Labels() {
             </Text>
             <Text as="p" tone="subdued">
               Show labels inside the product image on product pages, collection pages or more.{" "}
-              <Button variant="plain" textDecorationLine="underline">
+              <Button variant="plain" >
                 About labels
               </Button>
             </Text>

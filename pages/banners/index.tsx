@@ -27,7 +27,7 @@ export default function Banners() {
             </Text>
             <Text as="p" tone="subdued">
               Create promotional banners to announce sales, free shipping, or important notifications.{" "}
-              <Button variant="plain" textDecorationLine="underline">
+              <Button variant="plain" >
                 About banners
               </Button>
             </Text>
