@@ -42,7 +42,7 @@ export default function Dashboard() {
       icon: DiscountIcon,
       iconBg: "#E3F2FD",
       iconColor: "#1976D2",
-      onClick: () => router.push("/badges/create"),
+      onClick: () => router.push("/badges/presets"),
       tooltip: "Design eye-catching badges to showcase discounts, new arrivals, or special offers."
     },
     {
