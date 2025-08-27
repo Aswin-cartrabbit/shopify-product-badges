@@ -8,8 +8,49 @@ import React from "react";
 import AppLayout from "@/components/layout/AppLayout";
 import type { AppProps } from "next/app";
 import { useEffect } from "react";
+import { useSessionStore } from "@/stores/sessionStore";
 
 const App = ({ Component, pageProps }) => {
+  const { storeId, setStoreId } = useSessionStore();
+  
+  useEffect(() => {
+    const fetchStore = async () => {
+      try {
+        // Get session token from Shopify App Bridge if available
+        let sessionToken = null;
+        if (typeof window !== "undefined" && window.shopify?.idToken) {
+          sessionToken = await window.shopify.idToken();
+        }
+
+        const headers: Record<string, string> = {
+          "Content-Type": "application/json",
+        };
+
+        if (sessionToken) {
+          headers["Authorization"] = `Bearer ${sessionToken}`;
+        }
+
+        const res = await fetch("/api/store", {
+          method: "GET",
+          headers,
+        });
+        
+        const data = await res.json();
+        console.log(data);
+        if (data?.store?.id) {
+          setStoreId(data?.store?.id);
+          console.log("✅ Store ID saved in Zustand:", data?.store?.id);
+        }
+      } catch (error) {
+        console.error("❌ Failed to fetch store:", error);
+      }
+    };
+
+    if (!storeId) {
+      fetchStore();
+    }
+  }, [storeId, setStoreId]);
+
   return (
     <>
       <PolarisProvider i18n={translations}>
