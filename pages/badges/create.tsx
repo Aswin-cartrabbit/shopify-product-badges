@@ -7,20 +7,27 @@ import {
   InlineStack,
   Tabs,
   Badge,
+  TextField,
   Icon,
   Avatar,
   Box,
 } from "@shopify/polaris";
 import { useState } from "react";
 import { useRouter } from "next/router";
+import { 
+  ArrowLeftIcon,
+  UploadIcon,
+  ImageIcon
+} from "@shopify/polaris-icons";
 
-export default function BadgePresets() {
+export default function CreateBadge() {
   const [selectedTab, setSelectedTab] = useState(0);
   const [selectedBadge, setSelectedBadge] = useState<string | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [selectedCategory, setSelectedCategory] = useState("Sales");
+  const [aiPrompt, setAiPrompt] = useState("");
   const router = useRouter();
 
-  // Text badge templates (same as labels but called badges)
+  // Text badge templates with the provided styles
   const textBadges = [
     {
       id: "limited-time",
@@ -361,10 +368,96 @@ export default function BadgePresets() {
         justifyContent: "center",
         borderRadius: "15px"
       }
+    },
+    {
+      id: "save-money",
+      text: "SAVE $10",
+      style: {
+        width: "80px",
+        height: "80px",
+        background: "#4CAF50",
+        color: "white",
+        fontWeight: "bold",
+        fontFamily: "'Alata', sans-serif",
+        fontSize: "12px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        borderRadius: "50%",
+        border: "3px solid #2E7D32"
+      }
+    },
+    {
+      id: "coming-soon",
+      text: "COMING SOON",
+      style: {
+        width: "130px",
+        height: "25px",
+        background: "#607D8B",
+        color: "white",
+        fontWeight: "bold",
+        fontFamily: "'Alata', sans-serif",
+        fontSize: "11px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        borderRadius: "12px"
+      }
+    },
+    {
+      id: "eco-friendly",
+      text: "ECO",
+      style: {
+        width: "60px",
+        height: "60px",
+        background: "#8BC34A",
+        color: "white",
+        fontWeight: "bold",
+        fontFamily: "'Alata', sans-serif",
+        fontSize: "14px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        borderRadius: "50%"
+      }
+    },
+    {
+      id: "handmade",
+      text: "HANDMADE",
+      style: {
+        width: "120px",
+        height: "30px",
+        background: "#8D6E63",
+        color: "white",
+        fontWeight: "bold",
+        fontFamily: "'Alata', sans-serif",
+        fontSize: "12px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        borderRadius: "15px"
+      }
+    },
+    {
+      id: "bundle-deal",
+      text: "BUNDLE",
+      style: {
+        width: "120px",
+        height: "30px",
+        background: "#FF6F00",
+        color: "white",
+        fontWeight: "bold",
+        fontFamily: "'Alata', sans-serif",
+        fontSize: "14px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        clipPath: "polygon(0 0, 100% 0, 80% 100%, 0% 100%)"
+      }
     }
   ];
 
-  // Image badges (same as image labels)
+  // Image badges from the provided JSON data
   const imageBadges = [
     {
       id: "free-shipping-1",
@@ -391,13 +484,13 @@ export default function BadgePresets() {
       type: "express_delivery"
     },
     {
-      id: "free-delivery-1",
+      id: "free-delivery-red",
       src: "https://d3azqz9xba9gwd.cloudfront.net/storage/labels/pl-july-production-demo-store/6728a3f13ba1a.png",
       alt: "Free delivery red badge",
       type: "free_delivery"
     },
     {
-      id: "free-delivery-2",
+      id: "free-100-delivery",
       src: "https://d3azqz9xba9gwd.cloudfront.net/storage/labels/pl-july-production-demo-store/6728a2a96fb99.png",
       alt: "Free 100% delivery",
       type: "free_delivery"
@@ -451,7 +544,7 @@ export default function BadgePresets() {
       type: "free_delivery"
     },
     {
-      id: "free-shipping-classic",
+      id: "free-shipping-2",
       src: "https://d3azqz9xba9gwd.cloudfront.net/storage/labels/pl-july-production-demo-store/658503fb07d32.png",
       alt: "Free Shipping",
       type: "shipping"
@@ -876,6 +969,7 @@ export default function BadgePresets() {
             gap: "6px",
             marginBottom: "8px"
           }}>
+            <Icon source={ImageIcon} tone="subdued" />
             <Text as="span" tone="subdued" variant="bodySm">Image</Text>
           </div>
           
@@ -902,65 +996,66 @@ export default function BadgePresets() {
   };
 
   return (
-    <Page
-      title="Choose Badge Template"
-      backAction={{ content: "Back", onAction: () => router.back() }}
-    >
-      <style>
-        {`
-          .scroll-container::-webkit-scrollbar {
-            width: 8px;
-          }
-          .scroll-container::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 4px;
-          }
-          .scroll-container::-webkit-scrollbar-thumb {
-            background: #c1c1c1;
-            border-radius: 4px;
-          }
-          .scroll-container::-webkit-scrollbar-thumb:hover {
-            background: #a8a8a8;
-          }
-        `}
-      </style>
-      
-      <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
-        <BlockStack gap="500">
-          {/* Header with AI Generator section */}
-          <Card>
-            <BlockStack gap="400">
-              <div style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "12px",
-                padding: "16px",
-                backgroundColor: "#f8f9fa",
-                borderRadius: "8px",
-                border: "1px solid #e1e8ed"
-              }}>
-                <div style={{
-                  width: "48px",
-                  height: "48px",
-                  backgroundColor: "#1976d2",
-                  borderRadius: "12px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center"
-                }}>
-                  <span style={{ fontSize: "20px", color: "white", fontWeight: "bold" }}>
-                    AI
-                  </span>
-                </div>
-                <div style={{ flex: 1 }}>
-                  <Text as="h3" variant="bodyLg" fontWeight="semibold">
-                    AI Badge Generator
+    <>
+      <style>{`
+        .scroll-container::-webkit-scrollbar {
+          width: 8px;
+        }
+        .scroll-container::-webkit-scrollbar-track {
+          background: #f1f1f1;
+          border-radius: 4px;
+        }
+        .scroll-container::-webkit-scrollbar-thumb {
+          background: #c1c1c1;
+          border-radius: 4px;
+        }
+        .scroll-container::-webkit-scrollbar-thumb:hover {
+          background: #a8a8a8;
+        }
+        .scroll-container {
+          scroll-behavior: smooth;
+        }
+      `}</style>
+      <div style={{ 
+        padding: "20px 24px", 
+        backgroundColor: "#f6f6f7", 
+        minHeight: "100vh"
+      }}>
+      <div style={{ maxWidth: "1400px", margin: "0 auto" }}>
+        {/* Header */}
+        <div style={{ marginBottom: "24px" }}>
+          <InlineStack align="space-between" blockAlign="center">
+            <InlineStack gap="300" blockAlign="center">
+              <Button 
+                icon={ArrowLeftIcon}
+                variant="tertiary"
+                onClick={() => router.push("/badges")}
+              />
+              <Text as="h1" variant="headingLg" fontWeight="medium">
+                Create badge with most popular collections
+              </Text>
+            </InlineStack>
+            <Button variant="tertiary">
+              My badges
+            </Button>
+          </InlineStack>
+        </div>
+
+        {/* Badge Preset Section */}
+        <Card>
+          <div style={{ padding: "16px" }}>
+            <BlockStack gap="100">
+              <InlineStack align="space-between" blockAlign="center">
+                <BlockStack gap="100">
+                  <Text as="h2" variant="headingMd" fontWeight="semibold">
+                    Badge Preset
                   </Text>
                   <Text as="p" tone="subdued">
                     Select a popular template and begin customizing.
                   </Text>
-                </div>
-              </div>
+                </BlockStack>
+                <Text as="span" tone="subdued">1/2 used</Text>
+              </InlineStack>
               
               {/* Tabs */}
               <Tabs 
@@ -987,29 +1082,48 @@ export default function BadgePresets() {
                           <div style={{ marginBottom: "16px" }}>
                             <Badge tone="success">Most popular</Badge>
                           </div>
-                          
-                          <BlockStack gap="100">
-                            {["All", "Sales", "Free shipping", "Stock", "Coming soon", "Organic", "New"].map((category) => (
-                              <Card 
-                                key={category}
-                                padding="300"
-                                background={selectedCategory === category ? "bg-surface-selected" : "bg-surface"}
-                              >
-                                <Button
-                                  variant="plain"
-                                  onClick={() => setSelectedCategory(category)}
-                                  fullWidth
-                                  textAlign="left"
-                                >
-                                  {category}
-                                </Button>
-                              </Card>
-                            ))}
-                          </BlockStack>
+                          {[
+                            "Sales",
+                            "Free shipping", 
+                            "Stock",
+                            "Coming soon",
+                            "Organic",
+                            "New",
+                            "Pre-order",
+                            "Buy 1 get 1",
+                            "AutoText"
+                          ].map((category) => (
+                            <div
+                              key={category}
+                              style={{
+                                backgroundColor: selectedCategory === category ? "#e5e5e5" : "transparent",
+                                borderRadius: "6px",
+                                padding: "8px 12px",
+                                cursor: "pointer",
+                                fontSize: "14px",
+                                fontWeight: selectedCategory === category ? "600" : "400",
+                                marginBottom: "4px"
+                              }}
+                              onClick={() => setSelectedCategory(category)}
+                            >
+                              {category}
+                            </div>
+                          ))}
+                          <div
+                            style={{
+                              color: "#2563eb",
+                              cursor: "pointer",
+                              fontSize: "14px",
+                              padding: "8px 12px",
+                              marginTop: "8px"
+                            }}
+                          >
+                            See all text badges
+                          </div>
                         </div>
                       </div>
                       
-                      {/* Badge Templates Grid */}
+                      {/* Scrollable Text Badges Grid */}
                       <div style={{ 
                         flex: 1,
                         height: "100%",
@@ -1044,29 +1158,48 @@ export default function BadgePresets() {
                           <div style={{ marginBottom: "16px" }}>
                             <Badge tone="success">Most popular</Badge>
                           </div>
-                          
-                          <BlockStack gap="100">
-                            {["All", "Shipping", "Delivery", "Express", "Free shipping", "Same day"].map((category) => (
-                              <Card 
-                                key={category}
-                                padding="300"
-                                background={selectedCategory === category ? "bg-surface-selected" : "bg-surface"}
-                              >
-                                <Button
-                                  variant="plain"
-                                  onClick={() => setSelectedCategory(category)}
-                                  fullWidth
-                                  textAlign="left"
-                                >
-                                  {category}
-                                </Button>
-                              </Card>
-                            ))}
-                          </BlockStack>
+                          {[
+                            "Shipping",
+                            "Delivery", 
+                            "Guarantee",
+                            "Express",
+                            "Free shipping",
+                            "Same day",
+                            "Returns",
+                            "Security",
+                            "Quality"
+                          ].map((category) => (
+                            <div
+                              key={category}
+                              style={{
+                                backgroundColor: selectedCategory === category ? "#e5e5e5" : "transparent",
+                                borderRadius: "6px",
+                                padding: "8px 12px",
+                                cursor: "pointer",
+                                fontSize: "14px",
+                                fontWeight: selectedCategory === category ? "600" : "400",
+                                marginBottom: "4px"
+                              }}
+                              onClick={() => setSelectedCategory(category)}
+                            >
+                              {category}
+                            </div>
+                          ))}
+                          <div
+                            style={{
+                              color: "#2563eb",
+                              cursor: "pointer",
+                              fontSize: "14px",
+                              padding: "8px 12px",
+                              marginTop: "8px"
+                            }}
+                          >
+                            See all image badges
+                          </div>
                         </div>
                       </div>
                       
-                      {/* Image Badge Templates Grid */}
+                      {/* Scrollable Image Badges Grid */}
                       <div style={{ 
                         flex: 1,
                         height: "100%",
@@ -1087,9 +1220,36 @@ export default function BadgePresets() {
                 </div>
               </Tabs>
             </BlockStack>
-          </Card>
-        </BlockStack>
+          </div>
+        </Card>
+
+        {/* Footer actions */}
+        {selectedBadge && (
+          <div style={{ 
+            position: "fixed", 
+            bottom: "20px", 
+            right: "20px",
+            zIndex: 1000
+          }}>
+            <InlineStack gap="200">
+              <Button onClick={() => setSelectedBadge(null)}>
+                Cancel
+              </Button>
+              <Button 
+                variant="primary"
+                onClick={() => {
+                  // Navigate to customization page with selected template
+                  console.log("Selected badge:", selectedBadge);
+                  // router.push(`/badges/customize?template=${selectedBadge}`);
+                }}
+              >
+                Customize Badge
+              </Button>
+            </InlineStack>
+          </div>
+        )}
       </div>
-    </Page>
+    </div>
+    </>
   );
 }

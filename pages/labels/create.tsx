@@ -553,16 +553,16 @@ export default function CreateLabel() {
 
   const tabs = [
     {
-      id: "text-label",
-      content: "Text Label",
-      accessibilityLabel: "Text Label",
-      panelID: "text-label-panel",
-    },
-    {
       id: "image-label", 
       content: "Image Label",
       accessibilityLabel: "Image Label",
       panelID: "image-label-panel",
+    },
+    {
+      id: "text-label",
+      content: "Text Label",
+      accessibilityLabel: "Text Label",
+      panelID: "text-label-panel",
     },
   ];
 
@@ -601,7 +601,7 @@ export default function CreateLabel() {
         style={{ 
           display: "grid", 
           gridTemplateColumns: "repeat(3, 1fr)", 
-          gap: "16px",
+          gap: "8px",
           width: "100%",
           minHeight: "530px",
           maxHeight: "530px",
@@ -611,29 +611,121 @@ export default function CreateLabel() {
           WebkitOverflowScrolling: "touch",
           position: "relative"
         }}>
+        {/* Create from scratch card */}
+        <div 
+          style={{
+            backgroundColor: "#f6f6f7",
+            border: "1px solid #e1e1e1",
+            borderRadius: "12px",
+            padding: "16px",
+            textAlign: "center",
+            width: "244px",
+            height: "272px",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+            cursor: "pointer"
+          }}
+        >
+          {/* Sparkle icons */}
+          <div style={{ position: "relative", marginBottom: "16px" }}>
+            <div style={{
+              width: "60px",
+              height: "60px",
+              backgroundColor: "#1976d2",
+              borderRadius: "50%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              position: "relative"
+            }}>
+              <svg 
+                viewBox="0 0 20 20" 
+                style={{ width: "24px", height: "24px", fill: "white" }}
+                focusable="false" 
+                aria-hidden="true"
+              >
+                <path 
+                  fillRule="evenodd" 
+                  d="M7 3.25a.75.75 0 0 1 .695.467l2.75 6.75a.75.75 0 0 1-1.39.566l-.632-1.553a.752.752 0 0 1-.173.02h-2.68l-.625 1.533a.75.75 0 1 1-1.39-.566l2.75-6.75a.75.75 0 0 1 .695-.467Zm.82 4.75-.82-2.012-.82 2.012h1.64Z"
+                />
+                <path d="M4.25 12.5a.75.75 0 0 0 0 1.5h11.5a.75.75 0 0 0 0-1.5h-11.5Z" />
+                <path d="M4.25 15a.75.75 0 0 0 0 1.5h7a.75.75 0 0 0 0-1.5h-7Z" />
+                <path 
+                  fillRule="evenodd" 
+                  d="M15.066 5.94a3 3 0 1 0 0 5.118.75.75 0 0 0 1.434-.308v-4.5a.75.75 0 0 0-1.434-.31Zm-1.566 4.06a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"
+                />
+              </svg>
+            </div>
+            {/* Orange sparkle */}
+            <div style={{
+              position: "absolute",
+              top: "-8px",
+              left: "-8px",
+              width: "16px",
+              height: "16px",
+              backgroundColor: "#ff9800",
+              clipPath: "polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)"
+            }}></div>
+            {/* Blue sparkle */}
+            <div style={{
+              position: "absolute",
+              top: "-4px",
+              right: "-12px",
+              width: "20px",
+              height: "20px",
+              backgroundColor: "#2196f3",
+              clipPath: "polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)"
+            }}></div>
+          </div>
+          
+          <div style={{ marginBottom: "16px" }}>
+            <div style={{ 
+              fontSize: "16px", 
+              fontWeight: "600", 
+              color: "#1a1a1a",
+              marginBottom: "8px"
+            }}>
+              Design Text Badge
+            </div>
+          </div>
+          
+          <Button 
+            variant="secondary"
+            size="medium"
+          >
+            Create from Scratch
+          </Button>
+        </div>
+        
         {filteredLabels.map((label) => (
         <div 
           key={label.id}
           style={{
-            backgroundColor: "#f5f5f5",
+            backgroundColor: "white",
             border: "1px solid #e1e1e1",
             borderRadius: "12px",
-            overflow: "hidden",
-            width: "204px",
-            height: "252px",
+            padding: "16px",
+            textAlign: "center",
+            width: "244px",
+            height: "272px",
             display: "flex",
-            flexDirection: "column"
+            flexDirection: "column",
+            justifyContent: "space-between"
           }}
         >
           {/* Label Preview Area */}
           <div style={{
             width: "100%",
-            height: "140px",
+            height: "120px",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            position: "relative",
-            borderBottom: "1px solid #e1e1e1"
+            overflow: "hidden",
+            borderRadius: "8px",
+            backgroundColor: "#f8f9fa",
+            marginBottom: "12px"
           }}>
             <div style={{
               ...label.style,
@@ -641,78 +733,63 @@ export default function CreateLabel() {
             }}>
               {label.text}
             </div>
-            
-            {/* Text Icon in bottom left */}
+          </div>
+          
+          {/* Text Icon and Text */}
+          <div style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "6px",
+            marginBottom: "8px"
+          }}>
             <div style={{
-              position: "absolute",
-              bottom: "8px",
-              left: "8px",
-              display: "flex",
-              alignItems: "center",
-              gap: "4px"
+              display: "flex", 
+              alignItems: "center", 
+              gap: "4px",
+              backgroundColor: "gray",
+              color: "white",
+              padding: "2px 6px",
+              borderRadius: "6px",
+              fontSize: "11px"
             }}>
-              <div style={{
-                display: "flex", 
-                alignItems: "center", 
-                gap: "4px",
-                backgroundColor: "gray",
-                color: "white",
-                padding: "2px 6px",
-                borderRadius: "6px",
-                fontSize: "11px"
-              }}>
-                <svg 
-                  viewBox="0 0 20 20" 
-                  style={{ width: "12px", height: "12px", fill: "currentColor" }}
-                  focusable="false" 
-                  aria-hidden="true"
-                >
-                  <path 
-                    fillRule="evenodd" 
-                    d="M7 3.25a.75.75 0 0 1 .695.467l2.75 6.75a.75.75 0 0 1-1.39.566l-.632-1.553a.752.752 0 0 1-.173.02h-2.68l-.625 1.533a.75.75 0 1 1-1.39-.566l2.75-6.75a.75.75 0 0 1 .695-.467Zm.82 4.75-.82-2.012-.82 2.012h1.64Z"
-                  />
-                  <path d="M4.25 12.5a.75.75 0 0 0 0 1.5h11.5a.75.75 0 0 0 0-1.5h-11.5Z" />
-                  <path d="M4.25 15a.75.75 0 0 0 0 1.5h7a.75.75 0 0 0 0-1.5h-7Z" />
-                  <path 
-                    fillRule="evenodd" 
-                    d="M15.066 5.94a3 3 0 1 0 0 5.118.75.75 0 0 0 1.434-.308v-4.5a.75.75 0 0 0-1.434-.31Zm-1.566 4.06a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"
-                  />
-                </svg>
-                <span>Text</span>
-              </div>
+              <svg 
+                viewBox="0 0 20 20" 
+                style={{ width: "12px", height: "12px", fill: "currentColor" }}
+                focusable="false" 
+                aria-hidden="true"
+              >
+                <path 
+                  fillRule="evenodd" 
+                  d="M7 3.25a.75.75 0 0 1 .695.467l2.75 6.75a.75.75 0 0 1-1.39.566l-.632-1.553a.752.752 0 0 1-.173.02h-2.68l-.625 1.533a.75.75 0 1 1-1.39-.566l2.75-6.75a.75.75 0 0 1 .695-.467Zm.82 4.75-.82-2.012-.82 2.012h1.64Z"
+                />
+                <path d="M4.25 12.5a.75.75 0 0 0 0 1.5h11.5a.75.75 0 0 0 0-1.5h-11.5Z" />
+                <path d="M4.25 15a.75.75 0 0 0 0 1.5h7a.75.75 0 0 0 0-1.5h-7Z" />
+                <path 
+                  fillRule="evenodd" 
+                  d="M15.066 5.94a3 3 0 1 0 0 5.118.75.75 0 0 0 1.434-.308v-4.5a.75.75 0 0 0-1.434-.31Zm-1.566 4.06a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"
+                />
+              </svg>
+              <span>Text</span>
             </div>
           </div>
           
-          {/* Content Area with white background */}
-          <div style={{
-            padding: "7px",
-            backgroundColor: "white",
-            flex: 1,
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "space-between"
-          }}>
-            {/* Label Title */}
-            <div style={{ marginBottom: "12px" }}>
-              <span style={{ fontSize: "15px", fontWeight: "600", color: "#1a1a1a" }}>
-                {label.text.charAt(0) + label.text.slice(1).toLowerCase()}
-              </span>
-            </div>
-            
-                        {/* Select Button */}
-                       <InlineStack align="center">
-                       <Box maxWidth="100px" >
-                        <Button 
-              variant="primary"
-              size="micro"
-              onClick={() => handleLabelSelect(label.id)}
-            >
-              Select
-            </Button>
-                        </Box>
-                       </InlineStack>
-           
+          {/* Label Title */}
+          <div style={{ marginBottom: "12px" }}>
+            <Text as="p" variant="bodySm" fontWeight="medium">
+              {label.text.charAt(0) + label.text.slice(1).toLowerCase()}
+            </Text>
           </div>
+          
+          {/* Select Button */}
+          <Button 
+            variant={selectedLabel === label.id ? "primary" : "secondary"}
+            onClick={() => handleLabelSelect(label.id)}
+            size="medium"
+            fullWidth
+          >
+            {selectedLabel === label.id ? "Selected" : "Select"}
+          </Button>
         </div>
         ))}
       </div>
@@ -747,7 +824,7 @@ export default function CreateLabel() {
         style={{ 
           display: "grid", 
           gridTemplateColumns: "repeat(3, 1fr)", 
-          gap: "16px",
+          gap: "8px",
           width: "100%",
           minHeight: "530px",
           maxHeight: "530px",
@@ -757,6 +834,94 @@ export default function CreateLabel() {
           WebkitOverflowScrolling: "touch",
           position: "relative"
         }}>
+        {/* Create from scratch card */}
+        <div 
+          style={{
+            backgroundColor: "#f6f6f7",
+            border: "1px solid #e1e1e1",
+            borderRadius: "12px",
+            padding: "16px",
+            textAlign: "center",
+            width: "244px",
+            height: "272px",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+            cursor: "pointer"
+          }}
+        >
+          {/* Sparkle icons */}
+          <div style={{ position: "relative", marginBottom: "16px" }}>
+            <div style={{
+              width: "60px",
+              height: "60px",
+              backgroundColor: "#1976d2",
+              borderRadius: "50%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              position: "relative"
+            }}>
+              <svg 
+                viewBox="0 0 20 20" 
+                style={{ width: "24px", height: "24px", fill: "white" }}
+                focusable="false" 
+                aria-hidden="true"
+              >
+                <path 
+                  fillRule="evenodd" 
+                  d="M7 3.25a.75.75 0 0 1 .695.467l2.75 6.75a.75.75 0 0 1-1.39.566l-.632-1.553a.752.752 0 0 1-.173.02h-2.68l-.625 1.533a.75.75 0 1 1-1.39-.566l2.75-6.75a.75.75 0 0 1 .695-.467Zm.82 4.75-.82-2.012-.82 2.012h1.64Z"
+                />
+                <path d="M4.25 12.5a.75.75 0 0 0 0 1.5h11.5a.75.75 0 0 0 0-1.5h-11.5Z" />
+                <path d="M4.25 15a.75.75 0 0 0 0 1.5h7a.75.75 0 0 0 0-1.5h-7Z" />
+                <path 
+                  fillRule="evenodd" 
+                  d="M15.066 5.94a3 3 0 1 0 0 5.118.75.75 0 0 0 1.434-.308v-4.5a.75.75 0 0 0-1.434-.31Zm-1.566 4.06a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"
+                />
+              </svg>
+            </div>
+            {/* Orange sparkle */}
+            <div style={{
+              position: "absolute",
+              top: "-8px",
+              left: "-8px",
+              width: "16px",
+              height: "16px",
+              backgroundColor: "#ff9800",
+              clipPath: "polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)"
+            }}></div>
+            {/* Blue sparkle */}
+            <div style={{
+              position: "absolute",
+              top: "-4px",
+              right: "-12px",
+              width: "20px",
+              height: "20px",
+              backgroundColor: "#2196f3",
+              clipPath: "polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)"
+            }}></div>
+          </div>
+          
+          <div style={{ marginBottom: "16px" }}>
+            <div style={{ 
+              fontSize: "16px", 
+              fontWeight: "600", 
+              color: "#1a1a1a",
+              marginBottom: "8px"
+            }}>
+              Design Image Badge
+            </div>
+          </div>
+          
+          <Button 
+            variant="secondary"
+            size="medium"
+          >
+            Create from Scratch
+          </Button>
+        </div>
+        
         {filteredImageLabels.map((label) => (
         <div 
           key={label.id}
@@ -766,7 +931,7 @@ export default function CreateLabel() {
             borderRadius: "12px",
             padding: "16px",
             textAlign: "center",
-            width: "204px",
+            width: "244px",
             height: "272px",
             display: "flex",
             flexDirection: "column",
@@ -798,7 +963,7 @@ export default function CreateLabel() {
           
           {/* Image Icon and Text */}
           <div style={{
-            display: "flex",
+           
             alignItems: "center",
             justifyContent: "center",
             gap: "6px",
@@ -940,7 +1105,7 @@ export default function CreateLabel() {
                 onSelect={setSelectedTab}
               >
                 <div style={{ padding: "10px 0" }}>
-                  {selectedTab === 0 ? (
+                  {selectedTab === 1 ? (
                     <div style={{ display: "flex", gap: "24px", height: "570px" }}>
                       {/* Fixed Sidebar Categories */}
                       <div style={{ 
