@@ -2,7 +2,6 @@ import sessionHandler from "@/utils/sessionHandler";
 import shopify from "@/utils/shopify";
 import { RequestedTokenType, Session } from "@shopify/shopify-api";
 import validateJWT from "../validateJWT";
-import freshInstall from "../freshInstall";
 import prisma from "../prisma";
 
 /**
@@ -17,12 +16,12 @@ import prisma from "../prisma";
 const verifyRequest = async (req, res, next) => {
   try {
     const authHeader = req.headers["authorization"];
-    const storeId = req.headers["x-shopify-storefront-id"];
     if (!authHeader) {
       throw Error("No authorization header found.");
     }
-    console.log(storeId);
+
     const payload = validateJWT(authHeader.split(" ")[1]);
+
     let shop = shopify.utils.sanitizeShop(payload.dest.replace("https://", ""));
     if (!shop) {
       throw Error("No shop found, not a valid request");
@@ -36,7 +35,7 @@ const verifyRequest = async (req, res, next) => {
 
     let session = await sessionHandler.loadSession(sessionId);
     if (!session) {
-      session = await getSession({ shop, authHeader, storeId });
+      session = await getSession({ shop, authHeader });
     }
 
     if (
@@ -44,13 +43,17 @@ const verifyRequest = async (req, res, next) => {
       shopify.config.scopes.equals(session?.scope)
     ) {
     } else {
-      session = await getSession({ shop, authHeader, storeId });
+      session = await getSession({ shop, authHeader });
     }
 
     //Add session and shop to the request object so any subsequent routes that use this middleware can access it
     req.user_session = session;
     req.user_shop = session.shop;
-
+    req.store = await prisma.stores.findUnique({
+      where: {
+        shop: req.user_shop,
+      },
+    });
     await next();
 
     return;
@@ -75,25 +78,9 @@ export default verifyRequest;
  * @returns {Promise<Session>} The online session object
  */
 
-async function getSession({ shop, authHeader, storeId }) {
+async function getSession({ shop, authHeader }) {
   try {
     const sessionToken = authHeader.split(" ")[1];
-
-    // Ensure we have a valid storeId by finding or creating the store
-    let resolvedStoreId = storeId;
-    if (!resolvedStoreId) {
-      // Look up existing store by shop
-      let store = await prisma.stores.findUnique({
-        where: { shop: shop }
-      });
-      
-      // If no store exists, create one
-      if (!store) {
-        store = await freshInstall({ shop });
-      }
-      
-      resolvedStoreId = store.id;
-    }
 
     const { session: onlineSession } = await shopify.auth.tokenExchange({
       sessionToken,
@@ -101,7 +88,7 @@ async function getSession({ shop, authHeader, storeId }) {
       requestedTokenType: RequestedTokenType.OnlineAccessToken,
     });
 
-    await sessionHandler.storeSession({ ...onlineSession, storeId: resolvedStoreId });
+    await sessionHandler.storeSession(onlineSession);
 
     const { session: offlineSession } = await shopify.auth.tokenExchange({
       sessionToken,
@@ -109,13 +96,12 @@ async function getSession({ shop, authHeader, storeId }) {
       requestedTokenType: RequestedTokenType.OfflineAccessToken,
     });
 
-    await sessionHandler.storeSession({ ...offlineSession, storeId: resolvedStoreId });
+    await sessionHandler.storeSession(offlineSession);
 
     return new Session(onlineSession);
   } catch (e) {
     console.error(
       `---> Error happened while pulling session from Shopify: ${e.message}`
     );
-    throw e;
   }
 }

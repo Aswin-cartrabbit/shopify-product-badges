@@ -86,13 +86,7 @@ export const BadgeBuilder = () => {
         content: "Save",
         disabled: false,
         onAction: () => {
-          fetch(
-            "/api/badge/create",
-            getPostOptions(
-              { ...badge, name, type },
-              "84951ea2-c070-40d2-92f4-dbbb03119a26"
-            )
-          )
+          fetch("/api/badge/create", getPostOptions({ ...badge, name, type }))
             .then((response) => response.json())
             .then((data) => {
               console.log("Success:", data);

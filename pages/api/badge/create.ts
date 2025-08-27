@@ -13,9 +13,10 @@ const create = async (req, res) => {
       code: "METHOD_NOT_ALLOWED",
     });
   }
-
-  // Extract store ID from Shopify headers
-  const storeId = req.headers["x-shopify-storefront-id"];
+  console.log("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=");
+  console.log(req.store);
+  console.log("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=");
+  const storeId = req.store.id;
   if (!storeId) {
     return res.status(401).json({
       error: true,
@@ -23,7 +24,6 @@ const create = async (req, res) => {
       code: "MISSING_STORE_ID",
     });
   }
-
   try {
     const {
       name,

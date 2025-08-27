@@ -16,10 +16,7 @@ const index = async (req, res) => {
     });
   }
 
-  const storeId = req.headers["x-shopify-storefront-id"];
-  console.log("--------------------------------");
-  console.log(storeId);
-  console.log("--------------------------------");
+  const storeId = req.store.id;
 
   // Validate store ID presence
   if (!storeId) {
