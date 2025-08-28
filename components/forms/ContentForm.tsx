@@ -9,9 +9,15 @@ import {
   Select,
   Text,
   Badge,
+  RadioButton,
+  InlineStack,
+  Box,
+  DropZone,
+  LegacyStack,
 } from "@shopify/polaris";
 import { useCallback, useState, useEffect } from "react";
 import { useBadgeStore } from "@/stores/BadgeStore";
+import TemplateGalleryModal from "../TemplateGalleryModal";
 import React from "react";
 
 interface ContentFormProps {
@@ -23,13 +29,14 @@ interface ContentFormProps {
 }
 
 const ContentForm = ({ data, onChange, type = "BADGE", badgeName, setBadgeName }: ContentFormProps) => {
-  const { badge, updateContent } = useBadgeStore();
+  const { badge, updateContent, updateDesign } = useBadgeStore();
   
   // Local state for form fields
   const [localName, setLocalName] = useState("");
   const [localText, setLocalText] = useState("");
+  const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
 
-  // Initialize local state from props/data
+  // Initialize local state from props/data and auto-detect content type
   useEffect(() => {
     if (data) {
       const initialName = badgeName || 
@@ -40,8 +47,23 @@ const ContentForm = ({ data, onChange, type = "BADGE", badgeName, setBadgeName }
       
       setLocalName(initialName);
       setLocalText(data?.text || badge.content.text || "");
+
+      // Auto-detect content type based on template
+      if (data?.src) {
+        // If template has src, it's an image
+        updateContent("contentType", "image");
+        updateContent("icon", data.src);
+        updateContent("iconUploaded", true);
+      } else if (data?.text) {
+        // If template has text, it's a text template
+        updateContent("contentType", "text");
+        updateContent("text", data.text);
+      } else {
+        // Default to text if no clear type
+        updateContent("contentType", "text");
+      }
     }
-  }, [data?.id, data?.text, data?.alt, badgeName, type]); // Only trigger when template actually changes
+  }, [data?.id, data?.text, data?.alt, data?.src, badgeName, type, updateContent]); // Only trigger when template actually changes
 
   // Local state for form elements not directly related to badge data
 
@@ -79,6 +101,32 @@ const ContentForm = ({ data, onChange, type = "BADGE", badgeName, setBadgeName }
     [updateContent, onChange]
   );
 
+  const handleContentTypeChange = useCallback(
+    (contentType: "text" | "image") => {
+      updateContent("contentType", contentType);
+      if (onChange) {
+        onChange({ contentType });
+      }
+    },
+    [updateContent, onChange]
+  );
+
+  const handleTemplateSelect = useCallback(
+    (template: any) => {
+      updateContent("icon", template.src);
+      updateContent("iconUploaded", true);
+      updateContent("contentType", "image");
+      if (onChange) {
+        onChange({ 
+          icon: template.src, 
+          iconUploaded: true, 
+          contentType: "image" 
+        });
+      }
+    },
+    [updateContent, onChange]
+  );
+
   const handleRemoveIcon = useCallback(() => {
     updateContent("icon", "");
     updateContent("iconUploaded", false);
@@ -88,13 +136,34 @@ const ContentForm = ({ data, onChange, type = "BADGE", badgeName, setBadgeName }
   }, [updateContent, onChange]);
 
   const handleUploadIcon = useCallback(() => {
-    // You'd trigger file input here
-    const iconUrl = "/icons/truck.png";
-    updateContent("icon", iconUrl);
-    updateContent("iconUploaded", true);
-    if (onChange) {
-      onChange({ icon: iconUrl, iconUploaded: true });
-    }
+    // Create a file input element
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*';
+    fileInput.style.display = 'none';
+    
+    fileInput.onchange = (event: any) => {
+      const file = event.target.files[0];
+      if (file) {
+        // Create a local URL for the uploaded file
+        const imageUrl = URL.createObjectURL(file);
+        updateContent("icon", imageUrl);
+        updateContent("iconUploaded", true);
+        updateContent("contentType", "image");
+        if (onChange) {
+          onChange({ 
+            icon: imageUrl, 
+            iconUploaded: true, 
+            contentType: "image" 
+          });
+        }
+      }
+    };
+    
+    // Trigger the file input
+    document.body.appendChild(fileInput);
+    fileInput.click();
+    document.body.removeChild(fileInput);
   }, [updateContent, onChange]);
 
   const ctaOptions = [
@@ -104,6 +173,7 @@ const ContentForm = ({ data, onChange, type = "BADGE", badgeName, setBadgeName }
   ];
 
   return (
+    <>
     <Card>
       <BlockStack>
         <TextField
@@ -129,67 +199,113 @@ const ContentForm = ({ data, onChange, type = "BADGE", badgeName, setBadgeName }
       </BlockStack>
       <div style={{ margin: "10px" }}></div>
       <BlockStack gap={"400"}>
-        <TextField
-          label="Title"
-          value={localText}
-          onChange={handleTextChange}
-          autoComplete="off"
-        />
-
-        <BlockStack>
-          <Text as="p" variant="bodyMd">
-            Icon
-          </Text>
-          <div
-            style={{
-              display: "flex",
-              gap: "10px",
-            }}
+        {/* Content Type Switcher */}
+        <InlineStack gap="200">
+          <Button
+            pressed={badge.content.contentType === "text"}
+            onClick={() => handleContentTypeChange("text")}
+            variant={badge.content.contentType === "text" ? "primary" : "secondary"}
           >
-            <div
-              style={{
-                minWidth: "fit",
-              }}
-            >
-              {badge.content.iconUploaded && (
+            Text Badge
+          </Button>
+          <Button
+            pressed={badge.content.contentType === "image"}
+            onClick={() => handleContentTypeChange("image")}
+            variant={badge.content.contentType === "image" ? "primary" : "secondary"}
+          >
+            Image Badge
+          </Button>
+        </InlineStack>
+
+        {/* Conditional Content Based on Type */}
+        {badge.content.contentType === "text" ? (
+          // Text Content
+          <TextField
+            label="Title"
+            value={localText}
+            onChange={handleTextChange}
+            autoComplete="off"
+            helpText="Enter the text to display on your badge"
+          />
+        ) : (
+          // Image Content
+          <BlockStack gap="200">
+            <Text as="p" variant="bodyMd">
+              Choose Image
+            </Text>
+            
+            {badge.content.iconUploaded && (
+              <Box>
                 <Thumbnail
-                  source={
-                    badge.content.icon ||
-                    "https://rivmorkxomnwzdlytbgv.supabase.co/storage/v1/object/public/public/ecom-icons/delivery2.svg?width=32px"
-                  }
-                  alt="Icon preview"
+                  source={badge.content.icon || ""}
+                  alt="Selected image"
                   size="large"
                 />
-              )}
-            </div>
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "10px",
-                width: "100%",
-              }}
-            >
-              {badge.content.iconUploaded && (
-                <Button
-                  onClick={handleRemoveIcon}
-                  variant="secondary"
-                  tone="critical"
-                  fullWidth
-                >
-                  Remove icon
-                </Button>
-              )}
+              </Box>
+            )}
+
+            <InlineStack gap="200">
               <Button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsTemplateModalOpen(true);
+                }}
+                variant="secondary"
                 fullWidth
-                onClick={handleUploadIcon}
-                disabled={badge.content.iconUploaded}
               >
-                Upload Icon
+                Choose from library
               </Button>
-            </div>
-          </div>
-        </BlockStack>
+              <Button
+                onClick={handleUploadIcon}
+                fullWidth
+              >
+                Upload image
+              </Button>
+            </InlineStack>
+
+            {badge.content.iconUploaded && (
+              <Button
+                onClick={handleRemoveIcon}
+                variant="secondary"
+                tone="critical"
+                fullWidth
+              >
+                Remove image
+              </Button>
+            )}
+
+            {/* Size Control */}
+            <BlockStack gap="200">
+              <Text as="p" variant="bodyMd">
+                Size
+              </Text>
+              <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+                <div style={{ flex: 1 }}>
+                  <input
+                    type="range"
+                    min="10"
+                    max="100"
+                    value={badge.design.size || 36}
+                    onChange={(e) => updateDesign("size", parseInt(e.target.value))}
+                    style={{ width: "100%" }}
+                  />
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                  <TextField
+                    label=""
+                    labelHidden
+                    value={(badge.design.size || 36).toString()}
+                    onChange={(value) => updateDesign("size", parseInt(value) || 36)}
+                    type="number"
+                    autoComplete="off"
+                  />
+                  <Text as="span" variant="bodyMd">px</Text>
+                </div>
+              </div>
+            </BlockStack>
+          </BlockStack>
+        )}
 
         {/* <Select
           label="Call to action"
@@ -237,6 +353,13 @@ const ContentForm = ({ data, onChange, type = "BADGE", badgeName, setBadgeName }
       </div>
       <Button fullWidth>Continue to design</Button>
     </Card>
+
+    <TemplateGalleryModal
+      isOpen={isTemplateModalOpen}
+      onClose={() => setIsTemplateModalOpen(false)}
+      onSelect={handleTemplateSelect}
+    />
+    </>
   );
 };
 

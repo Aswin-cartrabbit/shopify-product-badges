@@ -39,15 +39,20 @@ export default function TemplatePreview({ selectedTemplate }: TemplatePreviewPro
   const renderBadgeContent = () => {
     // For image templates - NO SHAPES, just the image
     if (content.iconUploaded && content.icon) {
+      const imageStyle: React.CSSProperties = {
+        maxWidth: `${design.size || 36}px`,
+        maxHeight: `${design.size || 36}px`,
+        objectFit: "contain",
+        opacity: (design.opacity || 100) / 100,
+        transform: `rotate(${design.rotation || 0}deg) translate(${design.positionX || 0}px, ${design.positionY || 0}px)`,
+        transition: "all 0.3s ease"
+      };
+
       return (
         <img 
           src={content.icon} 
           alt="Badge icon"
-          style={{
-            maxWidth: "80px",
-            maxHeight: "80px",
-            objectFit: "contain"
-          }}
+          style={imageStyle}
         />
       );
     }
@@ -137,8 +142,8 @@ export default function TemplatePreview({ selectedTemplate }: TemplatePreviewPro
     );
   };
 
-  const positionClass = placement.position 
-    ? positionMap[placement.position] 
+  const positionClass = design.gridPosition 
+    ? positionMap[design.gridPosition] 
     : "badge-top-right";
 
   return (

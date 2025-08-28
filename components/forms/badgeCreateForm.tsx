@@ -20,8 +20,7 @@ import { useBadgeStore } from "@/stores/BadgeStore";
 import HtmlPreviewer from "../HtmlPreviewer";
 import ContentForm from "./ContentForm";
 import DesignForm from "./DesignForm";
-import DisplayForm from "./DisplayForm";
-import PlacementForm from "./PlacementForm";
+import ProductsForm from "./ProductsForm";
 import {Modal, TitleBar, useAppBridge} from '@shopify/app-bridge-react';
 
 interface BadgeBuilderProps {
@@ -240,13 +239,7 @@ export const BadgeBuilder = ({
               pressed={selectedTab === 2}
               onClick={() => handleTabChange(2)}
             >
-              Placement
-            </Button>
-            <Button
-              pressed={selectedTab === 3}
-              onClick={() => handleTabChange(3)}
-            >
-              Display
+              Products
             </Button>
           </ButtonGroup>
         </div>
@@ -278,16 +271,9 @@ export const BadgeBuilder = ({
               />
             )}
             {selectedTab === 2 && (
-              <PlacementForm 
+              <ProductsForm 
                 data={formData}
-                onChange={(data) => setFormData({...formData, placement: data})}
-                type={componentType}
-              />
-            )}
-            {selectedTab === 3 && (
-              <DisplayForm 
-                data={formData}
-                onChange={(data) => setFormData({...formData, display: data})}
+                onChange={(data) => setFormData({...formData, products: data})}
                 type={componentType}
               />
             )}

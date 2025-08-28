@@ -19,6 +19,7 @@ export type BadgeContent = {
   iconUploaded?: boolean;
   callToAction?: string;
   subheading?: string;
+  contentType?: "text" | "image"; // New field to determine content type
 };
 
 export type BadgeDesign = {
@@ -39,6 +40,13 @@ export type BadgeDesign = {
     outsideTop: string;
     outsideBottom: string;
   };
+  // New fields for image badge controls
+  opacity?: number;
+  rotation?: number;
+  size?: number;
+  positionX?: number;
+  positionY?: number;
+  gridPosition?: GridPosition;
 };
 
 export type BadgePlacement = {
@@ -91,6 +99,7 @@ const useBadgeStore = create<BadgeStore>()((set) => ({
       iconUploaded: false,
       callToAction: "noCta",
       subheading: "",
+      contentType: "text",
     },
     design: {
       shape: "",
@@ -110,6 +119,12 @@ const useBadgeStore = create<BadgeStore>()((set) => ({
         outsideTop: "20",
         outsideBottom: "20",
       },
+      opacity: 100,
+      rotation: 0,
+      size: 36,
+      positionX: 0,
+      positionY: 0,
+      gridPosition: GridPosition.MIDDLE_CENTER,
     },
     placement: {
       position: GridPosition.TOP_RIGHT,
@@ -185,6 +200,7 @@ const useBadgeStore = create<BadgeStore>()((set) => ({
           iconUploaded: false,
           callToAction: "noCta",
           subheading: "",
+          contentType: "text",
         },
         design: {
           template: "Black and Yellow",
@@ -203,6 +219,12 @@ const useBadgeStore = create<BadgeStore>()((set) => ({
             outsideTop: "20",
             outsideBottom: "20",
           },
+          opacity: 100,
+          rotation: 0,
+          size: 36,
+          positionX: 0,
+          positionY: 0,
+          gridPosition: GridPosition.MIDDLE_CENTER,
         },
         placement: {
           position: GridPosition.TOP_RIGHT,
