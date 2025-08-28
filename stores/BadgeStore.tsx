@@ -15,10 +15,12 @@ enum GridPosition {
 export type BadgeContent = {
   text: string;
   font: string;
+  textColor?: string;
   icon?: string;
   iconUploaded?: boolean;
   callToAction?: string;
   subheading?: string;
+  contentType?: "text" | "image"; // New field to determine content type
 };
 
 export type BadgeDesign = {
@@ -39,6 +41,13 @@ export type BadgeDesign = {
     outsideTop: string;
     outsideBottom: string;
   };
+  // New fields for image badge controls
+  opacity?: number;
+  rotation?: number;
+  size?: number;
+  positionX?: number;
+  positionY?: number;
+  gridPosition?: GridPosition;
 };
 
 export type BadgePlacement = {
@@ -51,6 +60,7 @@ export type BadgeDisplay = {
   endDateTime?: number;
   visibility: "all" | "single" | "multiple";
   resourceIds?: any[];
+  bgColor?: string;
 };
 
 export type Badge = {
@@ -87,10 +97,12 @@ const useBadgeStore = create<BadgeStore>()((set) => ({
     content: {
       text: "FEATURED",
       font: "own_theme",
+      textColor: "#ffffff",
       icon: "",
       iconUploaded: false,
       callToAction: "noCta",
       subheading: "",
+      contentType: "text",
     },
     design: {
       shape: "",
@@ -110,6 +122,12 @@ const useBadgeStore = create<BadgeStore>()((set) => ({
         outsideTop: "20",
         outsideBottom: "20",
       },
+      opacity: 100,
+      rotation: 0,
+      size: 36,
+      positionX: 0,
+      positionY: 0,
+      gridPosition: GridPosition.TOP_LEFT,
     },
     placement: {
       position: GridPosition.TOP_RIGHT,
@@ -120,6 +138,7 @@ const useBadgeStore = create<BadgeStore>()((set) => ({
       startDateTime: Date.now(),
       visibility: "all",
       resourceIds: [],
+      bgColor: "#ffffff",
     },
   },
 
@@ -181,10 +200,12 @@ const useBadgeStore = create<BadgeStore>()((set) => ({
         content: {
           text: "FEATURED",
           font: "own_theme",
+          textColor: "#ffffff",
           icon: "",
           iconUploaded: false,
           callToAction: "noCta",
           subheading: "",
+          contentType: "text",
         },
         design: {
           template: "Black and Yellow",
@@ -203,6 +224,12 @@ const useBadgeStore = create<BadgeStore>()((set) => ({
             outsideTop: "20",
             outsideBottom: "20",
           },
+          opacity: 100,
+          rotation: 0,
+          size: 36,
+          positionX: 0,
+          positionY: 0,
+          gridPosition: GridPosition.TOP_LEFT,
         },
         placement: {
           position: GridPosition.TOP_RIGHT,
@@ -213,6 +240,7 @@ const useBadgeStore = create<BadgeStore>()((set) => ({
           startDateTime: Date.now(),
           visibility: "all",
           resourceIds: [],
+          bgColor: "#ffffff",
         },
       },
     })),

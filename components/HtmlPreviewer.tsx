@@ -11,9 +11,13 @@ import {
   BlockStack,
 } from "@shopify/polaris";
 import { TabletIcon, MobileIcon } from "@shopify/polaris-icons";
-import getHtmlPreviewCode from "./Preview";
+import TemplatePreview from "./TemplatePreview";
 
-export default function HtmlPreviewer() {
+interface HtmlPreviewerProps {
+  selectedTemplate?: any;
+}
+
+export default function HtmlPreviewer({ selectedTemplate }: HtmlPreviewerProps) {
   const [device, setDevice] = useState("desktop");
 
   const getWidth = () => {
@@ -44,13 +48,7 @@ export default function HtmlPreviewer() {
           >
             Desktop
           </Button>
-          <Button
-            pressed={device === "tablet"}
-            onClick={() => setDevice("tablet")}
-            icon={MobileIcon}
-          >
-            Tablet
-          </Button>
+         
           <Button
             pressed={device === "mobile"}
             onClick={() => setDevice("mobile")}
@@ -86,10 +84,12 @@ export default function HtmlPreviewer() {
             padding: "20px",
           }}
         >
-          <div
-            dangerouslySetInnerHTML={{ __html: getHtmlPreviewCode() }}
-            style={{ width: "100%" }}
-          />
+          <div style={{ width: "100%" }}>
+            <TemplatePreview 
+              key={`preview-${selectedTemplate?.id || 'default'}-${Date.now()}`}
+              selectedTemplate={selectedTemplate} 
+            />
+          </div>
         </div>
       </div>
     </div>

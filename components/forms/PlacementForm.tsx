@@ -17,7 +17,13 @@ import {
 import React, { useState, useCallback } from "react";
 import GridPosition from "../GridPosition";
 
-const PlacementForm = () => {
+interface PlacementFormProps {
+  data?: any;
+  onChange?: (data: any) => void;
+  type?: string;
+}
+
+const PlacementForm = ({ data, onChange, type }: PlacementFormProps) => {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [displayRules, setDisplayRules] = useState(false);
   const [badgeSize, setBadgeSize] = useState(100);

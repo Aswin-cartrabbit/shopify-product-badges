@@ -160,7 +160,9 @@ const LabelGrid = () => {
 
   const handleShapeSelect = (index) => {
     setSelectedIndex(index);
-    updateDesign("shape", data[index].css);
+    const selectedShape = data[index];
+    updateDesign("shape", selectedShape.css);
+    console.log("Shape selected:", selectedShape.description, selectedShape.css);
   };
 
   const renderShapeGrid = () => {
