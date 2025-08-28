@@ -58,7 +58,7 @@ export default function Dashboard() {
       icon: CheckIcon,
       iconBg: "#E3F2FD",
       iconColor: "#1976D2",
-      onClick: () => router.push("/trust-badges/create"),
+      onClick: () => router.push("/trust-badges"),
       tooltip: "Build customer confidence with trust badges showing security, guarantees, or certifications."
     },
     {
@@ -68,7 +68,7 @@ export default function Dashboard() {
       icon: NotificationIcon,
       iconBg: "#E3F2FD",
       iconColor: "#1976D2",
-      onClick: () => router.push("/banners/create"),
+      onClick: () => router.push("/banners"),
       tooltip: "Create promotional banners to announce sales, free shipping, or important notifications."
     }
   ];
@@ -80,6 +80,7 @@ export default function Dashboard() {
       description:
         "Retainful combines email marketing, SMS and WhatsApp automation in one platform for Shopify stores",
       link: "Try Retainful Free",
+      href: "https://retainful.com"
     },
     {
       id: "2",
@@ -87,6 +88,7 @@ export default function Dashboard() {
       description:
         "Retainful combines email marketing, SMS and WhatsApp automation in one platform for Shopify stores",
       link: "Try Retainful Free",
+      href: "https://retainful.com"
     },
     {
       id: "3",
@@ -94,6 +96,7 @@ export default function Dashboard() {
       description:
         "Retainful combines email marketing, SMS and WhatsApp automation in one platform for Shopify stores",
       link: "Try Retainful Free",
+      href: "https://retainful.com"
     }
     
   ];
@@ -188,7 +191,7 @@ export default function Dashboard() {
           <Card>
             <InlineStack gap="100" blockAlign="center" align="space-evenly">
               {recommendedApps.map((item) => {
-                const { id, name, description, link } = item;
+                const { id, name, description, link, href } = item;
                 return (
                   <div
                     key={id}
@@ -211,7 +214,7 @@ export default function Dashboard() {
                         <Text tone="subdued" as="p">
                           {description}
                         </Text>
-                        <Button variant="plain">{link}</Button>
+                        <Button variant="plain" onClick={() => window.open(href, '_blank')}>{link}</Button>
                       </BlockStack>
                     </Card>
                   </div>
