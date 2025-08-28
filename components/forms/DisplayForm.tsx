@@ -16,10 +16,11 @@ import {
   ChoiceList,
   Select,
 } from "@shopify/polaris";
-import { useCallback, useState } from "react";
+import { useCallback, useState, useEffect } from "react";
 import { DateTimePicker } from "../pickers/DateTimePicker";
 import { QuestionCircleIcon, CalendarTimeIcon } from "@shopify/polaris-icons";
 import { useBadgeStore } from "@/stores/BadgeStore";
+import { useAppBridge } from '@shopify/app-bridge-react';
 
 interface DisplayFormProps {
   data?: any;
@@ -32,35 +33,85 @@ const DisplayForm = ({ data, onChange, type }: DisplayFormProps) => {
     "all"
   );
   const { badge, updateDisplay } = useBadgeStore();
-  async function openResourcePicker(multiple = false, initQuery = "") {
-    const selected = await window?.shopify?.resourcePicker({
-      type: "product",
-      query: initQuery,
-      filter: {
-        hidden: false,
-        variants: true,
-      },
-      action: "select",
-      multiple,
-    });
+  const app = useAppBridge();
 
-    if (selected && selected.length > 0) {
-      updateDisplay(
-        "resourceIds",
-        selected.map((product) => {
+  // Initialize visibility based on existing badge data
+  useEffect(() => {
+    if (badge.display.resourceIds && badge.display.resourceIds.length > 0) {
+      setVisibility(badge.display.resourceIds.length === 1 ? "single" : "multiple");
+    } else {
+      setVisibility("all");
+    }
+  }, [badge.display.resourceIds]);
+  async function openResourcePicker(multiple = false, initQuery = "") {
+    console.log('Attempting to open resource picker:', { multiple, initQuery });
+    console.log('App Bridge instance:', app);
+    console.log('Shopify object:', window?.shopify);
+    console.log('Resource picker function:', window?.shopify?.resourcePicker);
+    
+    try {
+      // Try multiple approaches to open the resource picker
+      let selected = null;
+      
+      // Method 1: Try window.shopify.resourcePicker (traditional method)
+      if (window?.shopify?.resourcePicker) {
+        console.log('Using window.shopify.resourcePicker');
+        selected = await window.shopify.resourcePicker({
+          type: "product",
+          query: initQuery,
+          filter: {
+            hidden: false,
+            variants: true,
+          },
+          action: "select",
+          multiple,
+        });
+      }
+      // Method 2: Try with shopify global (alternative)
+      else if (window?.shopify) {
+        console.log('Trying alternative Shopify API access');
+        // Force refresh the shopify object
+        await new Promise(resolve => setTimeout(resolve, 500));
+        if (window.shopify.resourcePicker) {
+          selected = await window.shopify.resourcePicker({
+            type: "product",
+            action: "select",
+            multiple,
+          });
+        }
+      } 
+      // Method 3: Direct app bridge approach
+      else {
+        console.error('Shopify resource picker API not available');
+        alert('Product selector is not available. This might be a context issue. Please try refreshing the page.');
+        return;
+      }
+
+      console.log('Resource picker result:', selected);
+
+      if (selected && selected.length > 0) {
+        const mappedProducts = selected.map((product) => {
           return {
             productTitle: product.title,
             productHandle: product.handle,
             productId: product.id,
-            variants: product.variants.map((variant) => {
+            variants: product.variants?.map((variant) => {
               return {
                 variantId: variant.id,
                 variantDisplayName: variant.displayName,
               };
-            }),
+            }) || [],
           };
-        })
-      );
+        });
+        
+        console.log('Updating display with products:', mappedProducts);
+        updateDisplay("resourceIds", mappedProducts);
+      } else {
+        console.log('No products selected or picker was cancelled');
+      }
+    } catch (error) {
+      console.error('Resource picker error:', error);
+      alert(`Failed to open product selector: ${error.message || 'Unknown error'}. Please try refreshing the page and try again.`);
     }
   }
 
@@ -68,9 +119,11 @@ const DisplayForm = ({ data, onChange, type }: DisplayFormProps) => {
     setVisibility(value);
 
     if (value === "single") {
-      openResourcePicker(false);
+      // Small delay to ensure modal context is ready
+      setTimeout(() => openResourcePicker(false), 100);
     } else if (value === "multiple") {
-      openResourcePicker(true);
+      // Small delay to ensure modal context is ready
+      setTimeout(() => openResourcePicker(true), 100);
     } else {
       updateDisplay("resourceIds", []);
     }
@@ -433,6 +486,20 @@ const DisplayForm = ({ data, onChange, type }: DisplayFormProps) => {
               onChange={() => handleVisibilityChange("single")}
               helpText="Choose one specific product to display the badge"
             />
+            
+            {/* Debug button - remove after testing */}
+            {visibility === "single" && (
+              <Button 
+                onClick={() => {
+                  console.log('Direct button clicked');
+                  openResourcePicker(false);
+                }}
+                variant="primary"
+                size="micro"
+              >
+                Test Product Picker
+              </Button>
+            )}
 
             <RadioButton
               label="Show on multiple specific products"
@@ -473,7 +540,7 @@ const DisplayForm = ({ data, onChange, type }: DisplayFormProps) => {
                   {visibility === "multiple" && (
                     <Button
                       variant="plain"
-                      onClick={() => openResourcePicker(true)}
+                      onClick={() => setTimeout(() => openResourcePicker(true), 100)}
                     >
                       Edit selection
                     </Button>

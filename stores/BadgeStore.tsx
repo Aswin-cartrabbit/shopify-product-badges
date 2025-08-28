@@ -21,6 +21,8 @@ export type BadgeContent = {
   callToAction?: string;
   subheading?: string;
   contentType?: "text" | "image"; // New field to determine content type
+  src?: string; // Image source URL
+  alt?: string; // Image alt text
 };
 
 export type BadgeDesign = {
@@ -58,7 +60,7 @@ export type BadgeDisplay = {
   isScheduled: boolean;
   startDateTime?: number;
   endDateTime?: number;
-  visibility: "all" | "single" | "multiple";
+  visibility: "all" | "single" | "multiple" | "specific" | "collections";
   resourceIds?: any[];
   bgColor?: string;
 };
@@ -103,6 +105,8 @@ const useBadgeStore = create<BadgeStore>()((set) => ({
       callToAction: "noCta",
       subheading: "",
       contentType: "text",
+      src: "",
+      alt: "",
     },
     design: {
       shape: "",
@@ -206,6 +210,8 @@ const useBadgeStore = create<BadgeStore>()((set) => ({
           callToAction: "noCta",
           subheading: "",
           contentType: "text",
+          src: "",
+          alt: "",
         },
         design: {
           template: "Black and Yellow",
