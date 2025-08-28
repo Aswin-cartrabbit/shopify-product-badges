@@ -14,10 +14,15 @@ import {
   Box,
   DropZone,
   LegacyStack,
+  Tooltip,
+  Icon,
 } from "@shopify/polaris";
+import { QuestionCircleIcon } from "@shopify/polaris-icons";
 import { useCallback, useState, useEffect } from "react";
-import { useBadgeStore } from "@/stores/BadgeStore";
+import { useBadgeStore, GridPosition } from "@/stores/BadgeStore";
 import TemplateGalleryModal from "../TemplateGalleryModal";
+import ColorPickerInput from "../pickers/ColourPicker";
+import PositionGrid from "../PositionGrid";
 import React from "react";
 
 interface ContentFormProps {
@@ -30,11 +35,18 @@ interface ContentFormProps {
 
 const ContentForm = ({ data, onChange, type = "BADGE", badgeName, setBadgeName }: ContentFormProps) => {
   const { badge, updateContent, updateDesign } = useBadgeStore();
+
+  const TooltipIcon = ({ content }) => (
+    <Tooltip content={content}>
+      <Icon source={QuestionCircleIcon} tone="subdued" />
+    </Tooltip>
+  );
   
   // Local state for form fields
   const [localName, setLocalName] = useState("");
   const [localText, setLocalText] = useState("");
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
 
   // Initialize local state from props/data and auto-detect content type
   useEffect(() => {
@@ -47,6 +59,11 @@ const ContentForm = ({ data, onChange, type = "BADGE", badgeName, setBadgeName }
       
       setLocalName(initialName);
       setLocalText(data?.text || badge.content.text || "");
+
+      // Set selected template if data has template info
+      if (data?.text && data?.style) {
+        setSelectedTemplate(data);
+      }
 
       // Auto-detect content type based on template
       if (data?.src) {
@@ -64,6 +81,13 @@ const ContentForm = ({ data, onChange, type = "BADGE", badgeName, setBadgeName }
       }
     }
   }, [data?.id, data?.text, data?.alt, data?.src, badgeName, type, updateContent]); // Only trigger when template actually changes
+
+  // Sync local text state with badge store (avoid infinite loops)
+  useEffect(() => {
+    if (badge.content.text && badge.content.text !== localText) {
+      setLocalText(badge.content.text);
+    }
+  }, [badge.content.text]); // Sync when badge store text changes
 
   // Local state for form elements not directly related to badge data
 
@@ -113,18 +137,54 @@ const ContentForm = ({ data, onChange, type = "BADGE", badgeName, setBadgeName }
 
   const handleTemplateSelect = useCallback(
     (template: any) => {
-      updateContent("icon", template.src);
-      updateContent("iconUploaded", true);
-      updateContent("contentType", "image");
-      if (onChange) {
-        onChange({ 
-          icon: template.src, 
-          iconUploaded: true, 
-          contentType: "image" 
-        });
+      if (template.src) {
+        // Image template
+        updateContent("icon", template.src);
+        updateContent("iconUploaded", true);
+        updateContent("contentType", "image");
+        if (onChange) {
+          onChange({ 
+            icon: template.src, 
+            iconUploaded: true, 
+            contentType: "image" 
+          });
+        }
+      } else if (template.text) {
+        // Text template
+        updateContent("text", template.text);
+        updateContent("contentType", "text");
+        setLocalText(template.text);
+        setSelectedTemplate(template); // Store the selected template for preview
+        
+        // Apply template styling if available
+        if (template.style) {
+          if (template.style.background) {
+            updateDesign("color", template.style.background);
+          }
+          if (template.style.borderRadius) {
+            const radius = typeof template.style.borderRadius === 'string' 
+              ? parseInt(template.style.borderRadius.replace('px', '')) 
+              : parseInt(template.style.borderRadius);
+            updateDesign("cornerRadius", radius || 0);
+          }
+          if (template.style.clipPath) {
+            updateDesign("shape", `clip-path: ${template.style.clipPath}`);
+          }
+        }
+        
+        // Force update the form data to ensure parent component knows about the change
+        if (onChange) {
+          onChange({ 
+            text: template.text,
+            contentType: "text",
+            template: template
+          });
+        }
+        
+
       }
     },
-    [updateContent, onChange]
+    [updateContent, updateDesign, onChange, setLocalText]
   );
 
   const handleRemoveIcon = useCallback(() => {
@@ -200,7 +260,7 @@ const ContentForm = ({ data, onChange, type = "BADGE", badgeName, setBadgeName }
       <div style={{ margin: "10px" }}></div>
       <BlockStack gap={"400"}>
         {/* Content Type Switcher */}
-        <InlineStack gap="200">
+        {/* <InlineStack gap="200">
           <Button
             pressed={badge.content.contentType === "text"}
             onClick={() => handleContentTypeChange("text")}
@@ -215,18 +275,65 @@ const ContentForm = ({ data, onChange, type = "BADGE", badgeName, setBadgeName }
           >
             Image Badge
           </Button>
-        </InlineStack>
+        </InlineStack> */}
 
         {/* Conditional Content Based on Type */}
         {badge.content.contentType === "text" ? (
           // Text Content
-          <TextField
-            label="Title"
-            value={localText}
-            onChange={handleTextChange}
-            autoComplete="off"
-            helpText="Enter the text to display on your badge"
-          />
+          <BlockStack gap="200">
+            <Text as="p" variant="bodyMd">
+              Text Content
+            </Text>
+            
+            {/* Show selected template preview if any */}
+            {((data && data.text && data.style) || (selectedTemplate && selectedTemplate.text && selectedTemplate.style)) && (
+              <Box>
+                <div style={{ marginBottom: "8px" }}>
+                  <Text as="p" variant="bodySm" tone="subdued">
+                    Selected Template:
+                  </Text>
+                </div>
+                <div
+                  style={{
+                    ...(selectedTemplate?.style || data?.style),
+                    padding: "8px 12px",
+                    borderRadius: (selectedTemplate?.style?.borderRadius || data?.style?.borderRadius) || "4px",
+                    display: "inline-block",
+                    fontSize: "0.875rem",
+                    fontWeight: 600,
+                    marginBottom: "8px"
+                  }}
+                >
+                  {selectedTemplate?.text || data?.text}
+                </div>
+                
+                {/* Remove template button */}
+                
+              </Box>
+            )}
+
+            <InlineStack gap="200">
+              <Button
+                onClick={() => {
+                  setIsTemplateModalOpen(true);
+                }}
+                variant="secondary"
+                fullWidth
+              >
+                Choose from library
+              </Button>
+             
+            </InlineStack>
+
+            <TextField
+              label="Title"
+              value={localText}
+              onChange={handleTextChange}
+              autoComplete="off"
+              helpText="Enter the text to display on your badge"
+            />
+
+          </BlockStack>
         ) : (
           // Image Content
           <BlockStack gap="200">
@@ -246,9 +353,7 @@ const ContentForm = ({ data, onChange, type = "BADGE", badgeName, setBadgeName }
 
             <InlineStack gap="200">
               <Button
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
+                onClick={() => {
                   setIsTemplateModalOpen(true);
                 }}
                 variant="secondary"
@@ -275,35 +380,7 @@ const ContentForm = ({ data, onChange, type = "BADGE", badgeName, setBadgeName }
               </Button>
             )}
 
-            {/* Size Control */}
-            <BlockStack gap="200">
-              <Text as="p" variant="bodyMd">
-                Size
-              </Text>
-              <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-                <div style={{ flex: 1 }}>
-                  <input
-                    type="range"
-                    min="10"
-                    max="100"
-                    value={badge.design.size || 36}
-                    onChange={(e) => updateDesign("size", parseInt(e.target.value))}
-                    style={{ width: "100%" }}
-                  />
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                  <TextField
-                    label=""
-                    labelHidden
-                    value={(badge.design.size || 36).toString()}
-                    onChange={(value) => updateDesign("size", parseInt(value) || 36)}
-                    type="number"
-                    autoComplete="off"
-                  />
-                  <Text as="span" variant="bodyMd">px</Text>
-                </div>
-              </div>
-            </BlockStack>
+
           </BlockStack>
         )}
 
@@ -351,6 +428,38 @@ const ContentForm = ({ data, onChange, type = "BADGE", badgeName, setBadgeName }
           <Divider />
         </Bleed>
       </div>
+
+      {/* Position Control */}
+      <div style={{ margin: "10px" }}></div>
+      <BlockStack gap="400">
+        <InlineStack gap="100" align="start">
+          <Text variant="headingMd" as={"h3"}>
+            Position
+          </Text>
+          <TooltipIcon content="Choose where to position your badge on the product image" />
+        </InlineStack>
+
+        <BlockStack gap="200">
+          <Text as="p" variant="bodyMd" tone="subdued">
+            Choose badge position
+          </Text>
+          
+          <Box>
+            <PositionGrid
+              selectedPosition={badge.design.gridPosition || GridPosition.TOP_LEFT}
+              onPositionChange={(position) => updateDesign("gridPosition", position)}
+            />
+            <Text as="p" variant="bodySm" tone="subdued">
+              Click to select badge position
+            </Text>
+          </Box>
+        </BlockStack>
+
+        <Bleed marginInline="400">
+          <Divider />
+        </Bleed>
+      </BlockStack>
+
       <Button fullWidth>Continue to design</Button>
     </Card>
 
@@ -358,6 +467,7 @@ const ContentForm = ({ data, onChange, type = "BADGE", badgeName, setBadgeName }
       isOpen={isTemplateModalOpen}
       onClose={() => setIsTemplateModalOpen(false)}
       onSelect={handleTemplateSelect}
+      templateType={badge.content.contentType === "text" ? "text" : "image"}
     />
     </>
   );

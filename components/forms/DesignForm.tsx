@@ -225,7 +225,7 @@ export default function DesignForm({ data, onChange, selectedTemplate, type }: D
                   <TooltipIcon content="Choose a color that contrasts well with your text for better readability" />
                 </InlineStack>
                 <ColorPickerInput
-                  value={badge.design.color}
+                  value={badge.design.color || "#7700ffff"}
                   onChange={(value: string) => handleDesignChange("color", value)}
                 />
               </Box>
@@ -280,8 +280,48 @@ export default function DesignForm({ data, onChange, selectedTemplate, type }: D
               />
             </InlineStack>
 
-            {/* Spacing */}
+            {/* Size Control */}
             <BlockStack gap="200">
+              <InlineStack gap="100" align="start">
+                <Text as="p" variant="bodyMd">
+                  Size
+                </Text>
+                <TooltipIcon content="Adjust the overall size of your badge" />
+              </InlineStack>
+              <RangeSlider
+                label="Size"
+                min={10}
+                max={100}
+                value={badge.design.size || 36}
+                onChange={(value) => {
+                  if (typeof value === "number") {
+                    handleDesignChange("size", value);
+                  }
+                }}
+                output
+                suffix="px"
+                helpText={`${badge.design.size || 36}px - Adjust the badge size`}
+              />
+            </BlockStack>
+
+            {/* Text Color Control - Only for text badges */}
+            {badge.content.contentType === "text" && (
+              <BlockStack gap="200">
+                <InlineStack gap="100" align="start">
+                  <Text as="p" variant="bodyMd">
+                    Text Color
+                  </Text>
+                  <TooltipIcon content="Choose the color of your text for better readability" />
+                </InlineStack>
+                <ColorPickerInput
+                  value={badge.content.textColor || "#ffffff"}
+                  onChange={(value: string) => updateContent("textColor", value)}
+                />
+              </BlockStack>
+            )}
+
+            {/* Spacing */}
+            {/* <BlockStack gap="200">
               <InlineStack gap="100" align="start">
                 <Text as="p" variant="bodyMd">
                   Spacing & Padding
@@ -330,13 +370,13 @@ export default function DesignForm({ data, onChange, selectedTemplate, type }: D
                   helpText="Distance from elements below"
                 />
               </InlineStack>
-            </BlockStack>
+            </BlockStack> */}
 
             <Bleed marginInline="400">
               <Divider />
             </Bleed>
 
-            <BlockStack gap="400">
+            {/* <BlockStack gap="400">
               <InlineStack gap="100" align="start">
                 <Text variant="headingMd" as={"h3"}>
                   Icon Styling
@@ -344,7 +384,6 @@ export default function DesignForm({ data, onChange, selectedTemplate, type }: D
                 <TooltipIcon content="Customize how icons appear in your badges - size, colors, and layout options" />
               </InlineStack>
 
-              {/* Icon size + Icon color */}
               <InlineStack gap="400">
                 <TextField
                   label="Icon size (pixels)"
@@ -355,7 +394,6 @@ export default function DesignForm({ data, onChange, selectedTemplate, type }: D
                 />{" "}
               </InlineStack>
 
-              {/* Background color */}
               <Box>
                 <InlineStack gap="100" align="start">
                   <Text as="p" variant="bodyMd">
@@ -366,11 +404,10 @@ export default function DesignForm({ data, onChange, selectedTemplate, type }: D
                 <ColorPickerInput
                   label=""
                   onChange={(value: string) => updateDisplay("bgColor", value)}
-                  value={badge.display.bgColor}
+                  value={badge.display.bgColor || "#ffffff"}
                 />
               </Box>
 
-              {/* Corner radius */}
               <Box maxWidth="200px">
                 <InlineStack gap="100" align="start">
                   <Text as="p" variant="bodyMd">
@@ -396,7 +433,7 @@ export default function DesignForm({ data, onChange, selectedTemplate, type }: D
               <Bleed marginInline="400">
                 <Divider />
               </Bleed>
-            </BlockStack>
+            </BlockStack> */}
           </>
         )}
 
@@ -462,35 +499,7 @@ export default function DesignForm({ data, onChange, selectedTemplate, type }: D
           </BlockStack>
         )}
 
-        {/* Position Grid - Common for both text and image badges */}
-        <BlockStack  gap="400">
-          <InlineStack gap="100" align="start">
-            <Text variant="headingMd" as={"h3"}>
-              Badge Position
-            </Text>
-            <TooltipIcon content="Choose where to position your badge on the product image" />
-          </InlineStack>
 
-          <BlockStack gap="200">
-            <Text as="p" variant="bodyMd" tone="subdued">
-              Predefined position
-            </Text>
-            
-            <Box>
-              <PositionGrid
-                selectedPosition={badge.design.gridPosition || GridPosition.MIDDLE_CENTER}
-                onPositionChange={(position) => handleDesignChange("gridPosition", position)}
-              />
-              <Text as="p" variant="bodySm" tone="subdued">
-                Click to select badge position
-              </Text>
-            </Box>
-          </BlockStack>
-
-          <Bleed marginInline="400">
-            <Divider />
-          </Bleed>
-        </BlockStack>
 
         {badge.content.contentType === "text" && (
           <BlockStack gap="400">

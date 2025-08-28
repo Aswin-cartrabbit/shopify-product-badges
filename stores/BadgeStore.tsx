@@ -15,6 +15,7 @@ enum GridPosition {
 export type BadgeContent = {
   text: string;
   font: string;
+  textColor?: string;
   icon?: string;
   iconUploaded?: boolean;
   callToAction?: string;
@@ -59,6 +60,7 @@ export type BadgeDisplay = {
   endDateTime?: number;
   visibility: "all" | "single" | "multiple";
   resourceIds?: any[];
+  bgColor?: string;
 };
 
 export type Badge = {
@@ -95,6 +97,7 @@ const useBadgeStore = create<BadgeStore>()((set) => ({
     content: {
       text: "FEATURED",
       font: "own_theme",
+      textColor: "#ffffff",
       icon: "",
       iconUploaded: false,
       callToAction: "noCta",
@@ -124,7 +127,7 @@ const useBadgeStore = create<BadgeStore>()((set) => ({
       size: 36,
       positionX: 0,
       positionY: 0,
-      gridPosition: GridPosition.MIDDLE_CENTER,
+      gridPosition: GridPosition.TOP_LEFT,
     },
     placement: {
       position: GridPosition.TOP_RIGHT,
@@ -135,6 +138,7 @@ const useBadgeStore = create<BadgeStore>()((set) => ({
       startDateTime: Date.now(),
       visibility: "all",
       resourceIds: [],
+      bgColor: "#ffffff",
     },
   },
 
@@ -196,6 +200,7 @@ const useBadgeStore = create<BadgeStore>()((set) => ({
         content: {
           text: "FEATURED",
           font: "own_theme",
+          textColor: "#ffffff",
           icon: "",
           iconUploaded: false,
           callToAction: "noCta",
@@ -224,7 +229,7 @@ const useBadgeStore = create<BadgeStore>()((set) => ({
           size: 36,
           positionX: 0,
           positionY: 0,
-          gridPosition: GridPosition.MIDDLE_CENTER,
+          gridPosition: GridPosition.TOP_LEFT,
         },
         placement: {
           position: GridPosition.TOP_RIGHT,
@@ -235,6 +240,7 @@ const useBadgeStore = create<BadgeStore>()((set) => ({
           startDateTime: Date.now(),
           visibility: "all",
           resourceIds: [],
+          bgColor: "#ffffff",
         },
       },
     })),

@@ -14,25 +14,29 @@ import {
   Bleed,
 } from "@shopify/polaris";
 import { useState } from "react";
-import { imageTemplates } from "@/utils/templateData";
+import { imageTemplates, textTemplates } from "@/utils/templateData";
 
 interface TemplateGalleryModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSelect: (template: any) => void;
+  templateType?: "text" | "image"; // New prop to specify template type
 }
 
-const TemplateGalleryModal = ({ isOpen, onClose, onSelect }: TemplateGalleryModalProps) => {
+const TemplateGalleryModal = ({ isOpen, onClose, onSelect, templateType = "image" }: TemplateGalleryModalProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
 
-  // Use actual image templates from templateData
-  const predefinedTemplates = imageTemplates;
+  // Use the appropriate templates based on type
+  const predefinedTemplates = templateType === "text" ? textTemplates : imageTemplates;
 
   const categories = ["All", "Sales", "New", "Christmas", "Black friday", "Stock", "Shipping", "Popular"];
 
   const filteredTemplates = predefinedTemplates.filter(template => {
-    const matchesSearch = template.alt.toLowerCase().includes(searchTerm.toLowerCase());
+    const searchText = templateType === "text" 
+      ? (template as any).text?.toLowerCase() 
+      : (template as any).alt?.toLowerCase();
+    const matchesSearch = searchText?.includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === "All" || (template.category && template.category.includes(selectedCategory));
     return matchesSearch && matchesCategory;
   });
@@ -146,42 +150,87 @@ const TemplateGalleryModal = ({ isOpen, onClose, onSelect }: TemplateGalleryModa
                           overflow: "hidden",
                         }}
                       >
-                        <img
-                          src={template.src}
-                          alt={template.alt}
-                          style={{
-                            maxWidth: "100%",
-                            maxHeight: "100%",
-                            objectFit: "contain",
-                          }}
-                          onError={(e: any) => {
-                            // Fallback to placeholder if image fails to load
-                            e.target.style.display = "none";
-                            e.target.nextSibling.style.display = "flex";
-                          }}
-                        />
-                        <div
-                          style={{
-                            width: "60px",
-                            height: "30px",
-                            backgroundColor: template.category?.includes("Sales") ? "#dc2626" : 
-                                           template.category?.includes("New") ? "#16a34a" :
-                                           template.category?.includes("Christmas") ? "#dc2626" :
-                                           template.category?.includes("Black friday") ? "#000000" :
-                                           "#3b82f6",
-                            borderRadius: "4px",
-                            display: "none",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            color: "white",
-                            fontSize: "10px",
-                            fontWeight: "bold",
-                          }}
-                        >
-                          {template.alt.substring(0, 8)}
-                        </div>
+                        {templateType === "text" ? (
+                          // Render text template with proper styling
+                          <div
+                            style={{
+                              ...(template as any).style,
+                              transform: "scale(0.8)",
+                              transformOrigin: "center",
+                              fontSize: "8px",
+                              fontWeight: "bold",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              minWidth: "60px",
+                              minHeight: "20px",
+                              maxWidth: "100px",
+                              maxHeight: "35px",
+                              whiteSpace: "nowrap",
+                              overflow: "visible", // Allow clip-path to show properly
+                              textOverflow: "clip",
+                              // Ensure the text is properly positioned within shaped containers
+                              padding: "4px 8px",
+                              boxSizing: "border-box"
+                            }}
+                          >
+                            <span style={{
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              width: "100%",
+                              height: "100%",
+                              textAlign: "center"
+                            }}>
+                              {(template as any).text}
+                            </span>
+                          </div>
+                        ) : (
+                          // Render image template
+                          <>
+                            <img
+                              src={(template as any).src}
+                              alt={(template as any).alt}
+                              style={{
+                                maxWidth: "100%",
+                                maxHeight: "100%",
+                                objectFit: "contain",
+                              }}
+                              onError={(e: any) => {
+                                // Fallback to placeholder if image fails to load
+                                e.target.style.display = "none";
+                                e.target.nextSibling.style.display = "flex";
+                              }}
+                            />
+                            <div
+                              style={{
+                                width: "60px",
+                                height: "30px",
+                                backgroundColor: template.category?.includes("Sales") ? "#dc2626" : 
+                                               template.category?.includes("New") ? "#16a34a" :
+                                               template.category?.includes("Christmas") ? "#dc2626" :
+                                               template.category?.includes("Black friday") ? "#000000" :
+                                               "#3b82f6",
+                                borderRadius: "4px",
+                                display: "none",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                color: "white",
+                                fontSize: "10px",
+                                fontWeight: "bold",
+                              }}
+                            >
+                              {(template as any).alt?.substring(0, 8)}
+                            </div>
+                          </>
+                        )}
                       </div>
                     </Box>
+                    
+                    {/* Template Name */}
+                    <Text variant="bodySm" as="p" alignment="center">
+                      {templateType === "text" ? (template as any).text : (template as any).alt}
+                    </Text>
                   </div>
                 </Card>
               </Grid.Cell>

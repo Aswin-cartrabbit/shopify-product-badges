@@ -16,7 +16,7 @@ import {
   Thumbnail,
 } from "@shopify/polaris";
 import { useCallback, useState, useEffect } from "react";
-import { useBadgeStore } from "@/stores/BadgeStore";
+import { useBadgeStore, GridPosition } from "@/stores/BadgeStore";
 import HtmlPreviewer from "../HtmlPreviewer";
 import ContentForm from "./ContentForm";
 import DesignForm from "./DesignForm";
@@ -73,6 +73,15 @@ export const BadgeBuilder = ({
   }, [selectedTemplate, componentType]);
 
   const { updateContent, updateDesign, clearBadge } = useBadgeStore();
+
+  // Set default position based on type
+  useEffect(() => {
+    if (type === "LABEL") {
+      updateDesign("gridPosition", GridPosition.TOP_LEFT);
+    } else if (type === "BADGE") {
+      updateDesign("gridPosition", GridPosition.TOP_RIGHT);
+    }
+  }, [type, updateDesign]);
 
   // Initialize the badge store with selected template data
   useEffect(() => {
@@ -205,15 +214,7 @@ export const BadgeBuilder = ({
           onAction: handleSave,
         }}
         secondaryActions={[
-          {
-            content: "Duplicate",
-            accessibilityLabel: "Secondary action label",
-            onAction: () => alert("Duplicate action"),
-          },
-          {
-            content: "View on your store",
-            onAction: () => alert("View on your store action"),
-          },
+          
           {
             content: "Close",
             onAction: handleCancel,

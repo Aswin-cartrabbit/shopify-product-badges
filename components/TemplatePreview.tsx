@@ -15,6 +15,24 @@ export default function TemplatePreview({ selectedTemplate }: TemplatePreviewPro
   }, [selectedTemplate, badge]);
   const { content, design, placement } = badge;
 
+  // Helper function to detect shape type from clip-path
+  const getShapeType = (clipPath: string): string => {
+    const lowerPath = clipPath.toLowerCase();
+    if (lowerPath.includes('circle') || lowerPath.includes('ellipse')) {
+      return 'circular';
+    }
+    if (lowerPath.includes('polygon') && lowerPath.match(/polygon\([^)]*50%[^)]*\)/)) {
+      if (lowerPath.match(/polygon\([^)]*,\s*[^,]*,\s*[^,]*,\s*[^,]*,\s*[^,]*,\s*[^,]*\)/)) {
+        return 'hexagon';
+      }
+      if (lowerPath.includes('star') || lowerPath.match(/polygon\([^)]*\d+%\s+\d+%[^)]*\d+%\s+\d+%[^)]*\d+%\s+\d+%[^)]*\)/)) {
+        return 'star';
+      }
+      return 'oval';
+    }
+    return 'polygon';
+  };
+
   const positionMap = {
     TOP_LEFT: "badge-top-left",
     TOP_CENTER: "badge-top-center", 
@@ -66,32 +84,82 @@ export default function TemplatePreview({ selectedTemplate }: TemplatePreviewPro
         ...selectedTemplate.style,
         // Override with any changes from badge store
         background: design.color !== "#7700ffff" ? design.color : selectedTemplate.style.background,
+        color: content.textColor || selectedTemplate.style.color || "#ffffff",
         borderRadius: design.cornerRadius !== 0 ? `${design.cornerRadius}px` : selectedTemplate.style.borderRadius,
         // Make it responsive to content
         minWidth: selectedTemplate.style.width || "auto",
         width: "auto", // Allow it to grow
-        maxWidth: "200px", // Prevent it from getting too large
+        maxWidth: "250px", // Increased max width
         height: "auto",
         minHeight: selectedTemplate.style.height || "30px",
-        padding: "8px 12px", // Better padding for text
-        fontSize: "0.75rem",
+        padding: "10px 16px", // Better padding for text
+        fontSize: `${(design.size || 36) * 0.5}px`, // Scale font size with design size
         fontWeight: 600,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         whiteSpace: "nowrap",
-        overflow: "hidden",
-        textOverflow: "ellipsis",
+        overflow: "visible", // Allow content to be visible
+        textOverflow: "clip", // Don't ellipsize
         // Ensure proper sizing for preview
         transform: "scale(0.8)",
-        transformOrigin: "center"
+        transformOrigin: "center",
+        // Better text handling
+        wordBreak: "keep-all",
+        lineHeight: 1.2
       };
 
-      // Apply shape from design store if selected
+      // Apply shape from design store if selected - with proper text fitting
       if (design.shape && design.shape.includes("clip-path")) {
         const clipPathMatch = design.shape.match(/clip-path:\s*([^;]+)/);
         if (clipPathMatch) {
+          const textLength = (content.text || selectedTemplate.text || "").length;
+          
+          // Apply the clip-path
           responsiveBadgeStyle.clipPath = clipPathMatch[1];
+          
+          // Analyze the shape and adjust accordingly
+          const shapeType = getShapeType(clipPathMatch[1]);
+          
+          // Adjust styling for shaped badges based on shape type
+          if (shapeType === 'circular' || shapeType === 'oval') {
+            responsiveBadgeStyle.padding = "12px";
+            responsiveBadgeStyle.minWidth = `${Math.max(80, textLength * 8)}px`;
+            responsiveBadgeStyle.minHeight = `${Math.max(80, textLength * 8)}px`;
+          } else if (shapeType === 'hexagon' || shapeType === 'star') {
+            responsiveBadgeStyle.padding = "6px 12px";
+            responsiveBadgeStyle.minWidth = `${Math.max(90, textLength * 9)}px`;
+            responsiveBadgeStyle.minHeight = "50px";
+          } else {
+            responsiveBadgeStyle.padding = "8px 16px";
+            responsiveBadgeStyle.minWidth = `${Math.max(100, textLength * 10)}px`;
+            responsiveBadgeStyle.minHeight = "40px";
+          }
+          
+          // Create shaped text container with adaptive styling
+          const innerTextStyle: React.CSSProperties = {
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            textAlign: "center",
+            wordWrap: "break-word",
+            hyphens: "auto",
+            lineHeight: shapeType === 'circular' ? 1.0 : 1.1,
+            letterSpacing: shapeType === 'circular' ? "-1px" : "-0.5px",
+            fontSize: shapeType === 'circular' ? "0.9em" : "1em",
+            maxWidth: shapeType === 'circular' ? "80%" : "100%",
+            margin: "auto"
+          };
+
+          return (
+            <div style={responsiveBadgeStyle}>
+              <div style={innerTextStyle}>
+                {content.text || selectedTemplate.text}
+              </div>
+            </div>
+          );
         }
       }
 
@@ -103,11 +171,12 @@ export default function TemplatePreview({ selectedTemplate }: TemplatePreviewPro
     }
 
     // Default text badge with store styling - RESPONSIVE AND SHAPES
+    const textLength = (content.text || "Badge Text").length;
     const badgeStyles: React.CSSProperties = {
-      padding: "8px 12px", // Better responsive padding
+      padding: "10px 16px", // Better responsive padding
       background: getBackgroundCSS(),
-      color: "white",
-      fontSize: "0.75rem",
+      color: content.textColor || "#ffffff",
+      fontSize: `${(design.size || 36) * 0.4}px`, // Scale font size with design size
       fontWeight: 600,
       borderRadius: `${design.cornerRadius}px`,
       whiteSpace: "nowrap",
@@ -117,21 +186,68 @@ export default function TemplatePreview({ selectedTemplate }: TemplatePreviewPro
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      // Responsive sizing
-      minWidth: "60px",
+      // Responsive sizing based on text length
+      minWidth: `${Math.max(60, textLength * 6)}px`,
       width: "auto", // Allow growth
-      maxWidth: "200px", // Prevent overflow
+      maxWidth: "250px", // Prevent overflow
       height: "auto",
       minHeight: "30px",
-      overflow: "hidden",
-      textOverflow: "ellipsis"
+      overflow: "visible", // Allow content to be visible
+      textOverflow: "clip",
+      lineHeight: 1.2,
+      wordBreak: "keep-all"
     };
 
-    // Apply clip-path if it exists in design
+    // Apply clip-path if it exists in design - with proper text container
     if (design.shape && design.shape.includes("clip-path")) {
       const clipPathMatch = design.shape.match(/clip-path:\s*([^;]+)/);
       if (clipPathMatch) {
+        // Apply the clip-path
         badgeStyles.clipPath = clipPathMatch[1];
+        
+        // Analyze the shape and adjust accordingly
+        const shapeType = getShapeType(clipPathMatch[1]);
+        
+        // Adjust styling for shaped badges based on shape type
+        if (shapeType === 'circular' || shapeType === 'oval') {
+          badgeStyles.padding = "12px";
+          badgeStyles.minWidth = `${Math.max(80, textLength * 8)}px`;
+          badgeStyles.minHeight = `${Math.max(80, textLength * 8)}px`;
+        } else if (shapeType === 'hexagon' || shapeType === 'star') {
+          badgeStyles.padding = "6px 12px";
+          badgeStyles.minWidth = `${Math.max(90, textLength * 9)}px`;
+          badgeStyles.minHeight = "50px";
+        } else {
+          badgeStyles.padding = "8px 16px";
+          badgeStyles.minWidth = `${Math.max(100, textLength * 10)}px`;
+          badgeStyles.minHeight = "40px";
+        }
+        
+        // Create shaped text container with adaptive styling
+        const innerTextStyle: React.CSSProperties = {
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          textAlign: "center",
+          wordWrap: "break-word",
+          hyphens: "auto",
+          lineHeight: shapeType === 'circular' ? 1.0 : 1.1,
+          letterSpacing: shapeType === 'circular' ? "-1px" : "-0.5px",
+          fontSize: shapeType === 'circular' ? "0.9em" : "1em",
+          maxWidth: shapeType === 'circular' ? "80%" : "100%",
+          margin: "auto",
+          padding: "2px 4px"
+        };
+
+        return (
+          <div style={badgeStyles}>
+            <div style={innerTextStyle}>
+              {content.text || "Badge Text"}
+            </div>
+          </div>
+        );
       }
     }
 
