@@ -7,47 +7,163 @@ import {
   InlineStack,
 } from "@shopify/polaris";
 import { useRouter } from "next/router";
+import { useState } from "react";
+import { TrustBadgeBuilder } from "../../components/forms/TrustBadgeBuilder";
 
 export default function TrustBadges() {
   const router = useRouter();
+  const [selectedTemplate, setSelectedTemplate] = useState(null);
+  const [showBuilder, setShowBuilder] = useState(false);
 
   const trustBadgeTemplates = [
-    {
-      id: "1",
-      title: "Only 3 products left!",
-      subtitle: "Select",
-      image:"https://pl-app.smartifyapps.com/assets/countdown-f817d454.webp",
-      category: "Urgency"
-    },
+    
     {
       id: "2", 
       title: "FREE SHIPPING ORDERS ABOVE $30",
       subtitle: "Select",
       image: "https://pl-app.smartifyapps.com/assets/payment-91361088.webp",
-      category: "Shipping"
-    },
-    {
-      id: "3",
-      title: "School Season!",
-      subtitle: "Select", 
-      image: "https://pl-app.smartifyapps.com/assets/season-39cc46fe.webp",
+      category: "Payment",
+      type:"payment-group",
 
-      category: "Payment"
+      icons: [
+        {
+          id: "stripe",
+          name: "Stripe",
+          src: "https://d3azqz9xba9gwd.cloudfront.net/storage/icon-gallery/668b68ffe926d.svg"
+        },
+        {
+          id: "opay", 
+          name: "OPay",
+          src: "https://d3azqz9xba9gwd.cloudfront.net/storage/icon-gallery/668b632915548.svg"
+        },
+        {
+          id: "amex",
+          name: "American Express", 
+          src: "https://d3azqz9xba9gwd.cloudfront.net/storage/icon-gallery/668b6328a9177.svg"
+        },
+        {
+          id: "visa",
+          name: "Visa",
+          src: "https://d3azqz9xba9gwd.cloudfront.net/storage/icon-gallery/668b68521f50c.svg"
+        }
+      ]
+
+    },
+    // {
+    //   id: "payment-icons",
+    //   title: "Secure payment with",
+    //   subtitle: "Select",
+    //   category: "Payment",
+    //   type: "payment-group",
+    //   icons: [
+    //     {
+    //       id: "stripe",
+    //       name: "Stripe",
+    //       src: "https://d3azqz9xba9gwd.cloudfront.net/storage/icon-gallery/668b68ffe926d.svg"
+    //     },
+    //     {
+    //       id: "opay", 
+    //       name: "OPay",
+    //       src: "https://d3azqz9xba9gwd.cloudfront.net/storage/icon-gallery/668b632915548.svg"
+    //     },
+    //     {
+    //       id: "amex",
+    //       name: "American Express", 
+    //       src: "https://d3azqz9xba9gwd.cloudfront.net/storage/icon-gallery/668b6328a9177.svg"
+    //     },
+    //     {
+    //       id: "visa",
+    //       name: "Visa",
+    //       src: "https://d3azqz9xba9gwd.cloudfront.net/storage/icon-gallery/668b68521f50c.svg"
+    //     }
+    //   ]
+    // },
+    {
+      id: "school-season",
+      title: "School Season!",
+      subtitle: "Select",
+      category: "Seasonal",
+      type: "image-group",
+      images: [
+        {
+          id: "school-1",
+          name: "School Badge 1",
+          src: "https://d3azqz9xba9gwd.cloudfront.net/storage/icon-gallery/6880479ab6639.png"
+        },
+        {
+          id: "school-2", 
+          name: "School Badge 2",
+          src: "https://d3azqz9xba9gwd.cloudfront.net/storage/icon-gallery/6880479aaf42a.png"
+        },
+        {
+          id: "school-3",
+          name: "School Badge 3", 
+          src: "https://d3azqz9xba9gwd.cloudfront.net/storage/icon-gallery/6880479abc83b.png"
+        },
+        {
+          id: "school-4",
+          name: "School Badge 4",
+          src: "https://d3azqz9xba9gwd.cloudfront.net/storage/icon-gallery/6880479ab9bd3.png"
+        }
+      ]
     },
     {
-      id: "4",
+      id: "why-choosing-us",
       title: "Why choosing us",
       subtitle: "Select",
-      image: "https://pl-app.smartifyapps.com/assets/fill-de06fc96.webp",
-      category: "Features"
+      category: "Features",
+      type: "icon-group",
+      icons: [
+        {
+          id: "feature-1",
+          name: "Feature Badge 1",
+          src: "https://d3azqz9xba9gwd.cloudfront.net/storage/icon-gallery/668b643b71133.svg"
+        },
+        {
+          id: "feature-2", 
+          name: "Feature Badge 2",
+          src: "https://d3azqz9xba9gwd.cloudfront.net/storage/icon-gallery/668b643b705bb.svg"
+        },
+        {
+          id: "feature-3",
+          name: "Feature Badge 3", 
+          src: "https://d3azqz9xba9gwd.cloudfront.net/storage/icon-gallery/668b643b6f93c.svg"
+        },
+        {
+          id: "feature-4",
+          name: "Feature Badge 4",
+          src: "https://d3azqz9xba9gwd.cloudfront.net/storage/icon-gallery/668b643b6ea95.svg"
+        }
+      ]
     },
     {
-      id: "5",
-      title: "secure payment !",
+      id: "security-trust",
+      title: "Secure & Trusted",
       subtitle: "Select",
-      image: "https://pl-app.smartifyapps.com/assets/black-2d1ed17c.webp",
-
-      category: "Seasonal"
+      category: "Security",
+      type: "icon-group",
+      icons: [
+        {
+          id: "security-1",
+          name: "Security Badge 1",
+          src: "https://d3azqz9xba9gwd.cloudfront.net/storage/icon-gallery/6756aefc811d4.svg"
+        },
+        {
+          id: "security-2", 
+          name: "Security Badge 2",
+          src: "https://d3azqz9xba9gwd.cloudfront.net/storage/icon-gallery/6756aefc8382f.svg"
+        },
+        {
+          id: "security-3",
+          name: "Security Badge 3", 
+          src: "https://d3azqz9xba9gwd.cloudfront.net/storage/icon-gallery/6756aefc82f21.svg"
+        },
+        {
+          id: "security-4",
+          name: "Security Badge 4",
+          src: "https://d3azqz9xba9gwd.cloudfront.net/storage/icon-gallery/6756aefc82308.svg"
+        }
+      ]
     }
   ];
 
@@ -89,16 +205,60 @@ export default function TrustBadges() {
                   gap: "16px",
                   padding: "20px"
                 }}>
-                  <img 
-                    src={template.image} 
-                    alt={template.title}
-                    style={{
-                      maxWidth: "100%",
-                      height: "auto",
-                      maxHeight: "200px",
-                      objectFit: "contain"
-                    }}
-                  />
+                  {template.type === "payment-group" || template.type === "icon-group" ? (
+                    <div style={{
+                      display: "flex",
+                      gap: "8px",
+                      flexWrap: "wrap",
+                      justifyContent: "center",
+                      maxWidth: "200px"
+                    }}>
+                      {template.icons?.map((icon) => (
+                        <img 
+                          key={icon.id}
+                          src={icon.src} 
+                          alt={icon.name}
+                          style={{
+                            width: "40px",
+                            height: "auto",
+                            objectFit: "contain"
+                          }}
+                        />
+                      ))}
+                    </div>
+                  ) : template.type === "image-group" ? (
+                    <div style={{
+                      display: "flex",
+                      gap: "8px",
+                      flexWrap: "wrap",
+                      justifyContent: "center",
+                      maxWidth: "200px"
+                    }}>
+                      {template.images?.map((image) => (
+                        <img 
+                          key={image.id}
+                          src={image.src} 
+                          alt={image.name}
+                          style={{
+                            width: "40px",
+                            height: "auto",
+                            objectFit: "contain"
+                          }}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <img 
+                      src={template.image} 
+                      alt={template.title}
+                      style={{
+                        maxWidth: "100%",
+                        height: "auto",
+                        maxHeight: "200px",
+                        objectFit: "contain"
+                      }}
+                    />
+                  )}
                   <div style={{ textAlign: "center", width: "100%" }}>
                     <InlineStack align="space-between" blockAlign="center">
                       <div style={{ flex: 1 }}>
@@ -106,15 +266,15 @@ export default function TrustBadges() {
                           {template.title}
                         </Text>
                       </div>
-                                          <Button 
-                      variant="primary"
-                      onClick={() => {
-                        // Handle template selection
-                        console.log('Selected template:', template.id);
-                      }}
-                    >
-                      {template.subtitle}
-                    </Button>
+                      <Button 
+                        variant="primary"
+                        onClick={() => {
+                          setSelectedTemplate(template);
+                          setShowBuilder(true);
+                        }}
+                      >
+                        {template.subtitle}
+                      </Button>
                     </InlineStack>
                   </div>
                 </div>
@@ -122,6 +282,22 @@ export default function TrustBadges() {
             ))}
           </div>
         </Card>
+        
+        {/* Trust Badge Builder Modal */}
+        {showBuilder && selectedTemplate && (
+          <TrustBadgeBuilder
+            selectedTemplate={selectedTemplate}
+            onSave={(data) => {
+              console.log('Trust badge saved:', data);
+              setShowBuilder(false);
+              setSelectedTemplate(null);
+            }}
+            onCancel={() => {
+              setShowBuilder(false);
+              setSelectedTemplate(null);
+            }}
+          />
+        )}
       </div>
     </div>
   );
