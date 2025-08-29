@@ -409,7 +409,7 @@ export default function TemplatePreview({ selectedTemplate }: TemplatePreviewPro
         }
 
         .preview-container {
-          background: #f6f6f7;
+          
           min-height: 400px;
           border-radius: 12px;
           padding: 24px;
