@@ -44,10 +44,7 @@ const DisplayForm = ({ data, onChange, type }: DisplayFormProps) => {
     }
   }, [badge.display.resourceIds]);
   async function openResourcePicker(multiple = false, initQuery = "") {
-    console.log('Attempting to open resource picker:', { multiple, initQuery });
-    console.log('App Bridge instance:', app);
-    console.log('Shopify object:', window?.shopify);
-    console.log('Resource picker function:', window?.shopify?.resourcePicker);
+
     
     try {
       // Try multiple approaches to open the resource picker
@@ -487,19 +484,7 @@ const DisplayForm = ({ data, onChange, type }: DisplayFormProps) => {
               helpText="Choose one specific product to display the badge"
             />
             
-            {/* Debug button - remove after testing */}
-            {visibility === "single" && (
-              <Button 
-                onClick={() => {
-                  console.log('Direct button clicked');
-                  openResourcePicker(false);
-                }}
-                variant="primary"
-                size="micro"
-              >
-                Test Product Picker
-              </Button>
-            )}
+          
 
             <RadioButton
               label="Show on multiple specific products"
