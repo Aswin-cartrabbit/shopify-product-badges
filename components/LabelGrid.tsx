@@ -44,26 +44,8 @@ const LabelGrid = () => {
 "css": "clip-path: polygon(0% 0%,75% 0%,100% 50%,75% 100%,0% 100%)",
 "description": "Rectangle"
 },
-{
-"src": "https://cdn.shopify.com/s/files/1/0746/2705/5920/files/Previewimage-1_350x350.png?v=1718609657",
-"css": "clip-path: polygon(40% 0,100% 60%,100% 100%,0 0)",
-"description": "Horizontal Line"
-},
-{
-"src": "https://aot6qt8p4y2td8wy-74627055920.shopifypreview.com/cdn/shop/files/1_720x.png?v=1754032436",
-"css": "clip-path: polygon(0 40%,0 0,100% 100%,60% 100%)",
-"description": "Right Triangle Bottom"
-},
-{
-"src": "https://cdn.shopify.com/s/files/1/0746/2705/5920/files/Previewimage-3_350x350.png?v=1718609377",
-"css": "clip-path: polygon(100% 0,0 0,100% 100%))",
-"description": "Right Triangle Left"
-},
-{
-"src": "https://aot6qt8p4y2td8wy-74627055920.shopifypreview.com/cdn/shop/files/2_720x.png?v=1754032065",
-"css": "clip-path: polygon(0 0,0% 100%,100% 100%)",
-"description": "Right Triangle Right"
-},
+
+
 {
 "src": "https://aot6qt8p4y2td8wy-74627055920.shopifypreview.com/cdn/shop/files/Vector_b0219c19-3a48-40fe-8284-46e29ea8ea83_720x.png?v=1754016404",
 "css": "clip-path: xywh(0 0 100% 100% round 2rem 0)",
@@ -114,46 +96,9 @@ const LabelGrid = () => {
 "css": "clip-path: polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%)",
 "description": "Trapezoid Bottom"
 },
-{
-"src": "https://aot6qt8p4y2td8wy-74627055920.shopifypreview.com/cdn/shop/files/Rectangle34624660_720x.png?v=1754017522",
-"css": "clip-path: polygon(0% 0%, 100% 0%, 80% 100%, 20% 100%)",
-"description": "Trapezoid Top"
-},
-{
-"src": "https://aot6qt8p4y2td8wy-74627055920.shopifypreview.com/cdn/shop/files/Rectangle34624661_720x.png?v=1754017597",
-"css": "clip-path: polygon(0% 0%, 100% 20%, 100% 80%, 0% 100%)",
-"description": "Parallelogram Vertical Left"
-},
-{
-"src": "https://aot6qt8p4y2td8wy-74627055920.shopifypreview.com/cdn/shop/files/Rectangle34624665_720x.png?v=1754017721",
-"css": "clip-path: polygon(0% 20%, 100% 0%, 100% 100%, 0% 80%)",
-"description": "Parallelogram Vertical Right"
-},
-{
-"src": "https://aot6qt8p4y2td8wy-74627055920.shopifypreview.com/cdn/shop/files/Rectangle34624666_720x.png?v=1754017839",
-"css": "clip-path: polygon(0% 0%, 100% 0%, 100% 80%, 0% 100%)",
-"description": "Right Triangle Bottom Right"
-},
-{
-"src": "https://aot6qt8p4y2td8wy-74627055920.shopifypreview.com/cdn/shop/files/Rectangle34624668_720x.png?v=1754018182",
-"css": "clip-path: polygon(0% 0%, 100% 0%, 0% 80%)",
-"description": "Right Triangle Top Left"
-},
-{
-"src": "https://aot6qt8p4y2td8wy-74627055920.shopifypreview.com/cdn/shop/files/Rectangle34624667_720x.png?v=1754018277",
-"css": "clip-path: polygon(100% 0%, 100% 100%, 0% 80%)",
-"description": "Right Triangle Bottom Left"
-},
-{
-"src": "https://aot6qt8p4y2td8wy-74627055920.shopifypreview.com/cdn/shop/files/Vector_1e119f49-de2e-467f-9f4d-1ba0bdcb76b4_720x.png?v=1754018400",
-"css": "clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)",
-"description": "Diamond/Rhombus"
-},
-{
-"src": "https://nkjnt347v17jvtoh-74627055920.shopifypreview.com/cdn/shop/files/Rectangle152_720x.png?v=1754472229",
-"css": "clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)",
-"description": "Rectangle"
-}
+
+
+
   ];
 
   const { badge, updateDesign } = useBadgeStore();

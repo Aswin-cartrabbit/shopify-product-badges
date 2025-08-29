@@ -31,7 +31,7 @@ export default function getHtmlPreviewCode() {
     padding: ${design.spacing.insideTop}px ${design.spacing.insideBottom}px;
     background: ${getBackgroundCSS()};
     color: white;
-    font-size: 0.75rem;
+    font-size: ${design.fontSize || 14}px;
     font-weight: 600;
     border-radius: ${design.cornerRadius}px;
     white-space: nowrap;
@@ -40,6 +40,11 @@ export default function getHtmlPreviewCode() {
     font-family: ${content.font === "own_theme" ? "inherit" : content.font.replace("_", " ")};
     margin-top: ${design.spacing.outsideTop}px;
     margin-bottom: ${design.spacing.outsideBottom}px;
+    width: ${design.width || 120}px;
+    height: ${design.height || 40}px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     ${design.shape ? design.shape : "none"};
   `
     .replace(/\s+/g, " ")

@@ -386,21 +386,7 @@ const ContentForm = ({ data, onChange, type = "BADGE", badgeName, setBadgeName }
           marginBottom: "10px",
         }}
       >
-        <div
-          style={{
-            display: "flex",
-            gap: "10px",
-          }}
-        >
-          <Text as="p" variant="headingSm">
-            Translations
-          </Text>
-          <Badge tone="info">Essential plan</Badge>
-        </div>
-        <Button fullWidth>Add translation</Button>
-        <Bleed marginInline="400">
-          <Divider />
-        </Bleed>
+       
       </div>
 
       {/* Position Control */}

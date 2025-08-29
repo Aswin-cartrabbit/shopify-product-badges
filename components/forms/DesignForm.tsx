@@ -9,8 +9,6 @@ import {
   Select,
   TextField,
   Text,
-  ColorPicker,
-  Box,
   Checkbox,
   Tooltip,
   Icon,
@@ -20,6 +18,7 @@ import ColorPickerInput from "../pickers/ColourPicker";
 import { useBadgeStore, GridPosition } from "@/stores/BadgeStore";
 import LabelGrid from "../LabelGrid";
 import PositionGrid from "../PositionGrid";
+import { useState } from "react";
 
 interface DesignFormProps {
   data?: any;
@@ -38,6 +37,10 @@ export default function DesignForm({ data, onChange, selectedTemplate, type }: D
     updateSpacing,
   } = useBadgeStore();
 
+
+
+
+
   // Enhanced updateDesign with onChange notification
   const handleDesignChange = (key: any, value: any) => {
     updateDesign(key, value);
@@ -45,6 +48,8 @@ export default function DesignForm({ data, onChange, selectedTemplate, type }: D
       onChange({ [key]: value });
     }
   };
+
+
 
   const templateOptions = [
     {
@@ -115,20 +120,8 @@ export default function DesignForm({ data, onChange, selectedTemplate, type }: D
           <>
             {/* Template */}
             <BlockStack gap="200">
-              <InlineStack gap="100" align="start">
-                <Text variant="bodyMd" as="p">
-                  Quick Start Template
-                </Text>
-                <TooltipIcon content="Choose a pre-designed template to get started quickly, or select Custom to create your own unique design." />
-              </InlineStack>
-              <Select
-                label="Template"
-                labelHidden
-                options={templateOptions}
-                value={badge.design.template}
-                onChange={(value) => handleDesignChange("template", value)}
-                helpText="Pre-built designs optimized for conversions. You can customize any template after selection."
-              />
+              
+             
 
               <LabelGrid />
             </BlockStack>
@@ -137,174 +130,81 @@ export default function DesignForm({ data, onChange, selectedTemplate, type }: D
               <Divider />
             </Bleed>
 
+            
+
+
+            {/* Size Controls */}
+            <BlockStack gap="400">
+              <InlineStack gap="100" align="start">
+                <Text as="p" variant="bodyMd">
+                  Badge Dimensions
+                </Text>
+                <TooltipIcon content="Adjust the size and dimensions of your badge" />
+              </InlineStack>
+              
+              {/* Text Size */}
+              <BlockStack gap="200">
+                
+                <RangeSlider
+                  label="Text Size"
+                  min={8}
+                  max={48}
+                  value={badge.design.fontSize || 14}
+                  onChange={(value) => {
+                    if (typeof value === "number") {
+                      handleDesignChange("fontSize", value);
+                    }
+                  }}
+                  output
+                  suffix="px"
+                />
+              </BlockStack>
+
+              {/* Badge Width */}
+              <BlockStack gap="200">
+                
+                <RangeSlider
+                  label="Badge Width"
+                  min={50}
+                  max={300}
+                  value={badge.design.width || 120}
+                  onChange={(value) => {
+                    if (typeof value === "number") {
+                      handleDesignChange("width", value);
+                    }
+                  }}
+                  output
+                  suffix="px"
+                />
+              </BlockStack>
+
+              {/* Badge Height */}
+              <BlockStack gap="200">
+                
+                <RangeSlider
+                  label="Badge Height"
+                  min={20}
+                  max={100}
+                  value={badge.design.height || 40}
+                  onChange={(value) => {
+                    if (typeof value === "number") {
+                      handleDesignChange("height", value);
+                    }
+                  }}
+                  output
+                  suffix="px"
+                />
+              </BlockStack>
+            </BlockStack>
+            <Bleed marginInline="400">
+              <Divider />
+            </Bleed>
             <InlineStack gap="100" align="start">
               <Text variant="headingSm" as="h2">
                 Badge Background
               </Text>
               <TooltipIcon content="Configure how your badge background appears - solid colors work well for minimal designs, gradients add visual appeal." />
             </InlineStack>
-
-            {/* Background type */}
-            <BlockStack gap="200">
-              <Text as="p" variant="bodyMd" tone="subdued">
-                Background Style
-              </Text>
-              <RadioButton
-                label="Single color background (Clean and simple)"
-                checked={badge.design.background === "single"}
-                id="single"
-                name="background"
-                onChange={() => handleDesignChange("background", "single")}
-                helpText="Perfect for minimal, professional looks"
-              />
-              <RadioButton
-                label="Gradient background (Eye-catching and modern)"
-                checked={badge.design.background === "gradient"}
-                id="gradient"
-                name="background"
-                onChange={() => handleDesignChange("background", "gradient")}
-                helpText="Creates depth and draws attention"
-              />
-            </BlockStack>
-
-            {/* Gradient angle */}
-            {badge.design.background === "gradient" ? (
-              <BlockStack gap="200">
-                <InlineStack gap="100" align="start">
-                  <Text as="p" variant="bodyMd">
-                    Gradient Direction
-                  </Text>
-                  <TooltipIcon content="0° = left to right, 90° = bottom to top, 180° = right to left, 270° = top to bottom" />
-                </InlineStack>
-                <RangeSlider
-                  label="Gradient angle"
-                  min={0}
-                  max={360}
-                  value={badge.design.gradientAngle}
-                  onChange={(value) => {
-                    if (typeof value === "number") {
-                      handleDesignChange("gradientAngle", value);
-                    }
-                  }}
-                  output
-                  helpText={`${badge.design.gradientAngle}° - Adjust the gradient flow direction`}
-                />
-                <InlineStack gap="200">
-                  <Box>
-                    <InlineStack gap="100" align="start">
-                      <Text as="p" variant="bodyMd">
-                        Start Color
-                      </Text>
-                      <TooltipIcon content="The color your gradient starts with" />
-                    </InlineStack>
-                    <ColorPickerInput
-                      onChange={(value: string) => handleDesignChange("gradient1", value)}
-                      value={badge.design.gradient1}
-                    />
-                  </Box>
-                  <Box>
-                    <InlineStack gap="100" align="start">
-                      <Text as="p" variant="bodyMd">
-                        End Color
-                      </Text>
-                      <TooltipIcon content="The color your gradient transitions to" />
-                    </InlineStack>
-                    <ColorPickerInput
-                      onChange={(value: string) => handleDesignChange("gradient2", value)}
-                      value={badge.design.gradient2}
-                    />
-                  </Box>
-                </InlineStack>
-              </BlockStack>
-            ) : (
-              <Box>
-                <InlineStack gap="100" align="start">
-                  <Text as="p" variant="bodyMd">
-                    Background Color
-                  </Text>
-                  <TooltipIcon content="Choose a color that contrasts well with your text for better readability" />
-                </InlineStack>
-                <ColorPickerInput
-                  value={badge.design.color || "#7700ffff"}
-                  onChange={(value: string) => handleDesignChange("color", value)}
-                />
-              </Box>
-            )}
-
-            {/* Corner radius */}
-            <InlineStack gap="200" align="start">
-              <div style={{ maxWidth: "120px" }}>
-                <InlineStack gap="100" align="start" blockAlign="start">
-                  <Text as="p" variant="bodyMd">
-                    Roundness
-                  </Text>
-                  <TooltipIcon content="Higher values create more rounded corners. 0px = sharp corners, 20px+ = very rounded" />
-                </InlineStack>
-                <TextField
-                  label="Corner radius"
-                  labelHidden
-                  type="number"
-                  suffix="px"
-                  value={badge.design.cornerRadius.toString()}
-                  onChange={(value) =>
-                    handleDesignChange("cornerRadius", parseInt(value) || 8)
-                  }
-                  autoComplete=""
-                />
-              </div>
-            </InlineStack>
-
-            {/* Border */}
-            <InlineStack gap="100" align="start">
-              <Text as="p" variant="bodyMd">
-                Border Settings
-              </Text>
-              <TooltipIcon content="Add a border to make your badge stand out more against product images" />
-            </InlineStack>
-            <InlineStack gap="200" align="start" direction={"row"} wrap={false}>
-              <TextField
-                label="Border thickness"
-                type="number"
-                suffix="px"
-                value={badge.design.borderSize.toString()}
-                onChange={(value) =>
-                  handleDesignChange("borderSize", parseInt(value) || 0)
-                }
-                autoComplete=""
-                helpText="0px = no border"
-              />
-              <ColorPickerInput
-                label="Border color"
-                onChange={(value: string) => handleDesignChange("borderColor", value)}
-                value={badge.design.borderColor}
-              />
-            </InlineStack>
-
-            {/* Size Control */}
-            <BlockStack gap="200">
-              <InlineStack gap="100" align="start">
-                <Text as="p" variant="bodyMd">
-                  Size
-                </Text>
-                <TooltipIcon content="Adjust the overall size of your badge" />
-              </InlineStack>
-              <RangeSlider
-                label="Size"
-                min={10}
-                max={100}
-                value={badge.design.size || 36}
-                onChange={(value) => {
-                  if (typeof value === "number") {
-                    handleDesignChange("size", value);
-                  }
-                }}
-                output
-                suffix="px"
-                helpText={`${badge.design.size || 36}px - Adjust the badge size`}
-              />
-            </BlockStack>
-
-            {/* Text Color Control - Only for text badges */}
             {badge.content.contentType === "text" && (
               <BlockStack gap="200">
                 <InlineStack gap="100" align="start">
@@ -313,12 +213,51 @@ export default function DesignForm({ data, onChange, selectedTemplate, type }: D
                   </Text>
                   <TooltipIcon content="Choose the color of your text for better readability" />
                 </InlineStack>
-                <ColorPickerInput
-                  value={badge.content.textColor || "#ffffff"}
-                  onChange={(value: string) => updateContent("textColor", value)}
-                />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <input
+                    type="color"
+                    value={badge.content.textColor || "#ffffff"}
+                    onChange={(e) => updateContent("textColor", e.target.value)}
+                    style={{
+                      width: '40px',
+                      height: '40px',
+                      border: '1px solid #ccc',
+                      borderRadius: '50%',
+                      cursor: 'pointer'
+                    }}
+                  />
+                  <Text variant="bodySm" tone="subdued" as="span">
+                    {badge.content.textColor || "#ffffff"}
+                  </Text>
+                </div>
               </BlockStack>
             )}
+            {/* Background type */}
+            <BlockStack gap="200">
+              <Text as="p" variant="bodyMd" tone="subdued">
+                Background Color
+              </Text>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <input
+                  type="color"
+                  value={badge.design.color || "#7700ffff"}
+                  onChange={(e) => handleDesignChange("color", e.target.value)}
+                  style={{
+                    width: '40px',
+                    height: '40px',
+                    border: '1px solid #ccc',
+                    borderRadius: '50%',
+                    cursor: 'pointer'
+                  }}
+                />
+                <Text variant="bodySm" tone="subdued" as="span">
+                  {badge.design.color || "#7700ffff"}
+                </Text>
+              </div>
+            </BlockStack>
+
+            {/* Text Color Control - Only for text badges */}
+            
 
             {/* Spacing */}
             {/* <BlockStack gap="200">

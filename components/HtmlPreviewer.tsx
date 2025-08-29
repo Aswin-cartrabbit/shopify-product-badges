@@ -83,7 +83,7 @@ export default function HtmlPreviewer({ selectedTemplate }: HtmlPreviewerProps) 
         >
           <div style={{ width: "100%" }}>
             <TemplatePreview 
-              key={`preview-${selectedTemplate?.id || 'default'}-${Date.now()}`}
+              key={`preview-${selectedTemplate?.id || 'default'}`}
               selectedTemplate={selectedTemplate} 
             />
           </div>

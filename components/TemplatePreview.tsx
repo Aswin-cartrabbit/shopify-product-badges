@@ -82,21 +82,18 @@ export default function TemplatePreview({ selectedTemplate }: TemplatePreviewPro
     const isTemplateSelected = selectedTemplate && selectedTemplate.text && selectedTemplate.style;
     
     if (isTemplateSelected) {
-      // Create responsive badge style that grows with content - optimized for cards
+      // Create responsive badge style that grows with content - using design dimensions
       const responsiveBadgeStyle: React.CSSProperties = {
         ...selectedTemplate.style,
         // Override with any changes from badge store
         background: design.color !== "#7700ffff" ? design.color : selectedTemplate.style.background,
         color: content.textColor || selectedTemplate.style.color || "#ffffff",
         borderRadius: design.cornerRadius !== 0 ? `${design.cornerRadius}px` : selectedTemplate.style.borderRadius,
-        // Make it responsive to content - optimized for cards
-        minWidth: selectedTemplate.style.width || "auto",
-        width: "auto", // Allow it to grow
-        maxWidth: "120px", // Optimized for card view
-        height: "auto",
-        minHeight: "24px", // Smaller for cards
+        // Use design dimensions
+        width: `${design.width || 120}px`,
+        height: `${design.height || 40}px`,
         padding: "6px 12px", // Card-optimized padding
-        fontSize: "0.75rem", // Fixed size for consistency
+        fontSize: `${design.fontSize || 14}px`, // Use fontSize from design
         fontWeight: 600,
         display: "flex",
         alignItems: "center",
@@ -104,7 +101,6 @@ export default function TemplatePreview({ selectedTemplate }: TemplatePreviewPro
         whiteSpace: "nowrap",
         overflow: "visible", // Allow content to be visible
         textOverflow: "clip", // Don't ellipsize
-        // Remove transform for cleaner card view
         // Better text handling
         wordBreak: "keep-all",
         lineHeight: 1.2
@@ -171,13 +167,12 @@ export default function TemplatePreview({ selectedTemplate }: TemplatePreviewPro
       );
     }
 
-    // Default text badge with store styling - RESPONSIVE AND SHAPES
-    const textLength = (content.text || "Badge Text").length;
+    // Default text badge with store styling - using design dimensions
     const badgeStyles: React.CSSProperties = {
       padding: "6px 12px", // Optimized for card view
       background: getBackgroundCSS(),
       color: content.textColor || "#ffffff",
-      fontSize: "0.75rem", // Fixed size for consistency in cards
+      fontSize: `${design.fontSize || 14}px`, // Use fontSize from design
       fontWeight: 600,
       borderRadius: `${design.cornerRadius || 4}px`,
       whiteSpace: "nowrap",
@@ -187,12 +182,9 @@ export default function TemplatePreview({ selectedTemplate }: TemplatePreviewPro
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      // Responsive sizing based on text length - optimized for cards
-      minWidth: `${Math.max(50, textLength * 5)}px`,
-      width: "auto", // Allow growth
-      maxWidth: "120px", // Prevent overflow in cards
-      height: "auto",
-      minHeight: "24px",
+      // Use design dimensions
+      width: `${design.width || 120}px`,
+      height: `${design.height || 40}px`,
       overflow: "visible", // Allow content to be visible
       textOverflow: "clip",
       lineHeight: 1.2,
@@ -208,6 +200,9 @@ export default function TemplatePreview({ selectedTemplate }: TemplatePreviewPro
         
         // Analyze the shape and adjust accordingly
         const shapeType = getShapeType(clipPathMatch[1]);
+        
+        // Get text length for shape adjustments
+        const textLength = (content.text || "Badge Text").length;
         
         // Adjust styling for shaped badges based on shape type
         if (shapeType === 'circular' || shapeType === 'oval') {

@@ -139,11 +139,7 @@ const ProductsForm = ({ data, onChange, type = "BADGE" }: ProductsFormProps) => 
     }
   }
 
-  const visibilityOptions = [
-    { label: "All products", value: "all" },
-    { label: "Specific products", value: "specific" },
-    { label: "Product collections", value: "collections" },
-  ];
+ 
 
   const TooltipIcon = ({ content }) => (
     <Tooltip content={content}>

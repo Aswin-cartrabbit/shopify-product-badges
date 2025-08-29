@@ -88,13 +88,12 @@ const PositionGrid = ({ selectedPosition, onPositionChange }: PositionGridProps)
               
               return (
                 <Button
+                  key={position}
                   fullWidth={true}
-                  
+                  pressed={isSelected}
                   onClick={() => handlePositionClick(position)}
                   icon={getPositionIcon(position)}
-                >
-                  {getPositionIcon(position)}
-                </Button>
+                />
               );
             })}
           </div>

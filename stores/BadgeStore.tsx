@@ -47,6 +47,10 @@ export type BadgeDesign = {
   opacity?: number;
   rotation?: number;
   size?: number;
+  // New dimension controls
+  fontSize?: number;
+  width?: number;
+  height?: number;
   positionX?: number;
   positionY?: number;
   gridPosition?: GridPosition;
