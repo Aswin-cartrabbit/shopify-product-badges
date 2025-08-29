@@ -1,16 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { useBadgeStore } from "@/stores/BadgeStore";
-import { Button, ButtonGroup, Icon } from "@shopify/polaris";
-import { CollectionIcon, ProductIcon } from "@shopify/polaris-icons";
+import { Icon } from "@shopify/polaris";
 
 interface TemplatePreviewProps {
   selectedTemplate?: any;
+  device?: string;
 }
 
-export default function TemplatePreview({ selectedTemplate }: TemplatePreviewProps) {
+export default function TemplatePreview({ selectedTemplate, device = 'desktop' }: TemplatePreviewProps) {
   const { badge } = useBadgeStore();
   const [forceUpdate, setForceUpdate] = useState(0);
-  const [viewMode, setViewMode] = useState<'collection' | 'product'>('collection');
 
   // Force re-render only when template actually changes (preserve view mode during design changes)
   useEffect(() => {
@@ -314,7 +313,7 @@ export default function TemplatePreview({ selectedTemplate }: TemplatePreviewPro
         ))}
       </div>
       <div style={{ padding: "16px" }}>
-        <h3 style={{ 
+        <h3 className="product-title" style={{ 
           fontSize: "1rem", 
           fontWeight: "600", 
           marginBottom: "8px",
@@ -323,12 +322,12 @@ export default function TemplatePreview({ selectedTemplate }: TemplatePreviewPro
         }}>
           Product name
         </h3>
-        <p style={{ 
+        <p className="price" style={{ 
           fontSize: "1rem", 
           fontWeight: "600", 
           color: "#111827" 
         }}>
-          $10 USD <span style={{ fontSize: "0.875rem", color: "#6B7280", fontWeight: "400" }}>(Product price)</span>
+          $10 USD <span className="original-price" style={{ fontSize: "0.875rem", color: "#6B7280", fontWeight: "400" }}>(Product price)</span>
         </p>
       </div>
     </div>
@@ -428,9 +427,38 @@ export default function TemplatePreview({ selectedTemplate }: TemplatePreviewPro
         }
 
         .products-grid.mobile {
-          grid-template-columns: 1fr;
-          gap: 16px;
-          max-width: 400px;
+          grid-template-columns: 1fr 1fr;
+          gap: 12px;
+          max-width: 380px;
+          margin: 0 auto;
+        }
+
+        .products-grid.mobile .product-card {
+          min-height: 280px;
+        }
+
+        .products-grid.mobile .product-card img {
+          height: 160px;
+        }
+
+        .products-grid.mobile .product-card h3 {
+          font-size: 14px !important;
+          margin: 8px 0 4px 0 !important;
+        }
+
+        .products-grid.mobile .product-card .price {
+          font-size: 13px !important;
+          font-weight: 600 !important;
+          color: #333 !important;
+        }
+
+        .products-grid.mobile .product-card .original-price {
+          font-size: 11px !important;
+          color: #666 !important;
+        }
+
+        .products-grid.mobile .product-card > div:last-child {
+          padding: 12px !important;
         }
 
         .view-toggle {
@@ -440,131 +468,14 @@ export default function TemplatePreview({ selectedTemplate }: TemplatePreviewPro
         }
       `}</style>
       
-      {/* View Toggle */}
-      <div className="view-toggle">
-        <ButtonGroup variant="segmented">
-          <Button
-            pressed={viewMode === 'collection'}
-            onClick={() => setViewMode('collection')}
-            icon={CollectionIcon}
-          >
-            Collection page
-          </Button>
-          <Button
-            pressed={viewMode === 'product'}
-            onClick={() => setViewMode('product')}
-            icon={ProductIcon}
-          >
-            Product page
-          </Button>
-        </ButtonGroup>
-      </div>
-
-      {/* Preview Container */}
-      <div className={`preview-container ${viewMode}`}>
-        {viewMode === 'collection' ? (
-          /* Collection Page - 3 Cards showing user's badge on all */
-          <div className="products-grid">
-            <ProductCard showUserBadge={true} />
-            <ProductCard showUserBadge={true} />
-            <ProductCard showUserBadge={true} />
-          </div>
-        ) : (
-          /* Product Page - Single Product with detailed view */
-          <div className="product-page-view">
-            <div style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: "3rem",
-              alignItems: "start",
-              maxWidth: "800px",
-              margin: "0 auto"
-            }}>
-              <div>
-                <div className="product-image-container" style={{ 
-                  position: "relative", 
-                  aspectRatio: "1",
-                  backgroundColor: "#f8f9fa",
-                  backgroundImage: "url('https://cdn.shopify.com/s/files/1/0746/2705/5920/files/gh__240x240_bc4473fa-0e07-4983-bbd4-ea2ccd19d36e_350x350.png?v=1718181897')",
-                  backgroundSize: "cover",
-                  backgroundPosition: "center",
-                  borderRadius: "12px",
-                  marginBottom: "1rem"
-                }}>
-                  <div className={`product-badge ${positionClass}`} style={{ position: "absolute", zIndex: 10 }}>
-                    {renderBadgeContent()}
-                  </div>
-                </div>
-                
-               
-              </div>
-              
-              <div>
-                <div style={{
-                  marginBottom: "0.5rem",
-                  fontSize: "0.875rem",
-                  color: "#6b7280",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.05em"
-                }}>
-                  Category Name
-                </div>
-                
-                <h1 style={{
-                  fontSize: "2.25rem",
-                  fontWeight: "bold",
-                  marginBottom: "1rem",
-                  lineHeight: 1.2
-                }}>
-                  Premium Product Name
-                </h1>
-                
-                <div style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "0.5rem",
-                  marginBottom: "1.5rem"
-                }}>
-                  <div style={{ display: "flex", color: "#fbbf24" }}>★★★★★</div>
-                  <span style={{ color: "#6b7280", fontSize: "0.875rem" }}>(128 reviews)</span>
-                </div>
-                
-                <div style={{ marginBottom: "2rem" }}>
-                  <div style={{
-                    fontSize: "2rem",
-                    fontWeight: "bold",
-                    color: "#2563eb",
-                    marginBottom: "0.5rem"
-                  }}>
-                    $299.99
-                  </div>
-                  <div style={{ fontSize: "0.875rem", color: "#6b7280" }}>
-                    <span style={{ textDecoration: "line-through" }}>$399.99</span>
-                    <span style={{ color: "#dc2626", marginLeft: "0.5rem", fontWeight: 500 }}>
-                      25% off
-                    </span>
-                  </div>
-                </div>
-                
-                <div style={{ display: "flex", gap: "1rem", marginBottom: "2rem" }}>
-                  <button style={{
-                    backgroundColor: "#2563eb",
-                    color: "white",
-                    border: "none",
-                    padding: "0.75rem 2rem",
-                    borderRadius: "0.375rem",
-                    fontSize: "1rem",
-                    fontWeight: 500,
-                    cursor: "pointer",
-                    flex: 1
-                  }}>
-                    ADD TO CART
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+      {/* Preview Container - Collection Page Only */}
+      <div className="preview-container collection">
+        <div className={`products-grid ${device}`}>
+          <ProductCard showUserBadge={true} />
+          <ProductCard showUserBadge={true} />
+          <ProductCard showUserBadge={true} />
+          {device === 'mobile' && <ProductCard showUserBadge={true} />}
+        </div>
       </div>
     </div>
   );
