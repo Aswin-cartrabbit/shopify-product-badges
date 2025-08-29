@@ -26,6 +26,7 @@ interface TemplateGalleryModalProps {
 const TemplateGalleryModal = ({ isOpen, onClose, onSelect, templateType = "image" }: TemplateGalleryModalProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
 
   // Use the appropriate templates based on type
   const predefinedTemplates = templateType === "text" ? textTemplates : imageTemplates;
@@ -42,8 +43,20 @@ const TemplateGalleryModal = ({ isOpen, onClose, onSelect, templateType = "image
   });
 
   const handleTemplateSelect = (template: any) => {
-    onSelect(template);
+    setSelectedTemplate(template);
+  };
+
+  const handleUseTemplate = () => {
+    if (selectedTemplate) {
+      onSelect(selectedTemplate);
+      onClose();
+      setSelectedTemplate(null);
+    }
+  };
+
+  const handleCancel = () => {
     onClose();
+    setSelectedTemplate(null);
   };
 
   if (!isOpen) return null;
@@ -63,7 +76,7 @@ const TemplateGalleryModal = ({ isOpen, onClose, onSelect, templateType = "image
         justifyContent: "center",
         padding: "2rem",
       }}
-      onClick={onClose}
+      onClick={handleCancel}
     >
       <div
         style={{
@@ -79,7 +92,7 @@ const TemplateGalleryModal = ({ isOpen, onClose, onSelect, templateType = "image
       >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
           <Text variant="headingLg" as="h2">Template gallery</Text>
-          <Button onClick={onClose}>✕</Button>
+          <Button onClick={handleCancel}>✕</Button>
         </div>
         <BlockStack gap="400">
           {/* Search */}
@@ -92,20 +105,7 @@ const TemplateGalleryModal = ({ isOpen, onClose, onSelect, templateType = "image
             autoComplete="off"
           />
 
-          {/* Custom banner */}
-          <Card>
-            <InlineStack align="space-between" blockAlign="center">
-              <BlockStack gap="100">
-                <Text variant="bodyMd" as="p">
-                  Need a custom label or badge that fits your brand vibe? Let us help! 😎
-                </Text>
-                <Button variant="plain" textAlign="left">
-                  Chat now to get started!
-                </Button>
-              </BlockStack>
-              <Button onClick={onClose}>✕</Button>
-            </InlineStack>
-          </Card>
+        
 
           {/* Category filters */}
           <Box>
@@ -132,9 +132,23 @@ const TemplateGalleryModal = ({ isOpen, onClose, onSelect, templateType = "image
                     style={{ 
                       cursor: "pointer",
                       textAlign: "center",
-                      padding: "1rem",
+                      border: selectedTemplate?.id === template.id ? "1px solid #0454F6" : "1px solid transparent",
+                      borderRadius: "8px",
+                      transition: "all 0.3s ease",
+                      padding: "4px"
                     }}
+                    className="template-card-hover"
                     onClick={() => handleTemplateSelect(template)}
+                    onMouseEnter={(e) => {
+                      if (selectedTemplate?.id !== template.id) {
+                        e.currentTarget.style.border = "1px solid #0454F6";
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (selectedTemplate?.id !== template.id) {
+                        e.currentTarget.style.border = "1px solid transparent";
+                      }
+                    }}
                   >
                     <Box paddingBlockEnd="200">
                       <div
@@ -170,7 +184,7 @@ const TemplateGalleryModal = ({ isOpen, onClose, onSelect, templateType = "image
                               overflow: "visible", // Allow clip-path to show properly
                               textOverflow: "clip",
                               // Ensure the text is properly positioned within shaped containers
-                              padding: "4px 8px",
+                              
                               boxSizing: "border-box"
                             }}
                           >
@@ -227,10 +241,38 @@ const TemplateGalleryModal = ({ isOpen, onClose, onSelect, templateType = "image
                       </div>
                     </Box>
                     
+                    {/* Selection indicator */}
+                    {selectedTemplate?.id === template.id && (
+                      <Box paddingBlockStart="100">
+                        <div style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: "4px"
+                        }}>
+                          <div style={{
+                            width: "16px",
+                            height: "16px",
+                            backgroundColor: "#0454F6",
+                            borderRadius: "50%",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            color: "white",
+                            fontSize: "12px",
+                            fontWeight: "bold"
+                          }}>
+                            ✓
+                          </div>
+                          <Badge tone="info">Selected</Badge>
+                        </div>
+                      </Box>
+                    )}
+                    
                     {/* Template Name */}
-                    <Text variant="bodySm" as="p" alignment="center">
+                    {/* <Text variant="bodySm" as="p" alignment="center">
                       {templateType === "text" ? (template as any).text : (template as any).alt}
-                    </Text>
+                    </Text> */}
                   </div>
                 </Card>
               </Grid.Cell>
@@ -239,7 +281,12 @@ const TemplateGalleryModal = ({ isOpen, onClose, onSelect, templateType = "image
 
           {/* Use template button */}
           <Box paddingBlockStart="400">
-            <Button fullWidth variant="primary" disabled>
+            <Button 
+              fullWidth 
+              variant="primary" 
+              disabled={!selectedTemplate}
+              onClick={handleUseTemplate}
+            >
               Use template
             </Button>
           </Box>

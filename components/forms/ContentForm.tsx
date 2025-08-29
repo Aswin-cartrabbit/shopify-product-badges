@@ -272,11 +272,7 @@ const ContentForm = ({ data, onChange, type = "BADGE", badgeName, setBadgeName }
             {/* Show selected template preview if any */}
             {((data && data.text && data.style) || (selectedTemplate && selectedTemplate.text && selectedTemplate.style)) && (
               <Box>
-                <div style={{ marginBottom: "8px" }}>
-                  <Text as="p" variant="bodySm" tone="subdued">
-                    Selected Template:
-                  </Text>
-                </div>
+                
                 <div
                   style={{
                     ...(selectedTemplate?.style || data?.style),
