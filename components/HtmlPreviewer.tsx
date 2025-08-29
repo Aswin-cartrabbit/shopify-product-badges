@@ -64,13 +64,11 @@ export default function HtmlPreviewer({ selectedTemplate }: HtmlPreviewerProps) 
       {/* Preview Area */}
       <div
         style={{
-          background: "#fff", // Polaris token "bg-surface" is just white
-          borderRadius: "12px", // Polaris border-radius="200"
-          padding: "1.5rem", // Polaris padding="400"
+          background: "#f6f6f7", // Match the new preview background
+          borderRadius: "12px",
+          padding: "0", // Remove extra padding
           minHeight: "400px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
+          overflow: "hidden"
         }}
       >
         <div
@@ -80,8 +78,7 @@ export default function HtmlPreviewer({ selectedTemplate }: HtmlPreviewerProps) 
             margin: "0 auto", // keep centered
             display: "flex",
             justifyContent: "center",
-            border: "1px solid #ddd",
-            padding: "20px",
+            // Remove the border that was causing visual issues
           }}
         >
           <div style={{ width: "100%" }}>

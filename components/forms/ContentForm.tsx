@@ -235,7 +235,7 @@ const ContentForm = ({ data, onChange, type = "BADGE", badgeName, setBadgeName }
   return (
     <>
     <Card>
-      <BlockStack>
+      {/* <BlockStack>
         <TextField
           label={`${type.charAt(0) + type.slice(1).toLowerCase()} name`}
           value={localName}
@@ -256,26 +256,10 @@ const ContentForm = ({ data, onChange, type = "BADGE", badgeName, setBadgeName }
         <Bleed marginInline="400">
           <Divider />
         </Bleed>
-      </BlockStack>
+      </BlockStack> */}
       <div style={{ margin: "10px" }}></div>
       <BlockStack gap={"400"}>
-        {/* Content Type Switcher */}
-        {/* <InlineStack gap="200">
-          <Button
-            pressed={badge.content.contentType === "text"}
-            onClick={() => handleContentTypeChange("text")}
-            variant={badge.content.contentType === "text" ? "primary" : "secondary"}
-          >
-            Text Badge
-          </Button>
-          <Button
-            pressed={badge.content.contentType === "image"}
-            onClick={() => handleContentTypeChange("image")}
-            variant={badge.content.contentType === "image" ? "primary" : "secondary"}
-          >
-            Image Badge
-          </Button>
-        </InlineStack> */}
+       
 
         {/* Conditional Content Based on Type */}
         {badge.content.contentType === "text" ? (
@@ -384,13 +368,7 @@ const ContentForm = ({ data, onChange, type = "BADGE", badgeName, setBadgeName }
           </BlockStack>
         )}
 
-        {/* <Select
-          label="Call to action"
-          options={ctaOptions}
-          value={badge.content.callToAction || "noCta"}
-          onChange={(value) => updateContent("callToAction", value)}
-        /> */}
-
+      
         <Text as="p" variant="bodySm" tone="subdued">
           Available with Starter plan.{" "}
           <a href="#" style={{ color: "blue" }}>

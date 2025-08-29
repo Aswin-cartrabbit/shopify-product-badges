@@ -1,5 +1,5 @@
 import React from "react";
-import { Icon } from "@shopify/polaris";
+import { Button, Icon } from "@shopify/polaris";
 import { 
   ArrowLeftIcon,
   ArrowRightIcon,
@@ -77,53 +77,24 @@ const PositionGrid = ({ selectedPosition, onPositionChange }: PositionGridProps)
       backgroundColor: "#f8f9fa",
       borderRadius: "8px",
       border: "1px solid #e1e3e5",
-      width: "100%",
-      maxWidth: "300px"
+      width: "100%"
     }}>
       {/* 3x3 Grid Only */}
-      <div style={{ display: "inline-block" }}>
+      <div style={{ display: "inline-block", width: "100%" }}>
         {positions.map((row, rowIndex) => (
-          <div key={rowIndex} style={{ display: "flex", gap: "4px", marginBottom: "4px" }}>
+          <div key={rowIndex} style={{ display: "flex", gap: "4px", marginBottom: rowIndex < positions.length - 1 ? "4px" : "0" }}>
             {row.map((position) => {
               const isSelected = selectedPosition === position;
               
               return (
-                <button
-                  key={position}
+                <Button
+                  fullWidth={true}
+                  
                   onClick={() => handlePositionClick(position)}
-                  style={{
-                    width: "50px",
-                    height: "50px",
-                    border: isSelected ? "2px solid #007ace" : "1px solid #d9d9d9",
-                    backgroundColor: isSelected ? "#007ace" : "#fff",
-                  borderRadius: "6px",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  transition: "all 0.2s ease",
-                }}
-                title={getPositionLabel(position)}
-                  onMouseEnter={(e) => {
-                    if (!isSelected) {
-                      e.currentTarget.style.backgroundColor = "#f0f8ff";
-                      e.currentTarget.style.borderColor = "#007ace";
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isSelected) {
-                      e.currentTarget.style.backgroundColor = "#fff";
-                      e.currentTarget.style.borderColor = "#d9d9d9";
-                    }
-                  }}
+                  icon={getPositionIcon(position)}
                 >
-                  <div style={{ transform: getIconRotation(position) }}>
-                    <Icon 
-                      source={getPositionIcon(position)} 
-                      tone={isSelected ? "subdued" : "base"} 
-                    />
-                  </div>
-                </button>
+                  {getPositionIcon(position)}
+                </Button>
               );
             })}
           </div>

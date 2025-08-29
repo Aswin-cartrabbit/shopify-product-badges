@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useBadgeStore } from "@/stores/BadgeStore";
+import { Button, ButtonGroup, Icon } from "@shopify/polaris";
+import { CollectionIcon, ProductIcon } from "@shopify/polaris-icons";
 
 interface TemplatePreviewProps {
   selectedTemplate?: any;
@@ -8,11 +10,12 @@ interface TemplatePreviewProps {
 export default function TemplatePreview({ selectedTemplate }: TemplatePreviewProps) {
   const { badge } = useBadgeStore();
   const [forceUpdate, setForceUpdate] = useState(0);
+  const [viewMode, setViewMode] = useState<'collection' | 'product'>('collection');
 
-  // Force re-render when template changes
+  // Force re-render only when template actually changes (preserve view mode during design changes)
   useEffect(() => {
     setForceUpdate(prev => prev + 1);
-  }, [selectedTemplate, badge]);
+  }, [selectedTemplate?.id, selectedTemplate?.text, selectedTemplate?.src]);
   const { content, design, placement } = badge;
 
   // Helper function to detect shape type from clip-path
@@ -79,21 +82,21 @@ export default function TemplatePreview({ selectedTemplate }: TemplatePreviewPro
     const isTemplateSelected = selectedTemplate && selectedTemplate.text && selectedTemplate.style;
     
     if (isTemplateSelected) {
-      // Create responsive badge style that grows with content
+      // Create responsive badge style that grows with content - optimized for cards
       const responsiveBadgeStyle: React.CSSProperties = {
         ...selectedTemplate.style,
         // Override with any changes from badge store
         background: design.color !== "#7700ffff" ? design.color : selectedTemplate.style.background,
         color: content.textColor || selectedTemplate.style.color || "#ffffff",
         borderRadius: design.cornerRadius !== 0 ? `${design.cornerRadius}px` : selectedTemplate.style.borderRadius,
-        // Make it responsive to content
+        // Make it responsive to content - optimized for cards
         minWidth: selectedTemplate.style.width || "auto",
         width: "auto", // Allow it to grow
-        maxWidth: "250px", // Increased max width
+        maxWidth: "120px", // Optimized for card view
         height: "auto",
-        minHeight: selectedTemplate.style.height || "30px",
-        padding: "10px 16px", // Better padding for text
-        fontSize: `${(design.size || 36) * 0.5}px`, // Scale font size with design size
+        minHeight: "24px", // Smaller for cards
+        padding: "6px 12px", // Card-optimized padding
+        fontSize: "0.75rem", // Fixed size for consistency
         fontWeight: 600,
         display: "flex",
         alignItems: "center",
@@ -101,9 +104,7 @@ export default function TemplatePreview({ selectedTemplate }: TemplatePreviewPro
         whiteSpace: "nowrap",
         overflow: "visible", // Allow content to be visible
         textOverflow: "clip", // Don't ellipsize
-        // Ensure proper sizing for preview
-        transform: "scale(0.8)",
-        transformOrigin: "center",
+        // Remove transform for cleaner card view
         // Better text handling
         wordBreak: "keep-all",
         lineHeight: 1.2
@@ -173,25 +174,25 @@ export default function TemplatePreview({ selectedTemplate }: TemplatePreviewPro
     // Default text badge with store styling - RESPONSIVE AND SHAPES
     const textLength = (content.text || "Badge Text").length;
     const badgeStyles: React.CSSProperties = {
-      padding: "10px 16px", // Better responsive padding
+      padding: "6px 12px", // Optimized for card view
       background: getBackgroundCSS(),
       color: content.textColor || "#ffffff",
-      fontSize: `${(design.size || 36) * 0.4}px`, // Scale font size with design size
+      fontSize: "0.75rem", // Fixed size for consistency in cards
       fontWeight: 600,
-      borderRadius: `${design.cornerRadius}px`,
+      borderRadius: `${design.cornerRadius || 4}px`,
       whiteSpace: "nowrap",
       boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
-      border: `${design.borderSize}px solid ${design.borderColor}`,
+      border: `${design.borderSize || 0}px solid ${design.borderColor || "transparent"}`,
       fontFamily: content.font === "own_theme" ? "inherit" : content.font?.replace("_", " "),
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      // Responsive sizing based on text length
-      minWidth: `${Math.max(60, textLength * 6)}px`,
+      // Responsive sizing based on text length - optimized for cards
+      minWidth: `${Math.max(50, textLength * 5)}px`,
       width: "auto", // Allow growth
-      maxWidth: "250px", // Prevent overflow
+      maxWidth: "120px", // Prevent overflow in cards
       height: "auto",
-      minHeight: "30px",
+      minHeight: "24px",
       overflow: "visible", // Allow content to be visible
       textOverflow: "clip",
       lineHeight: 1.2,
@@ -262,8 +263,84 @@ export default function TemplatePreview({ selectedTemplate }: TemplatePreviewPro
     ? positionMap[design.gridPosition] 
     : "badge-top-right";
 
+  // Sample badge variations for multiple display
+  const sampleBadges = [
+    { text: content.text || "LIMITED TIME", color: "#ff1919", position: "badge-top-left" },
+    { text: "IN STOCK", color: "#8bc34a", position: "badge-top-center" },
+    { text: "NEW ARRIVAL", color: "#2196f3", position: "badge-top-right" },
+    { text: "HOT ITEM", color: "#ff9800", position: "badge-middle-right" },
+    { text: "SALE", color: "#e91e63", position: "badge-bottom-left" },
+    { text: "TOP PICK", color: "#9c27b0", position: "badge-bottom-center" },
+    { text: "EXCLUSIVE", color: "#607d8b", position: "badge-bottom-right" },
+    { text: "FLASH DEAL", color: "#ff5722", position: "badge-middle-left" }
+  ];
+
+  const ProductCard = ({ badges = [], className = "", showUserBadge = false }: { badges?: any[], className?: string, showUserBadge?: boolean }) => (
+    <div className={`product-card ${className}`} style={{
+      backgroundColor: "white",
+      borderRadius: "12px",
+      overflow: "hidden",
+      boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
+      transition: "all 0.2s ease"
+    }}>
+      <div className="product-image-container" style={{ 
+        position: "relative", 
+        aspectRatio: "1",
+        backgroundColor: "#f8f9fa",
+        backgroundImage: "url('https://cdn.shopify.com/s/files/1/0746/2705/5920/files/gh__240x240_bc4473fa-0e07-4983-bbd4-ea2ccd19d36e_350x350.png?v=1718181897')",
+        backgroundSize: "cover",
+        backgroundPosition: "center"
+      }}>
+        {/* Show user's current badge if showUserBadge is true */}
+        {showUserBadge && (
+          <div className={`product-badge ${positionClass}`} style={{ position: "absolute", zIndex: 10 }}>
+            {renderBadgeContent()}
+          </div>
+        )}
+        
+        {/* Show sample badges if not showing user badge */}
+        {!showUserBadge && badges.map((badgeData, index) => (
+          <div 
+            key={index}
+            className={`product-badge ${badgeData.position || positionClass}`}
+            style={{
+              padding: "6px 12px",
+              background: badgeData.color || design.color,
+              color: "white",
+              fontSize: "0.75rem",
+              fontWeight: "600",
+              borderRadius: "4px",
+              whiteSpace: "nowrap",
+              zIndex: 10
+            }}
+          >
+            {badgeData.text}
+          </div>
+        ))}
+      </div>
+      <div style={{ padding: "16px" }}>
+        <h3 style={{ 
+          fontSize: "1rem", 
+          fontWeight: "600", 
+          marginBottom: "8px",
+          color: "#111827",
+          lineHeight: "1.4"
+        }}>
+          Product name
+        </h3>
+        <p style={{ 
+          fontSize: "1rem", 
+          fontWeight: "600", 
+          color: "#111827" 
+        }}>
+          $10 USD <span style={{ fontSize: "0.875rem", color: "#6B7280", fontWeight: "400" }}>(Product price)</span>
+        </p>
+      </div>
+    </div>
+  );
+
   return (
-    <div key={`template-${selectedTemplate?.id || 'default'}-${forceUpdate}`}>
+    <div key={`template-preview-${selectedTemplate?.id || 'default'}`}>
       <style>{`
         .product-image-container {
           position: relative;
@@ -271,36 +348,31 @@ export default function TemplatePreview({ selectedTemplate }: TemplatePreviewPro
           width: 100%;
         }
 
-        /* Top row positions */
+        /* Badge positioning */
         .badge-top-left {
           position: absolute;
-          top: 0.5rem;
-          left: 0.5rem;
-          z-index: 10;
+          top: 8px;
+          left: 8px;
         }
 
         .badge-top-center {
           position: absolute;
-          top: 0.5rem;
+          top: 8px;
           left: 50%;
           transform: translateX(-50%);
-          z-index: 10;
         }
 
         .badge-top-right {
           position: absolute;
-          top: 0.5rem;
-          right: 0.5rem;
-          z-index: 10;
+          top: 8px;
+          right: 8px;
         }
 
-        /* Middle row positions */
         .badge-middle-left {
           position: absolute;
           top: 50%;
-          left: 0.5rem;
+          left: 8px;
           transform: translateY(-50%);
-          z-index: 10;
         }
 
         .badge-middle-center {
@@ -308,176 +380,196 @@ export default function TemplatePreview({ selectedTemplate }: TemplatePreviewPro
           top: 50%;
           left: 50%;
           transform: translate(-50%, -50%);
-          z-index: 10;
         }
 
         .badge-middle-right {
           position: absolute;
           top: 50%;
-          right: 0.5rem;
+          right: 8px;
           transform: translateY(-50%);
-          z-index: 10;
         }
 
-        /* Bottom row positions */
         .badge-bottom-left {
           position: absolute;
-          bottom: 0.5rem;
-          left: 0.5rem;
-          z-index: 10;
+          bottom: 8px;
+          left: 8px;
         }
 
         .badge-bottom-center {
           position: absolute;
-          bottom: 0.5rem;
+          bottom: 8px;
           left: 50%;
           transform: translateX(-50%);
-          z-index: 10;
         }
 
         .badge-bottom-right {
           position: absolute;
-          bottom: 0.5rem;
-          right: 0.5rem;
-          z-index: 10;
+          bottom: 8px;
+          right: 8px;
+        }
+
+        .product-card:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .preview-container {
+          background: #f6f6f7;
+          min-height: 400px;
+          border-radius: 12px;
+          padding: 24px;
+        }
+
+        .preview-container.mobile {
+          padding: 16px;
+        }
+
+        .products-grid {
+          display: grid;
+          gap: 24px;
+          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+          max-width: 1200px;
+          margin: 0 auto;
+        }
+
+        .products-grid.mobile {
+          grid-template-columns: 1fr;
+          gap: 16px;
+          max-width: 400px;
+        }
+
+        .view-toggle {
+          display: flex;
+          justify-content: center;
+          margin-bottom: 20px;
         }
       `}</style>
       
-      <div style={{
-        display: "grid",
-        gridTemplateColumns: "1fr 1fr",
-        gap: "3rem",
-        alignItems: "start"
-      }}>
-        <div>
-          <div className="product-image-container" style={{ marginBottom: "2rem", maxWidth: "300px" }}>
-            <div style={{
-              backgroundImage: "url('https://cdn.shopify.com/s/files/1/0746/2705/5920/files/gh__240x240_bc4473fa-0e07-4983-bbd4-ea2ccd19d36e_350x350.png?v=1718181897')",
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-              backgroundColor: "#f8f9fa",
-              aspectRatio: "1",
-              borderRadius: "0.5rem",
-              marginBottom: "1rem",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: "1.125rem",
-              color: "#6b7280"
-            }}>
-            </div>
-            
-            <div className={`product-badge ${positionClass}`}>
-              {renderBadgeContent()}
-            </div>
+      {/* View Toggle */}
+      <div className="view-toggle">
+        <ButtonGroup variant="segmented">
+          <Button
+            pressed={viewMode === 'collection'}
+            onClick={() => setViewMode('collection')}
+            icon={CollectionIcon}
+          >
+            Collection page
+          </Button>
+          <Button
+            pressed={viewMode === 'product'}
+            onClick={() => setViewMode('product')}
+            icon={ProductIcon}
+          >
+            Product page
+          </Button>
+        </ButtonGroup>
+      </div>
+
+      {/* Preview Container */}
+      <div className={`preview-container ${viewMode}`}>
+        {viewMode === 'collection' ? (
+          /* Collection Page - 3 Cards showing user's badge on all */
+          <div className="products-grid">
+            <ProductCard showUserBadge={true} />
+            <ProductCard showUserBadge={true} />
+            <ProductCard showUserBadge={true} />
           </div>
-          
-          <div style={{ display: "flex", gap: "0.5rem" }}>
-            {[1, 2, 3, 4].map(num => (
-              <div
-                key={num}
-                style={{
-                  backgroundColor: "#f8f9fa",
+        ) : (
+          /* Product Page - Single Product with detailed view */
+          <div className="product-page-view">
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: "3rem",
+              alignItems: "start",
+              maxWidth: "800px",
+              margin: "0 auto"
+            }}>
+              <div>
+                <div className="product-image-container" style={{ 
+                  position: "relative", 
                   aspectRatio: "1",
-                  borderRadius: "0.375rem",
-                  flex: 1,
+                  backgroundColor: "#f8f9fa",
+                  backgroundImage: "url('https://cdn.shopify.com/s/files/1/0746/2705/5920/files/gh__240x240_bc4473fa-0e07-4983-bbd4-ea2ccd19d36e_350x350.png?v=1718181897')",
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                  borderRadius: "12px",
+                  marginBottom: "1rem"
+                }}>
+                  <div className={`product-badge ${positionClass}`} style={{ position: "absolute", zIndex: 10 }}>
+                    {renderBadgeContent()}
+                  </div>
+                </div>
+                
+               
+              </div>
+              
+              <div>
+                <div style={{
+                  marginBottom: "0.5rem",
+                  fontSize: "0.875rem",
+                  color: "#6b7280",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.05em"
+                }}>
+                  Category Name
+                </div>
+                
+                <h1 style={{
+                  fontSize: "2.25rem",
+                  fontWeight: "bold",
+                  marginBottom: "1rem",
+                  lineHeight: 1.2
+                }}>
+                  Premium Product Name
+                </h1>
+                
+                <div style={{
                   display: "flex",
                   alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: "0.875rem",
-                  color: "#9ca3af",
-                  cursor: "pointer"
-                }}
-              >
-                {num}
+                  gap: "0.5rem",
+                  marginBottom: "1.5rem"
+                }}>
+                  <div style={{ display: "flex", color: "#fbbf24" }}>★★★★★</div>
+                  <span style={{ color: "#6b7280", fontSize: "0.875rem" }}>(128 reviews)</span>
+                </div>
+                
+                <div style={{ marginBottom: "2rem" }}>
+                  <div style={{
+                    fontSize: "2rem",
+                    fontWeight: "bold",
+                    color: "#2563eb",
+                    marginBottom: "0.5rem"
+                  }}>
+                    $299.99
+                  </div>
+                  <div style={{ fontSize: "0.875rem", color: "#6b7280" }}>
+                    <span style={{ textDecoration: "line-through" }}>$399.99</span>
+                    <span style={{ color: "#dc2626", marginLeft: "0.5rem", fontWeight: 500 }}>
+                      25% off
+                    </span>
+                  </div>
+                </div>
+                
+                <div style={{ display: "flex", gap: "1rem", marginBottom: "2rem" }}>
+                  <button style={{
+                    backgroundColor: "#2563eb",
+                    color: "white",
+                    border: "none",
+                    padding: "0.75rem 2rem",
+                    borderRadius: "0.375rem",
+                    fontSize: "1rem",
+                    fontWeight: 500,
+                    cursor: "pointer",
+                    flex: 1
+                  }}>
+                    ADD TO CART
+                  </button>
+                </div>
               </div>
-            ))}
-          </div>
-        </div>
-        
-        <div>
-          <div style={{
-            marginBottom: "0.5rem",
-            fontSize: "0.875rem",
-            color: "#6b7280",
-            textTransform: "uppercase",
-            letterSpacing: "0.05em"
-          }}>
-            Category Name
-          </div>
-          
-          <h1 style={{
-            fontSize: "2.25rem",
-            fontWeight: "bold",
-            marginBottom: "1rem",
-            lineHeight: 1.2
-          }}>
-            Premium Product Name
-          </h1>
-          
-          <div style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "0.5rem",
-            marginBottom: "1.5rem"
-          }}>
-            <div style={{ display: "flex", color: "#fbbf24" }}>★★★★★</div>
-            <span style={{ color: "#6b7280", fontSize: "0.875rem" }}>(128 reviews)</span>
-          </div>
-          
-          <div style={{ marginBottom: "2rem" }}>
-            <div style={{
-              fontSize: "2rem",
-              fontWeight: "bold",
-              color: "#2563eb",
-              marginBottom: "0.5rem"
-            }}>
-              $299.99
-            </div>
-            <div style={{ fontSize: "0.875rem", color: "#6b7280" }}>
-              <span style={{ textDecoration: "line-through" }}>$399.99</span>
-              <span style={{ color: "#dc2626", marginLeft: "0.5rem", fontWeight: 500 }}>
-                25% off
-              </span>
             </div>
           </div>
-          
-          <p style={{
-            color: "#4b5563",
-            marginBottom: "2rem",
-            lineHeight: 1.6
-          }}>
-            This is a detailed product description that highlights the key features
-            and benefits of the product. It provides customers with essential
-            information to make an informed purchasing decision.
-          </p>
-          
-          <div style={{ display: "flex", gap: "1rem", marginBottom: "2rem" }}>
-            <button style={{
-              backgroundColor: "#2563eb",
-              color: "white",
-              border: "none",
-              padding: "0.75rem 2rem",
-              borderRadius: "0.375rem",
-              fontSize: "1rem",
-              fontWeight: 500,
-              cursor: "pointer",
-              flex: 1
-            }}>
-              Add to Cart
-            </button>
-            <button style={{
-              backgroundColor: "transparent",
-              color: "#2563eb",
-              border: "1px solid #2563eb",
-              padding: "0.75rem 1rem",
-              borderRadius: "0.375rem",
-              cursor: "pointer"
-            }}>
-              ♡
-            </button>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );

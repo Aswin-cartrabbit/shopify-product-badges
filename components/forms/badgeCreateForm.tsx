@@ -193,10 +193,8 @@ export const BadgeBuilder = ({
 
   const handleCancel = () => {
     if (onCancel) {
-      onCancel();
-    } else {
       setIsModalOpen(false);
-    }
+    } 
   };
 
   return (
@@ -204,7 +202,7 @@ export const BadgeBuilder = ({
       <TitleBar title="Badge Editor" />
       <Page
         fullWidth
-        backAction={{ content: "Products", url: "#" }}
+        backAction={{ content: "Products", url: "/badges" }}
         title={`Your ${componentType.toLowerCase()}`}
         titleMetadata={getBadges(currentStatus)}
         subtitle={`${componentType.charAt(0) + componentType.slice(1).toLowerCase()} Editor`}
