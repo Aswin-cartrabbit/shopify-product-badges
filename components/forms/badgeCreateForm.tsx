@@ -7,6 +7,7 @@ import {
   ButtonGroup,
   Card,
   Divider,
+  Icon,
   Page,
   RadioButton,
   Select,
@@ -22,6 +23,7 @@ import ContentForm from "./ContentForm";
 import DesignForm from "./DesignForm";
 import ProductsForm from "./ProductsForm";
 import {Modal, TitleBar, useAppBridge} from '@shopify/app-bridge-react';
+import { EditIcon, ProductAddIcon, ContentIcon } from "@shopify/polaris-icons";
 
 interface BadgeBuilderProps {
   type?: "BADGE" | "LABEL";
@@ -221,26 +223,112 @@ export const BadgeBuilder = ({
       >
         {/* Custom Tab Implementation */}
         <div style={{ marginBottom: "1rem" }}>
-          <ButtonGroup variant="segmented">
-            <Button
-              pressed={selectedTab === 0}
+          <div style={{
+            display: "flex",
+            gap: "4px",
+            backgroundColor: "#f6f6f7",
+            padding: "4px",
+            borderRadius: "12px",
+            width: "fit-content",
+            maxWidth: "100%"
+          }}>
+            <button
+              style={{
+                padding: "10px 16px",
+                borderRadius: "8px",
+                border: "none",
+                backgroundColor: selectedTab === 0 ? "#ffffff" : "transparent",
+                color: selectedTab === 0 ? "#1a1a1a" : "#6b7280",
+                fontWeight: selectedTab === 0 ? "600" : "500",
+                fontSize: "14px",
+                cursor: "pointer",
+                transition: "all 0.2s ease",
+                boxShadow: selectedTab === 0 ? "0 1px 3px rgba(0, 0, 0, 0.1)" : "none",
+                minWidth: "auto",
+                display: "flex",
+                alignItems: "center",
+                gap: "6px"
+              }}
               onClick={() => handleTabChange(0)}
+              onMouseEnter={(e) => {
+                if (selectedTab !== 0) {
+                  e.currentTarget.style.backgroundColor = "#eeeeee";
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (selectedTab !== 0) {
+                  e.currentTarget.style.backgroundColor = "transparent";
+                }
+              }}
             >
+              <Icon source={ContentIcon} tone="base" />
               Content
-            </Button>
-            <Button
-              pressed={selectedTab === 1}
+            </button>
+            <button
+              style={{
+                padding: "10px 16px",
+                borderRadius: "8px",
+                border: "none",
+                backgroundColor: selectedTab === 1 ? "#ffffff" : "transparent",
+                color: selectedTab === 1 ? "#1a1a1a" : "#6b7280",
+                fontWeight: selectedTab === 1 ? "600" : "500",
+                fontSize: "14px",
+                cursor: "pointer",
+                transition: "all 0.2s ease",
+                boxShadow: selectedTab === 1 ? "0 1px 3px rgba(0, 0, 0, 0.1)" : "none",
+                minWidth: "auto",
+                display: "flex",
+                alignItems: "center",
+                gap: "6px"
+              }}
               onClick={() => handleTabChange(1)}
+              onMouseEnter={(e) => {
+                if (selectedTab !== 1) {
+                  e.currentTarget.style.backgroundColor = "#eeeeee";
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (selectedTab !== 1) {
+                  e.currentTarget.style.backgroundColor = "transparent";
+                }
+              }}
             >
+              <Icon source={EditIcon} tone="base" />
               Design
-            </Button>
-            <Button
-              pressed={selectedTab === 2}
+            </button>
+            <button
+              style={{
+                padding: "10px 16px",
+                borderRadius: "8px",
+                border: "none",
+                backgroundColor: selectedTab === 2 ? "#ffffff" : "transparent",
+                color: selectedTab === 2 ? "#1a1a1a" : "#6b7280",
+                fontWeight: selectedTab === 2 ? "600" : "500",
+                fontSize: "14px",
+                cursor: "pointer",
+                transition: "all 0.2s ease",
+                boxShadow: selectedTab === 2 ? "0 1px 3px rgba(0, 0, 0, 0.1)" : "none",
+                minWidth: "auto",
+                display: "flex",
+                alignItems: "center",
+                gap: "6px"
+              }}
               onClick={() => handleTabChange(2)}
+              onMouseEnter={(e) => {
+                if (selectedTab !== 2) {
+                  e.currentTarget.style.backgroundColor = "#eeeeee";
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (selectedTab !== 2) {
+                  e.currentTarget.style.backgroundColor = "transparent";
+                }
+              }}
             >
+              <Icon source={ProductAddIcon} tone="base" />
               Products
-            </Button>
-          </ButtonGroup>
+            </button>
+          </div>
         </div>
         
         <div
