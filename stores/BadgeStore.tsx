@@ -54,6 +54,10 @@ export type BadgeDesign = {
   positionX?: number;
   positionY?: number;
   gridPosition?: GridPosition;
+  // Text formatting controls
+  isBold?: boolean;
+  isItalic?: boolean;
+  isUnderline?: boolean;
 };
 
 export type BadgePlacement = {
@@ -136,6 +140,10 @@ const useBadgeStore = create<BadgeStore>()((set) => ({
       positionX: 0,
       positionY: 0,
       gridPosition: GridPosition.TOP_LEFT,
+      // Text formatting defaults
+      isBold: false,
+      isItalic: false,
+      isUnderline: false,
     },
     placement: {
       position: GridPosition.TOP_RIGHT,
