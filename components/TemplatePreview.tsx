@@ -152,7 +152,13 @@ export default function TemplatePreview({ selectedTemplate, device = 'desktop' }
           return (
             <div style={responsiveBadgeStyle}>
               <div style={innerTextStyle}>
-                {content.text || selectedTemplate.text}
+                <span style={{
+                  fontWeight: design.isBold ? 'bold' : 'normal',
+                  fontStyle: design.isItalic ? 'italic' : 'normal',
+                  textDecoration: design.isUnderline ? 'underline' : 'none'
+                }}>
+                  {content.text || selectedTemplate.text}
+                </span>
               </div>
             </div>
           );
@@ -239,7 +245,13 @@ export default function TemplatePreview({ selectedTemplate, device = 'desktop' }
         return (
           <div style={badgeStyles}>
             <div style={innerTextStyle}>
-              {content.text || "Badge Text"}
+              <span style={{
+                fontWeight: design.isBold ? 'bold' : 'normal',
+                fontStyle: design.isItalic ? 'italic' : 'normal',
+                textDecoration: design.isUnderline ? 'underline' : 'none'
+              }}>
+                {content.text || "Badge Text"}
+              </span>
             </div>
           </div>
         );
@@ -248,7 +260,13 @@ export default function TemplatePreview({ selectedTemplate, device = 'desktop' }
 
     return (
       <div style={badgeStyles}>
-        {content.text || "Badge Text"}
+        <span style={{
+          fontWeight: design.isBold ? 'bold' : 'normal',
+          fontStyle: design.isItalic ? 'italic' : 'normal',
+          textDecoration: design.isUnderline ? 'underline' : 'none'
+        }}>
+          {content.text || "Badge Text"}
+        </span>
       </div>
     );
   };
