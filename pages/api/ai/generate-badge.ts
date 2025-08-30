@@ -61,14 +61,41 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
     
-    // Return immediately - don't wait for webhook
-    console.log('AI generation started, returning task_id for frontend polling');
+    // Wait for webhook completion instead of returning immediately
+    console.log('AI generation started, waiting for webhook completion for request_id:', requestId);
+    
+    // Poll for completion (max 5 minutes)
+    const maxWaitTime = 5 * 60 * 1000; // 5 minutes
+    const startTime = Date.now();
+    const pollInterval = 2000; // Check every 2 seconds
+    
+    while (Date.now() - startTime < maxWaitTime) {
+      // Check if webhook has completed
+      if (await hasWebhookResult(requestId)) {
+        const webhookResult = await getWebhookResult(requestId);
+        if (webhookResult && webhookResult.status === 'COMPLETED') {
+          console.log('Webhook completed! Returning result:', webhookResult);
+          return res.status(200).json({
+            success: true,
+            status: 'COMPLETED',
+            request_id: requestId,
+            generated: webhookResult.generated,
+            message: 'AI generation completed successfully'
+          });
+        }
+      }
+      
+      // Wait before next check
+      await new Promise(resolve => setTimeout(resolve, pollInterval));
+    }
+    
+    // If we reach here, webhook didn't complete in time
+    console.log('Webhook timeout for request_id:', requestId);
     return res.status(200).json({
       success: true,
-      status: 'STARTED',
+      status: 'TIMEOUT',
       request_id: requestId,
-      message: 'AI generation started. Use the request_id to check status.',
-      poll_url: `/api/ai/check-status/${requestId}`
+      message: 'AI generation started but webhook timeout. Check status later.'
     });
 
   } catch (error) {
