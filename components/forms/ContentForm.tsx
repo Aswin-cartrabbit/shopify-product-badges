@@ -16,8 +16,10 @@ import {
   LegacyStack,
   Tooltip,
   Icon,
+  Popover,
+  ActionList,
 } from "@shopify/polaris";
-import { QuestionCircleIcon } from "@shopify/polaris-icons";
+import { QuestionCircleIcon, ProductUnavailableIcon, TextBoldIcon, TextItalicIcon, TextUnderlineIcon } from "@shopify/polaris-icons";
 import { useCallback, useState, useEffect } from "react";
 import { useBadgeStore, GridPosition } from "@/stores/BadgeStore";
 import TemplateGalleryModal from "../TemplateGalleryModal";
@@ -47,6 +49,19 @@ const ContentForm = ({ data, onChange, type = "BADGE", badgeName, setBadgeName }
   const [localText, setLocalText] = useState("");
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
+
+
+  // AutoText options
+  const autoTextOptions = [
+    { content: 'Discount %', value: '{Discount %}' },
+    { content: 'Discount amount', value: '{Discount amount}' },
+    { content: 'Price', value: '{Price}' },
+    { content: 'Day release', value: '{Day release}' },
+    { content: 'Remaining stock', value: '{Remaining stock}' },
+    { content: 'Number of reviews', value: '{Number of reviews}' },
+    { content: 'Average rating', value: '{Average rating}' },
+    { content: 'Product metafields', value: '{Product metafields}' },
+  ];
 
   // Initialize local state from props/data and auto-detect content type
   useEffect(() => {
@@ -89,7 +104,61 @@ const ContentForm = ({ data, onChange, type = "BADGE", badgeName, setBadgeName }
     }
   }, [badge.content.text]); // Sync when badge store text changes
 
-  // Local state for form elements not directly related to badge data
+           // AutoText popover state
+         const [autoTextPopoverActive, setAutoTextPopoverActive] = useState(false);
+         const [emojiPopoverActive, setEmojiPopoverActive] = useState(false);
+         const [boldPressed, setBoldPressed] = useState(false);
+         const [italicPressed, setItalicPressed] = useState(false);
+         const [underlinePressed, setUnderlinePressed] = useState(false);
+
+         // Function to insert AutoText placeholders
+         const insertAutoText = useCallback((placeholder: string) => {
+           const autoTextPattern = /\{[^}]+\}/g;
+           const textWithoutAutoText = localText.replace(autoTextPattern, '').trim();
+           const newText = textWithoutAutoText ? `${textWithoutAutoText} ${placeholder}` : placeholder;
+           setLocalText(newText);
+           updateContent("text", newText);
+         }, [localText, updateContent]);
+
+         // Function to insert emojis
+         const insertEmoji = useCallback((emoji: string) => {
+           const newText = localText ? `${localText} ${emoji}` : emoji;
+           setLocalText(newText);
+           updateContent("text", newText);
+         }, [localText, updateContent]);
+
+         // Formatting functions
+         const handleBold = useCallback(() => {
+           setBoldPressed(!boldPressed);
+           const selection = window.getSelection()?.toString();
+           if (selection) {
+             const newText = localText.replace(selection, `<b>${selection}</b>`);
+             setLocalText(newText);
+             updateContent("text", newText);
+           }
+         }, [localText, updateContent, boldPressed]);
+
+         const handleItalic = useCallback(() => {
+           setItalicPressed(!italicPressed);
+           const selection = window.getSelection()?.toString();
+           if (selection) {
+             const newText = localText.replace(selection, `<i>${selection}</i>`);
+             setLocalText(newText);
+             updateContent("text", newText);
+           }
+         }, [localText, updateContent, italicPressed]);
+
+         const handleUnderline = useCallback(() => {
+           setUnderlinePressed(!underlinePressed);
+           const selection = window.getSelection()?.toString();
+           if (selection) {
+             const newText = localText.replace(selection, `<u>${selection}</u>`);
+             setLocalText(newText);
+             updateContent("text", newText);
+           }
+         }, [localText, updateContent, underlinePressed]);
+
+         // Local state for form elements not directly related to badge data
 
   const handleBadgeChange = useCallback(
     (newValue: string) => {
@@ -305,13 +374,186 @@ const ContentForm = ({ data, onChange, type = "BADGE", badgeName, setBadgeName }
              
             </InlineStack>
 
-            <TextField
-              label="Title"
-              value={localText}
-              onChange={handleTextChange}
-              autoComplete="off"
-              helpText="Enter the text to display on your badge"
-            />
+            <BlockStack gap="200">
+              <Text as="p" variant="bodyMd">
+                Label content
+              </Text>
+
+              {/* Formatting Tools */}
+              <div style={{ 
+                backgroundColor: '#f6f6f7', 
+                borderRadius: '6px', 
+                padding: '8px 12px',
+                display: 'flex',
+                gap: '8px',
+                alignItems: 'center'
+              }}>
+                <Button
+                  size="slim"
+                  variant="plain"
+                  icon={TextBoldIcon}
+                  onClick={handleBold}
+                  pressed={boldPressed}
+                />
+                <Button
+                  size="slim"
+                  variant="plain"
+                  icon={TextItalicIcon}
+                  onClick={handleItalic}
+                  pressed={italicPressed}
+                />
+                <Button
+                  size="slim"
+                  variant="plain"
+                  icon={TextUnderlineIcon}
+                  onClick={handleUnderline}
+                  pressed={underlinePressed}
+                />
+                <Button
+                  size="slim"
+                  variant="plain"
+                  onClick={() => setEmojiPopoverActive(!emojiPopoverActive)}
+                >
+                  😊
+                </Button>
+                <Button
+                  size="slim"
+                  variant="secondary"
+                  icon={ProductUnavailableIcon}
+                  onClick={() => setAutoTextPopoverActive(!autoTextPopoverActive)}
+                >
+                  AutoText
+                </Button>
+              </div>
+
+              {/* AutoText Dropdown */}
+              {autoTextPopoverActive && (
+                <div style={{
+                  position: 'relative',
+                  zIndex: 999999
+                }}>
+                  <div style={{
+                    position: 'absolute',
+                    top: '100%',
+                    left: 0,
+                    right: 0,
+                    backgroundColor: 'white',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                    padding: '8px',
+                    zIndex: 999999
+                  }}>
+                    <div style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(2, 1fr)',
+                      gap: '8px'
+                    }}>
+                      {autoTextOptions.map((option, index) => (
+                        <button
+                          key={index}
+                          onClick={() => {
+                            insertAutoText(option.value);
+                            setAutoTextPopoverActive(false);
+                          }}
+                          style={{
+                            padding: '8px 12px',
+                            border: '1px solid #d1d5db',
+                            borderRadius: '6px',
+                            backgroundColor: 'white',
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                            fontSize: '12px',
+                            transition: 'all 0.2s ease'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = '#f9fafb';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = 'white';
+                          }}
+                        >
+                          <div style={{ fontWeight: '500', marginBottom: '2px' }}>
+                            {option.content}
+                          </div>
+                          <div style={{ fontSize: '11px', color: '#6b7280' }}>
+                            {option.content === 'Discount %' ? 'SAVE 50%' : 
+                             option.content === 'Discount amount' ? 'SAVE $50' :
+                             option.content === 'Price' ? 'ONLY $50' :
+                             option.content === 'Day release' ? 'NEW IN 3 DAYS' :
+                             option.content === 'Remaining stock' ? 'ONLY 5 LEFT' :
+                             option.content === 'Number of reviews' ? '45 reviews' :
+                             option.content === 'Average rating' ? '5 stars' :
+                             '100% cotton'}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Emoji Popover */}
+              {emojiPopoverActive && (
+                <div style={{
+                  position: 'relative',
+                  zIndex: 999999
+                }}>
+                  <div style={{
+                    position: 'absolute',
+                    top: '100%',
+                    left: 0,
+                    backgroundColor: 'white',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '8px',
+                    padding: '8px',
+                    zIndex: 999999
+                  }}>
+                    <div style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(8, 1fr)',
+                      gap: '4px'
+                    }}>
+                      {['😊', '🎉', '🔥', '⭐', '💯', '🚀', '✨', '💎', '🏆', '🎯', '💪', '🌟', '💫', '🎊', '🎁', '💖'].map((emoji, index) => (
+                        <button
+                          key={index}
+                          onClick={() => {
+                            insertEmoji(emoji);
+                            setEmojiPopoverActive(false);
+                          }}
+                          style={{
+                            padding: '6px',
+                            border: 'none',
+                            backgroundColor: 'transparent',
+                            cursor: 'pointer',
+                            fontSize: '16px',
+                            borderRadius: '4px',
+                            transition: 'all 0.2s ease'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = '#f3f4f6';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = 'transparent';
+                          }}
+                        >
+                          {emoji}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <TextField
+                label=""
+                value={localText}
+                onChange={handleTextChange}
+                autoComplete="off"
+                multiline={3}
+                placeholder="Buy One<br>Get One<br>FREE"
+              />
+            </BlockStack>
 
           </BlockStack>
         ) : (
