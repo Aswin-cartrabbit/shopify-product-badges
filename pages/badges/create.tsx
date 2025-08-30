@@ -19,9 +19,15 @@ import {
   UploadIcon,
   ImageIcon
 } from "@shopify/polaris-icons";
+import { MagicIcon } from '@shopify/polaris-icons';
+import { Modal, TitleBar, useAppBridge } from '@shopify/app-bridge-react';
 
 export default function CreateBadge() {
   const [selectedTab, setSelectedTab] = useState(0);
+  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedIcon, setGeneratedIcon] = useState<string | null>(null);
+  const [requestId, setRequestId] = useState<string | null>(null);
 
   const [selectedCategory, setSelectedCategory] = useState("Sales");
   const [aiPrompt, setAiPrompt] = useState("");
@@ -582,6 +588,56 @@ export default function CreateBadge() {
     });
   };
 
+  const generateAiBadge = async () => {
+    if (!aiPrompt.trim()) return;
+    
+    console.log('Starting AI generation with prompt:', aiPrompt);
+    setIsGenerating(true);
+    setGeneratedIcon(null);
+    
+    try {
+      // Single API call that waits for webhook completion
+      const response = await fetch('/api/ai/generate-badge', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          prompt: aiPrompt
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to start AI generation');
+      }
+      
+      console.log('AI Generation response:', data);
+      
+      if (data.status === 'COMPLETED' && data.generated && data.generated.length > 0) {
+        // Webhook completed - show result immediately
+        console.log('Generation completed! Icon URL:', data.generated[0]);
+        setGeneratedIcon(data.generated[0]);
+        setIsGenerating(false);
+        setRequestId(data.request_id);
+      } else if (data.status === 'TIMEOUT') {
+        // Webhook didn't complete in time
+        console.log('Webhook timeout - generation took too long');
+        setIsGenerating(false);
+        // You could show a message to user here
+      } else {
+        console.log('Unexpected response:', data);
+        setIsGenerating(false);
+      }
+    } catch (error) {
+      console.error('Error generating AI badge:', error);
+      setIsGenerating(false);
+    }
+  };
+
+
+
   const renderTextBadges = () => {
     // Filter badges based on selected category
     const filteredBadges = textBadges.filter(badge => {
@@ -1047,9 +1103,18 @@ export default function CreateBadge() {
                 Create badge with most popular collections
               </Text>
             </InlineStack>
-            <Button variant="tertiary">
-              My badges
-            </Button>
+            <InlineStack gap="200" blockAlign="center">
+              <Button 
+                variant="primary"
+                icon={<Icon source={MagicIcon} tone="base" />}
+                onClick={() => setIsAiModalOpen(true)}
+              >
+                Create with AI
+              </Button>
+              <Button variant="tertiary">
+                My badges
+              </Button>
+            </InlineStack>
           </InlineStack>
         </div>
 
@@ -1238,6 +1303,144 @@ export default function CreateBadge() {
 
       </div>
     </div>
+    
+    {/* AI Creation Modal */}
+    <Modal variant="base" open={isAiModalOpen}>
+      <TitleBar title="Create Badge with AI" />
+      <div style={{ padding: "20px" }}>
+        <BlockStack gap="400">
+          <Text as="h2" variant="headingMd">
+            AI Badge Generator
+          </Text>
+          <Text as="p" tone="subdued">
+            Describe the badge you want to create and our AI will generate it for you.
+          </Text>
+          
+          {!isGenerating && !generatedIcon && (
+            <>
+              <TextField
+                label="Describe your badge"
+                value={aiPrompt}
+                onChange={setAiPrompt}
+                multiline={3}
+                placeholder="e.g., A label icon with text free shipping with yellow background"
+                autoComplete="off"
+              />
+              
+              <InlineStack gap="200" align="end">
+                <Button 
+                  variant="tertiary" 
+                  onClick={() => setIsAiModalOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  variant="primary"
+                  disabled={!aiPrompt.trim()}
+                  onClick={generateAiBadge}
+                >
+                  Generate Badge
+                </Button>
+              </InlineStack>
+            </>
+          )}
+          
+          {isGenerating && (
+            <div style={{ textAlign: "center", padding: "40px 20px" }}>
+              <div style={{ marginBottom: "16px" }}>
+                <div style={{
+                  width: "48px",
+                  height: "48px",
+                  border: "4px solid #e1e1e1",
+                  borderTop: "4px solid #1976d2",
+                  borderRadius: "50%",
+                  animation: "spin 1s linear infinite",
+                  margin: "0 auto"
+                }}></div>
+              </div>
+              <Text as="p" variant="bodyMd">
+                Generating your AI badge...
+              </Text>
+              <Text as="p" tone="subdued" variant="bodySm">
+                This may take a few minutes
+              </Text>
+              
+
+            </div>
+          )}
+          
+          {generatedIcon && (
+            <div style={{ textAlign: "center", padding: "20px" }}>
+              <div style={{ marginBottom: "16px" }}>
+                <Text as="h3" variant="headingMd">
+                  Your AI Generated Badge
+                </Text>
+              </div>
+              <div style={{
+                width: "200px",
+                height: "200px",
+                margin: "0 auto 20px",
+                border: "1px solid #e1e1e1",
+                borderRadius: "8px",
+                overflow: "hidden",
+                backgroundColor: "#f8f9fa"
+              }}>
+                <img 
+                  src={generatedIcon} 
+                  alt="AI Generated Badge"
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "contain"
+                  }}
+                />
+              </div>
+              
+              <InlineStack gap="200" align="center">
+                <Button 
+                  variant="tertiary" 
+                  onClick={() => {
+                    setGeneratedIcon(null);
+                    setAiPrompt("");
+                    setIsGenerating(false);
+                  }}
+                >
+                  Generate Another
+                </Button>
+                <Button 
+                  variant="primary"
+                  onClick={() => {
+                    // Navigate to badge editor with the generated icon
+                    router.push({
+                      pathname: "/badges/new",
+                      query: { 
+                        template: "ai-generated",
+                        templateData: JSON.stringify({
+                          id: "ai-generated",
+                          src: generatedIcon,
+                          alt: "AI Generated Badge",
+                          type: "ai"
+                        })
+                      }
+                    });
+                    setIsAiModalOpen(false);
+                  }}
+                >
+                  Use This Badge
+                </Button>
+              </InlineStack>
+            </div>
+          )}
+        </BlockStack>
+      </div>
+      
+      <style>{`
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `}</style>
+    </Modal>
     </>
   );
 }

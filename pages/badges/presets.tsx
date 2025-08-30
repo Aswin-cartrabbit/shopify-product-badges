@@ -13,6 +13,7 @@ import {
 } from "@shopify/polaris";
 import { useState } from "react";
 import { useRouter } from "next/router";
+import { MagicIcon } from '@shopify/polaris-icons';
 
 export default function BadgePresets() {
   const [selectedTab, setSelectedTab] = useState(0);
@@ -960,6 +961,12 @@ export default function BadgePresets() {
                     Select a popular template and begin customizing.
                   </Text>
                 </div>
+                <Button
+                  variant="primary"
+                  icon={<Icon source={MagicIcon} tone="base" />}
+                >
+                  Create with AI
+                </Button>
               </div>
               
               {/* Tabs */}
@@ -1079,7 +1086,9 @@ export default function BadgePresets() {
           overflowY: "auto",
           scrollBehavior: "smooth"
         }}>
-          {renderImageBadges()}
+          {renderImageBadges()}Select a popular template and begin customizing.
+
+
         </div>
                       </div>
                     </div>
