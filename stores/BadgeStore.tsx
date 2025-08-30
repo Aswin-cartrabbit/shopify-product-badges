@@ -15,13 +15,18 @@ enum GridPosition {
 export type BadgeContent = {
   text: string;
   font: string;
+  textColor?: string;
   icon?: string;
   iconUploaded?: boolean;
   callToAction?: string;
   subheading?: string;
+  contentType?: "text" | "image"; // New field to determine content type
+  src?: string; // Image source URL
+  alt?: string; // Image alt text
 };
 
 export type BadgeDesign = {
+  shape?: string;
   template: string;
   background: string;
   color: string;
@@ -38,6 +43,17 @@ export type BadgeDesign = {
     outsideTop: string;
     outsideBottom: string;
   };
+  // New fields for image badge controls
+  opacity?: number;
+  rotation?: number;
+  size?: number;
+  // New dimension controls
+  fontSize?: number;
+  width?: number;
+  height?: number;
+  positionX?: number;
+  positionY?: number;
+  gridPosition?: GridPosition;
 };
 
 export type BadgePlacement = {
@@ -45,12 +61,12 @@ export type BadgePlacement = {
 };
 
 export type BadgeDisplay = {
-  iconSize: string;
-  iconColor: string;
-  useOriginal: boolean;
-  bgColor: string;
-  desktopRow: string;
-  mobileRow: string;
+  isScheduled: boolean;
+  startDateTime?: number;
+  endDateTime?: number;
+  visibility: "all" | "single" | "multiple" | "specific" | "collections";
+  resourceIds?: any[];
+  bgColor?: string;
 };
 
 export type Badge = {
@@ -87,12 +103,17 @@ const useBadgeStore = create<BadgeStore>()((set) => ({
     content: {
       text: "FEATURED",
       font: "own_theme",
+      textColor: "#ffffff",
       icon: "",
       iconUploaded: false,
       callToAction: "noCta",
       subheading: "",
+      contentType: "text",
+      src: "",
+      alt: "",
     },
     design: {
+      shape: "",
       template: "Black and Yellow",
       background: "gradient",
       color: "#7700ffff",
@@ -109,17 +130,23 @@ const useBadgeStore = create<BadgeStore>()((set) => ({
         outsideTop: "20",
         outsideBottom: "20",
       },
+      opacity: 100,
+      rotation: 0,
+      size: 36,
+      positionX: 0,
+      positionY: 0,
+      gridPosition: GridPosition.TOP_LEFT,
     },
     placement: {
       position: GridPosition.TOP_RIGHT,
     },
     display: {
-      iconSize: "32",
-      iconColor: "#ffffff",
-      useOriginal: false,
-      bgColor: "#000000",
-      desktopRow: "auto",
-      mobileRow: "auto",
+      isScheduled: false,
+      endDateTime: Date.now(),
+      startDateTime: Date.now(),
+      visibility: "all",
+      resourceIds: [],
+      bgColor: "#ffffff",
     },
   },
 
@@ -181,10 +208,14 @@ const useBadgeStore = create<BadgeStore>()((set) => ({
         content: {
           text: "FEATURED",
           font: "own_theme",
+          textColor: "#ffffff",
           icon: "",
           iconUploaded: false,
           callToAction: "noCta",
           subheading: "",
+          contentType: "text",
+          src: "",
+          alt: "",
         },
         design: {
           template: "Black and Yellow",
@@ -203,17 +234,23 @@ const useBadgeStore = create<BadgeStore>()((set) => ({
             outsideTop: "20",
             outsideBottom: "20",
           },
+          opacity: 100,
+          rotation: 0,
+          size: 36,
+          positionX: 0,
+          positionY: 0,
+          gridPosition: GridPosition.TOP_LEFT,
         },
         placement: {
           position: GridPosition.TOP_RIGHT,
         },
         display: {
-          iconSize: "32",
-          iconColor: "#ffffff",
-          useOriginal: false,
-          bgColor: "#000000",
-          desktopRow: "auto",
-          mobileRow: "auto",
+          isScheduled: false,
+          endDateTime: Date.now(),
+          startDateTime: Date.now(),
+          visibility: "all",
+          resourceIds: [],
+          bgColor: "#ffffff",
         },
       },
     })),

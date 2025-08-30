@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
   output   = "./client"
@@ -16,12 +13,19 @@ enum TokenType {
   ONLINE
 }
 
-enum BadgeStatus {
+enum ComponentStatus {
   ACTIVE
   INACTIVE
   DRAFT
   SCHEDULED
   EXPIRED
+}
+
+enum ComponentType {
+  LABEL
+  BADGE
+  TRUST_BADGE
+  BANNER
 }
 
 model stores {
@@ -30,8 +34,8 @@ model stores {
   isActive Boolean @default(false)
 
   // Relationships
-  sessions      session[]
-  productBadges product_badges[]
+  sessions          session[]
+  visual_components visual_components[]
 
   @@index([id])
   @@index([isActive])
@@ -53,45 +57,40 @@ model session {
   @@index([type])
 }
 
-model product_badges {
-  id        String  @id @default(uuid()) @db.Uuid
-  storeId   String  @db.Uuid
-  productId String // Shopify Product ID
-  variantId String? // Shopify Variant ID (optional)
+model visual_components {
+  id      String @id @default(uuid()) @db.Uuid
+  storeId String @db.Uuid
 
-  // Badge state
-  status   BadgeStatus @default(ACTIVE)
-  isManual Boolean     @default(false)
+  name        String
+  description String?
+  type        ComponentType
 
-  // Scheduling
-  scheduledStart DateTime?
-  scheduledEnd   DateTime?
+  templates Json  @db.JsonB
+  rules     Json  @db.JsonB
+  settings  Json? @db.JsonB
 
-  // Performance tracking
-  impressions Int       @default(0)
-  clicks      Int       @default(0)
-  lastSeenAt  DateTime?
+  status ComponentStatus @default(ACTIVE)
 
-  // Cache invalidation
-  cacheKey        String?
-  lastCacheUpdate DateTime?
+  impressions Int @default(0)
+  clicks      Int @default(0)
 
-  // Audit fields
-  version   Int       @default(1)
+  isPublished Boolean   @default(false)
+  publishedAt DateTime?
+  version     Int       @default(1)
+
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  // Relationships
   store stores @relation(fields: [storeId], references: [id], onDelete: Cascade)
 
-  @@unique([storeId, productId]) // Prevent duplicate badges
+  @@unique([storeId, name])
   @@index([storeId])
-  @@index([productId])
-  @@index([variantId])
+  @@index([type])
   @@index([status])
-  @@index([scheduledStart])
-  @@index([scheduledEnd])
   @@index([deletedAt])
-  @@map("product_badges")
+  @@index([version])
+  @@index([createdAt])
+  @@index([updatedAt])
+  @@map("visual_components")
 }

@@ -17,7 +17,13 @@ import {
 import React, { useState, useCallback } from "react";
 import GridPosition from "../GridPosition";
 
-const PlacementForm = () => {
+interface PlacementFormProps {
+  data?: any;
+  onChange?: (data: any) => void;
+  type?: string;
+}
+
+const PlacementForm = ({ data, onChange, type }: PlacementFormProps) => {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [displayRules, setDisplayRules] = useState(false);
   const [badgeSize, setBadgeSize] = useState(100);
@@ -48,10 +54,10 @@ const PlacementForm = () => {
         <Select
           label="Page Location"
           options={[
-            { label: "Product Page", value: "product" },
+            { label: "Product Image", value: "product_image" },
+            { label: "Product Detail", value: "product_detail" },
             { label: "Collection Page", value: "collection" },
-            { label: "Cart Page", value: "cart" },
-            { label: "Checkout Page", value: "checkout" },
+            { label: "Cart preview", value: "cart_preview" },
           ]}
           onChange={() => {}}
           value="product"

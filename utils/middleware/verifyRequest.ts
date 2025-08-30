@@ -2,6 +2,7 @@ import sessionHandler from "@/utils/sessionHandler";
 import shopify from "@/utils/shopify";
 import { RequestedTokenType, Session } from "@shopify/shopify-api";
 import validateJWT from "../validateJWT";
+import freshInstall from "../freshInstall";
 import prisma from "../prisma";
 
 /**
@@ -82,6 +83,16 @@ async function getSession({ shop, authHeader, storeId }) {
   try {
     const sessionToken = authHeader.split(" ")[1];
 
+    // Ensure we have a valid storeId by finding or creating the store
+    let store = await prisma.stores.findUnique({
+      where: { shop: shop }
+    });
+    
+    // If no store exists, create one
+    if (!store) {
+      store = await freshInstall({ shop });
+    }
+
     const { session: onlineSession } = await shopify.auth.tokenExchange({
       sessionToken,
       shop,
@@ -103,5 +114,6 @@ async function getSession({ shop, authHeader, storeId }) {
     console.error(
       `---> Error happened while pulling session from Shopify: ${e.message}`
     );
+    throw e;
   }
 }

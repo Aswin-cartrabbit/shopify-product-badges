@@ -1,34 +1,23 @@
 import React, { useState } from "react";
 import {
-  Card,
   Button,
   ButtonGroup,
-  Icon,
-  InlineStack,
-  Box,
   Bleed,
   Divider,
-  BlockStack,
 } from "@shopify/polaris";
 import { TabletIcon, MobileIcon } from "@shopify/polaris-icons";
-import getHtmlPreviewCode from "./Preview";
+import TemplatePreview from "./TemplatePreview";
 
-export default function HtmlPreviewer() {
+interface HtmlPreviewerProps {
+  selectedTemplate?: any;
+}
+
+export default function HtmlPreviewer({ selectedTemplate }: HtmlPreviewerProps) {
   const [device, setDevice] = useState("desktop");
-
-  const getWidth = () => {
-    switch (device) {
-      case "mobile":
-        return "375px";
-      case "tablet":
-        return "768px";
-      default:
-        return "100%";
-    }
-  };
 
   return (
     <div>
+      {/* Device Toggle - Top Container */}
       <div
         style={{
           display: "flex",
@@ -44,13 +33,7 @@ export default function HtmlPreviewer() {
           >
             Desktop
           </Button>
-          <Button
-            pressed={device === "tablet"}
-            onClick={() => setDevice("tablet")}
-            icon={MobileIcon}
-          >
-            Tablet
-          </Button>
+         
           <Button
             pressed={device === "mobile"}
             onClick={() => setDevice("mobile")}
@@ -60,36 +43,79 @@ export default function HtmlPreviewer() {
           </Button>
         </ButtonGroup>
       </div>
+      
       <Bleed marginInline="400">
         <Divider />
       </Bleed>
       {/* Preview Area */}
       <div
         style={{
-          background: "#fff", // Polaris token "bg-surface" is just white
-          borderRadius: "12px", // Polaris border-radius="200"
-          padding: "1.5rem", // Polaris padding="400"
+          background: "#f6f6f7", // Match the new preview background
+          borderRadius: "12px",
+          padding: device === 'mobile' ? "20px" : "0", // Add padding for mobile frame
           minHeight: "400px",
+          overflow: "hidden",
           display: "flex",
-          alignItems: "center",
           justifyContent: "center",
+          alignItems: device === 'mobile' ? "flex-start" : "center"
         }}
       >
         <div
           style={{
-            width: getWidth(),
+            width: device === "mobile" ? "375px" : "100%",
             transition: "all 0.4s ease-in-out", // smooth resize
             margin: "0 auto", // keep centered
             display: "flex",
             justifyContent: "center",
-            border: "1px solid #ddd",
-            padding: "20px",
+            // Mobile frame styling
+            ...(device === 'mobile' && {
+              border: "3px solid #ddd",
+              borderRadius: "25px",
+              padding: "20px 10px",
+              backgroundColor: "rgb(246, 246, 247)",
+              boxShadow: "0 8px 20px rgba(0,0,0,0.1)",
+              position: "relative"
+            })
           }}
         >
-          <div
-            dangerouslySetInnerHTML={{ __html: getHtmlPreviewCode() }}
-            style={{ width: "100%" }}
-          />
+          {device === 'mobile' && (
+            <>
+              {/* Mobile notch */}
+              <div style={{
+                position: "absolute",
+                top: "8px",
+                left: "50%",
+                transform: "translateX(-50%)",
+                width: "60px",
+                height: "4px",
+                backgroundColor: "#999",
+                borderRadius: "2px"
+              }} />
+              {/* Mobile home indicator */}
+              <div style={{
+                position: "absolute",
+                bottom: "8px",
+                left: "50%",
+                transform: "translateX(-50%)",
+                width: "40px",
+                height: "4px",
+                backgroundColor: "#999",
+                borderRadius: "2px"
+              }} />
+            </>
+          )}
+          <div style={{ 
+            width: "100%",
+            backgroundColor: device === 'mobile' ? "#fff" : "transparent",
+            borderRadius: device === 'mobile' ? "15px" : "0",
+            overflow: "hidden"
+          }}>
+            <TemplatePreview 
+              key={`preview-${selectedTemplate?.id || 'default'}`}
+              selectedTemplate={selectedTemplate}
+              device={device}
+            />
+          </div>
         </div>
       </div>
     </div>
