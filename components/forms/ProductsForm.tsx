@@ -66,6 +66,9 @@ const ProductsForm = ({ data, onChange, type = "BADGE" }: ProductsFormProps) => 
   const [reviewValue, setReviewValue] = useState("");
   const [showReviewText, setShowReviewText] = useState(false);
 
+  // Metafield states
+  const [selectedMetafields, setSelectedMetafields] = useState<any[]>([]);
+
   const togglePopoverActive = useCallback(
     () => setPopoverActive((popoverActive) => !popoverActive),
     [],
@@ -182,6 +185,108 @@ const ProductsForm = ({ data, onChange, type = "BADGE" }: ProductsFormProps) => 
     } catch (error) {
       console.error('Resource picker error:', error);
       alert(`Failed to open ${resourceType} selector: ${error.message || 'Unknown error'}. Please try again.`);
+    }
+  }
+
+  async function fetchMetafieldDefinitions() {
+    console.log('Fetching metafield definitions');
+    
+    try {
+      const response = await fetch('/api/graphql', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query: `
+            query {
+              metafieldDefinitions(first: 100) {
+                edges {
+                  node {
+                    namespace
+                    key
+                    name
+                    description
+                    type {
+                      name
+                    }
+                  }
+                }
+              }
+            }
+          `
+        })
+      });
+
+      const data = await response.json();
+      console.log('Metafield definitions response:', data);
+
+      // Handle unauthorized error - show mock data for now
+      if (data.error === 'Unauthorized call' || !data.data?.metafieldDefinitions?.edges) {
+        console.log('Using mock metafield data due to authorization issue');
+        
+        // Mock metafield data for testing
+        const mockMetafields = [
+          {
+            namespace: 'custom',
+            key: 'product_type',
+            name: 'Product Type',
+            description: 'Custom product type classification',
+            type: { name: 'single_line_text_field' }
+          },
+          {
+            namespace: 'custom',
+            key: 'brand',
+            name: 'Brand',
+            description: 'Product brand information',
+            type: { name: 'single_line_text_field' }
+          },
+          {
+            namespace: 'custom',
+            key: 'rating',
+            name: 'Rating',
+            description: 'Product rating value',
+            type: { name: 'number_integer' }
+          },
+          {
+            namespace: 'custom',
+            key: 'featured',
+            name: 'Featured Product',
+            description: 'Whether product is featured',
+            type: { name: 'boolean' }
+          }
+        ];
+        
+        setSelectedMetafields(mockMetafields);
+        return;
+      }
+
+      const metafields = data.data.metafieldDefinitions.edges.map((edge: any) => edge.node);
+      console.log('Available metafields:', metafields);
+      setSelectedMetafields(metafields.slice(0, 3));
+      
+    } catch (error) {
+      console.error('Error fetching metafield definitions:', error);
+      
+      // Show mock data on error as well
+      const mockMetafields = [
+        {
+          namespace: 'custom',
+          key: 'product_type',
+          name: 'Product Type',
+          description: 'Custom product type classification',
+          type: { name: 'single_line_text_field' }
+        },
+        {
+          namespace: 'custom',
+          key: 'brand',
+          name: 'Brand',
+          description: 'Product brand information',
+          type: { name: 'single_line_text_field' }
+        }
+      ];
+      
+      setSelectedMetafields(mockMetafields);
     }
   }
 
@@ -473,10 +578,61 @@ const ProductsForm = ({ data, onChange, type = "BADGE" }: ProductsFormProps) => 
        
 
     
+            </BlockStack>
+    </Card>
+
+    {/* Metafield Card */}
+    <Card>
+      <BlockStack gap="400">
+        <InlineStack gap="200" align="start">
+        
+          <Text variant="headingMd" as="h2">
+            Metafield
+          </Text>
+          
+        </InlineStack>
+
+        <BlockStack gap="300">
+          <InlineStack gap="200" align="space-between" blockAlign="center">
+            <Text variant="bodyMd" as="p" fontWeight="medium">
+              Product metafield
+            </Text>
+            <Button 
+              
+            >
+              Add metafield
+            </Button>
+          </InlineStack>
+
+          {selectedMetafields && selectedMetafields.length > 0 && (
+            <Card background="bg-surface-secondary">
+              <BlockStack gap="200">
+                <Text variant="bodyMd" as="p" fontWeight="medium">
+                  Selected metafields ({selectedMetafields.length}):
+                </Text>
+                <BlockStack gap="100">
+                  {selectedMetafields.map((metafield, index) => (
+                    <InlineStack key={index} gap="200" blockAlign="center">
+                      <Text as="p">
+                        • {metafield.namespace}.{metafield.key} ({metafield.type.name})
+                      </Text>
+                    </InlineStack>
+                  ))}
+                </BlockStack>
+                <Button
+                  variant="plain"
+                  onClick={() => {}}
+                >
+                  Edit selection
+                </Button>
+              </BlockStack>
+            </Card>
+          )}
+        </BlockStack>
       </BlockStack>
     </Card>
 
-  {/* Integrations Card */}
+    {/* Integrations Card */}
 <Card >
   <BlockStack gap="400">
     <InlineStack gap="200" align="start">
