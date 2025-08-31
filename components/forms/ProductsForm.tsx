@@ -15,8 +15,12 @@ import {
   Grid,
   Box,
   TextField,
+  Popover,
+  FormLayout,
+  Checkbox,
+  Badge,
 } from "@shopify/polaris";
-import { QuestionCircleIcon } from "@shopify/polaris-icons";
+import { QuestionCircleIcon, ChevronDownIcon, ChevronUpIcon } from "@shopify/polaris-icons";
 import { useBadgeStore } from "@/stores/BadgeStore";
 import { useAppBridge } from '@shopify/app-bridge-react';
 import { useState, useCallback } from 'react';
@@ -35,6 +39,38 @@ const ProductsForm = ({ data, onChange, type = "BADGE" }: ProductsFormProps) => 
   const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRule, setSelectedRule] = useState<string>("");
+  
+  // Popover state
+  const [popoverActive, setPopoverActive] = useState(false);
+  const [selectedProducts, setSelectedProducts] = useState<string>("specific");
+  const [basicExpanded, setBasicExpanded] = useState(false);
+  const [advancedExpanded, setAdvancedExpanded] = useState(true);
+  const [selectedConditions, setSelectedConditions] = useState<string[]>([]);
+
+  // Input field states
+  const [priceCondition, setPriceCondition] = useState("");
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
+  const [inventoryCondition, setInventoryCondition] = useState("");
+  const [quantityThreshold, setQuantityThreshold] = useState("");
+  const [tagCondition, setTagCondition] = useState("");
+  const [productTags, setProductTags] = useState("");
+
+  const togglePopoverActive = useCallback(
+    () => setPopoverActive((popoverActive) => !popoverActive),
+    [],
+  );
+
+  const handleConditionChange = useCallback(
+    (condition: string, checked: boolean) => {
+      if (checked) {
+        setSelectedConditions(prev => [...prev, condition]);
+      } else {
+        setSelectedConditions(prev => prev.filter(c => c !== condition));
+      }
+    },
+    [],
+  );
 
   const handleDisplayChange = (key: any, value: any) => {
     updateDisplay(key, value);
@@ -147,48 +183,216 @@ const ProductsForm = ({ data, onChange, type = "BADGE" }: ProductsFormProps) => 
     </Tooltip>
   );
 
+  const activator = (
+    <Button onClick={togglePopoverActive} disclosure>
+      Apply label to
+    </Button>
+  );
+
   return (
     <>
     <Card>
       <BlockStack gap="400">
         <InlineStack gap="100" align="start">
           <Text variant="headingMd" as="h2">
-            Product Selection
+            Display Logic
           </Text>
-          <TooltipIcon content="Choose which products will display this badge" />
+          <TooltipIcon content="Set conditions for when this badge should be visible" />
         </InlineStack>
 
-        <BlockStack gap="200">
-          <Text as="p" variant="bodyMd" tone="subdued">
-            Where should this {type.toLowerCase()} appear?
+        <BlockStack gap="300">
+          <Text variant="bodyMd" as="p" fontWeight="medium">
+            Choose display logic:
           </Text>
           
-          <RadioButton
-            label="All products (Show on every product)"
+          <Checkbox
+            label="All products"
             checked={badge.display.visibility === "all"}
-            id="all"
-            name="visibility"
-            onChange={() => handleDisplayChange("visibility", "all")}
-            helpText="Badge will appear on all products in your store"
+            onChange={(checked) => handleDisplayChange("visibility", checked ? "all" : "")}
           />
           
-          <RadioButton
-            label="Specific products (Choose individual products)"
+          <Checkbox
+            label="Specific products"
             checked={badge.display.visibility === "specific"}
-            id="specific" 
-            name="visibility"
-            onChange={() => handleDisplayChange("visibility", "specific")}
-            helpText="Select specific products to show this badge"
+            onChange={(checked) => handleDisplayChange("visibility", checked ? "specific" : "")}
           />
           
-          <RadioButton
-            label="Product collections (Show on collection pages)"
+          {/* Choose Products Button for Specific Products */}
+          {badge.display.visibility === "specific" && (
+            <Box paddingBlockStart="200" paddingInlineStart="400">
+              <BlockStack gap="200">
+                <Button 
+                  fullWidth
+                  onClick={() => {
+                    setTimeout(() => openResourcePicker("product", true), 100);
+                  }}
+                >
+                  Choose Products
+                </Button>
+                <Text as="p" variant="bodySm" tone="subdued">
+                  {badge.display.resourceIds?.length || 0} selected
+                </Text>
+              </BlockStack>
+            </Box>
+          )}
+          
+          <Checkbox
+            label="Product collections"
             checked={badge.display.visibility === "collections"}
-            id="collections"
-            name="visibility"
-            onChange={() => handleDisplayChange("visibility", "collections")}
-            helpText="Badge will appear on products within selected collections"
+            onChange={(checked) => handleDisplayChange("visibility", checked ? "collections" : "")}
           />
+          
+          {/* Choose Collections Button for Collections */}
+          {badge.display.visibility === "collections" && (
+            <Box paddingBlockStart="200" paddingInlineStart="400">
+              <BlockStack gap="200">
+                <Button 
+                  fullWidth
+                  onClick={() => {
+                    setTimeout(() => openResourcePicker("collection", true), 100);
+                  }}
+                >
+                  Choose Collections
+                </Button>
+                <Text as="p" variant="bodySm" tone="subdued">
+                  {badge.display.resourceIds?.length || 0} selected
+                </Text>
+              </BlockStack>
+            </Box>
+          )}
+          
+          <Checkbox
+            label="Price Range"
+            checked={selectedRule === "price"}
+            onChange={(checked) => setSelectedRule(checked ? "price" : "")}
+          />
+          
+          {/* Price Range Input Fields */}
+          {selectedRule === "price" && (
+            <Box paddingBlockStart="200" paddingInlineStart="400">
+              <BlockStack gap="300">
+                                  <InlineStack gap="200">
+                    <Select
+                      label="Price condition"
+                      options={[
+                        { label: "Greater than", value: "gt" },
+                        { label: "Less than", value: "lt" },
+                        { label: "Between", value: "between" },
+                        { label: "Equal to", value: "eq" }
+                      ]}
+                      value={priceCondition}
+                      onChange={setPriceCondition}
+                    />
+                    <TextField
+                      label="Minimum price ($)"
+                      value={minPrice}
+                      onChange={setMinPrice}
+                      type="number"
+                      autoComplete="off"
+                    />
+                    <TextField
+                      label="Maximum price ($)"
+                      value={maxPrice}
+                      onChange={setMaxPrice}
+                      type="number"
+                      autoComplete="off"
+                    />
+                  </InlineStack>
+                <Text variant="bodySm" as="p" tone="subdued">
+                  Examples: Show badge for products over $50, between $25-$100, or under $20
+                </Text>
+              </BlockStack>
+            </Box>
+          )}
+          
+          <Checkbox
+            label="Inventory Level"
+            checked={selectedRule === "inventory"}
+            onChange={(checked) => setSelectedRule(checked ? "inventory" : "")}
+          />
+          
+          {/* Inventory Level Input Fields */}
+          {selectedRule === "inventory" && (
+            <Box paddingBlockStart="200" paddingInlineStart="400">
+              <BlockStack gap="300">
+                                  <InlineStack gap="200">
+                    <Select
+                      label="Inventory condition"
+                      options={[
+                        { label: "Out of stock", value: "out_of_stock" },
+                        { label: "Low stock", value: "low_stock" },
+                        { label: "In stock", value: "in_stock" },
+                        { label: "High stock", value: "high_stock" },
+                        { label: "Custom quantity", value: "custom" }
+                      ]}
+                      value={inventoryCondition}
+                      onChange={setInventoryCondition}
+                    />
+                    <TextField
+                      label="Quantity threshold"
+                      value={quantityThreshold}
+                      onChange={setQuantityThreshold}
+                      type="number"
+                      autoComplete="off"
+                      helpText="Define low/high stock threshold"
+                    />
+                  </InlineStack>
+                <Text variant="bodySm" as="p" tone="subdued">
+                  Examples: Show "Low Stock" badge when less than 5 items, "Out of Stock" when 0 items
+                </Text>
+              </BlockStack>
+            </Box>
+          )}
+          
+          <Checkbox
+              label="Product Tags"
+            checked={selectedRule === "tags"}
+            onChange={(checked) => setSelectedRule(checked ? "tags" : "")}
+          />
+          
+          {/* Product Tags Input Fields */}
+          {selectedRule === "tags" && (
+            <Box paddingBlockStart="200" paddingInlineStart="400">
+              <BlockStack gap="300">
+                                  <InlineStack gap="200">
+                    <Select
+                      label="Tag condition"
+                      options={[
+                        { label: "Has any of these tags", value: "any" },
+                        { label: "Has all of these tags", value: "all" },
+                        { label: "Does not have these tags", value: "none" }
+                      ]}
+                      value={tagCondition}
+                      onChange={setTagCondition}
+                    />
+                  </InlineStack>
+                  
+                  <TextField
+                    label="Product tags (comma separated)"
+                    value={productTags}
+                    onChange={setProductTags}
+                    placeholder="new, exclusive, sale, limited-edition"
+                    autoComplete="off"
+                    helpText="Enter tags separated by commas"
+                  />
+                
+                <BlockStack gap="100">
+                  <Text variant="bodyMd" as="p" fontWeight="medium">Quick tag presets:</Text>
+                  <InlineStack gap="200">
+                    <Button size="micro" variant="secondary" onClick={() => {}}>New</Button>
+                    <Button size="micro" variant="secondary" onClick={() => {}}>Exclusive</Button>
+                    <Button size="micro" variant="secondary" onClick={() => {}}>Sale</Button>
+                    <Button size="micro" variant="secondary" onClick={() => {}}>Limited Edition</Button>
+                    <Button size="micro" variant="secondary" onClick={() => {}}>Best Seller</Button>
+                  </InlineStack>
+                </BlockStack>
+                
+                <Text variant="bodySm" as="p" tone="subdued">
+                  Examples: Show badge for products tagged as "new" or "exclusive"
+                </Text>
+              </BlockStack>
+            </Box>
+          )}
         </BlockStack>
 
         {(badge.display.visibility === "specific" || badge.display.visibility === "collections") && (
@@ -214,21 +418,7 @@ const ProductsForm = ({ data, onChange, type = "BADGE" }: ProductsFormProps) => 
               {badge.display.resourceIds?.length || 0} selected
             </Text>
 
-            {/* Debug button - remove after testing */}
-            <Button 
-              onClick={() => {
-                console.log('Direct test button clicked');
-                if (badge.display.visibility === "specific") {
-                  openResourcePicker("product", true);
-                } else {
-                  openResourcePicker("collection", true);
-                }
-              }}
-              variant="secondary"
-              size="micro"
-            >
-              Test Resource Picker
-            </Button>
+           
 
             {/* Show selected resources */}
             {badge.display.resourceIds && badge.display.resourceIds.length > 0 && (
@@ -247,24 +437,7 @@ const ProductsForm = ({ data, onChange, type = "BADGE" }: ProductsFormProps) => 
                               ? resource.productTitle 
                               : resource.collectionTitle}
                         </Text>
-                        {resource.productHandle && (
-                          <Link
-                            url={`/products/${resource.productHandle}`}
-                            target="_blank"
-                            removeUnderline
-                          >
-                            View product
-                          </Link>
-                        )}
-                        {resource.collectionHandle && (
-                          <Link
-                            url={`/collections/${resource.collectionHandle}`}
-                            target="_blank"
-                            removeUnderline
-                          >
-                            View collection
-                          </Link>
-                        )}
+                       
                       </InlineStack>
                     ))}
                   </BlockStack>
@@ -293,297 +466,7 @@ const ProductsForm = ({ data, onChange, type = "BADGE" }: ProductsFormProps) => 
 
       
 
-        <Bleed marginInline="400">
-          <Divider />
-        </Bleed>
-
-        <InlineStack gap="100" align="start">
-          <Text variant="headingMd" as="h2">
-            Display Rules
-          </Text>
-          <TooltipIcon content="Set conditions for when this badge should be visible" />
-        </InlineStack>
-
-        <BlockStack gap="300">
-          <Text as="p" variant="bodyMd" tone="subdued">
-            Set additional conditions for when this badge should appear
-          </Text>
-          
-          {/* Rule Type Selection */}
-          <BlockStack gap="200">
-            <Text variant="bodyMd" as="p" fontWeight="medium">
-              Choose a display rule:
-            </Text>
-            
-            <RadioButton
-              label="Price Range - Show based on product price"
-              checked={selectedRule === "price"}
-              id="price"
-              name="displayRule"
-              onChange={() => setSelectedRule("price")}
-              helpText="Display badge for products within specific price ranges"
-            />
-            
-            <RadioButton
-              label="Inventory Level - Show based on stock quantity"
-              checked={selectedRule === "inventory"}
-              id="inventory"
-              name="displayRule"
-              onChange={() => setSelectedRule("inventory")}
-              helpText="Display badge based on available inventory (low stock, out of stock, etc.)"
-            />
-            
-            <RadioButton
-              label="Product Tags - Show for tagged products"
-              checked={selectedRule === "tags"}
-              id="tags"
-              name="displayRule"
-              onChange={() => setSelectedRule("tags")}
-              helpText="Display badge for products with specific tags (new, exclusive, sale, etc.)"
-            />
-            
-            <RadioButton
-              label="Product Type - Show for specific product categories"
-              checked={selectedRule === "productType"}
-              id="productType"
-              name="displayRule"
-              onChange={() => setSelectedRule("productType")}
-              helpText="Display badge for specific product types or categories"
-            />
-            
-            <RadioButton
-              label="Custom Behavior - Advanced rules and conditions"
-              checked={selectedRule === "custom"}
-              id="custom"
-              name="displayRule"
-              onChange={() => setSelectedRule("custom")}
-              helpText="Create custom rules with multiple conditions"
-            />
-            
-            <RadioButton
-              label="No additional rules - Show based on product selection only"
-              checked={selectedRule === "none"}
-              id="none"
-              name="displayRule"
-              onChange={() => setSelectedRule("none")}
-              helpText="Only use the product selection above, no additional conditions"
-            />
-          </BlockStack>
-
-          {/* Rule Configuration Cards */}
-          {selectedRule === "price" && (
-            <Card>
-              <BlockStack gap="300">
-                <Text variant="headingMd" as="h3">Price Range Configuration</Text>
-                
-                <InlineStack gap="200">
-                  <Select
-                    label="Price condition"
-                    options={[
-                      { label: "Greater than", value: "gt" },
-                      { label: "Less than", value: "lt" },
-                      { label: "Between", value: "between" },
-                      { label: "Equal to", value: "eq" }
-                    ]}
-                    value=""
-                    onChange={() => {}}
-                  />
-                  <TextField
-                    label="Minimum price ($)"
-                    value=""
-                    onChange={() => {}}
-                    type="number"
-                    autoComplete="off"
-                  />
-                  <TextField
-                    label="Maximum price ($)"
-                    value=""
-                    onChange={() => {}}
-                    type="number"
-                    autoComplete="off"
-                  />
-                </InlineStack>
-                
-                <Text variant="bodySm" as="p" tone="subdued">
-                  Examples: Show badge for products over $50, between $25-$100, or under $20
-                </Text>
-              </BlockStack>
-            </Card>
-          )}
-
-          {selectedRule === "inventory" && (
-            <Card>
-              <BlockStack gap="300">
-                <Text variant="headingMd" as="h3">Inventory Level Configuration</Text>
-                
-                <InlineStack gap="200">
-                  <Select
-                    label="Inventory condition"
-                    options={[
-                      { label: "Out of stock", value: "out_of_stock" },
-                      { label: "Low stock", value: "low_stock" },
-                      { label: "In stock", value: "in_stock" },
-                      { label: "High stock", value: "high_stock" },
-                      { label: "Custom quantity", value: "custom" }
-                    ]}
-                    value=""
-                    onChange={() => {}}
-                  />
-                  <TextField
-                    label="Quantity threshold"
-                    value=""
-                    onChange={() => {}}
-                    type="number"
-                    autoComplete="off"
-                    helpText="Define low/high stock threshold"
-                  />
-                </InlineStack>
-                
-                <Text variant="bodySm" as="p" tone="subdued">
-                  Examples: Show "Low Stock" badge when less than 5 items, "Out of Stock" when 0 items
-                </Text>
-              </BlockStack>
-            </Card>
-          )}
-
-          {selectedRule === "tags" && (
-            <Card>
-              <BlockStack gap="300">
-                <Text variant="headingMd" as="h3">Product Tags Configuration</Text>
-                
-                <InlineStack gap="200">
-                  <Select
-                    label="Tag condition"
-                    options={[
-                      { label: "Has any of these tags", value: "any" },
-                      { label: "Has all of these tags", value: "all" },
-                      { label: "Does not have these tags", value: "none" }
-                    ]}
-                    value=""
-                    onChange={() => {}}
-                  />
-                </InlineStack>
-                
-                <TextField
-                  label="Product tags (comma separated)"
-                  value=""
-                  onChange={() => {}}
-                  placeholder="new, exclusive, sale, limited-edition"
-                  autoComplete="off"
-                  helpText="Enter tags separated by commas"
-                />
-                
-                <BlockStack gap="100">
-                  <Text variant="bodyMd" as="p" fontWeight="medium">Quick tag presets:</Text>
-                  <InlineStack gap="200">
-                    <Button size="micro" variant="secondary" onClick={() => {}}>New</Button>
-                    <Button size="micro" variant="secondary" onClick={() => {}}>Exclusive</Button>
-                    <Button size="micro" variant="secondary" onClick={() => {}}>Sale</Button>
-                    <Button size="micro" variant="secondary" onClick={() => {}}>Limited Edition</Button>
-                    <Button size="micro" variant="secondary" onClick={() => {}}>Best Seller</Button>
-                  </InlineStack>
-                </BlockStack>
-                
-                <Text variant="bodySm" as="p" tone="subdued">
-                  Examples: Show badge for products tagged as "new" or "exclusive"
-                </Text>
-              </BlockStack>
-            </Card>
-          )}
-
-          {selectedRule === "productType" && (
-            <Card>
-              <BlockStack gap="300">
-                <Text variant="headingMd" as="h3">Product Type Configuration</Text>
-                
-                <TextField
-                  label="Product types (comma separated)"
-                  value=""
-                  onChange={() => {}}
-                  placeholder="Electronics, Clothing, Accessories, Books"
-                  autoComplete="off"
-                  helpText="Enter product types separated by commas"
-                />
-                
-                <BlockStack gap="100">
-                  <Text variant="bodyMd" as="p" fontWeight="medium">Common product types:</Text>
-                  <InlineStack gap="200" wrap={false}>
-                    <Button size="micro" variant="secondary" onClick={() => {}}>Electronics</Button>
-                    <Button size="micro" variant="secondary" onClick={() => {}}>Clothing</Button>
-                    <Button size="micro" variant="secondary" onClick={() => {}}>Accessories</Button>
-                    <Button size="micro" variant="secondary" onClick={() => {}}>Home & Garden</Button>
-                  </InlineStack>
-                </BlockStack>
-                
-                <Text variant="bodySm" as="p" tone="subdued">
-                  Examples: Show badge only for "Electronics" or "Clothing" product types
-                </Text>
-              </BlockStack>
-            </Card>
-          )}
-
-          {selectedRule === "custom" && (
-            <Card>
-              <BlockStack gap="300">
-                <Text variant="headingMd" as="h3">Custom Behavior Configuration</Text>
-                
-                <BlockStack gap="200">
-                  <Text variant="bodyMd" as="p">
-                    Combine multiple conditions with AND/OR logic:
-                  </Text>
-                  
-                  <Card background="bg-surface-secondary">
-                    <BlockStack gap="200">
-                      <InlineStack gap="200">
-                        <Select
-                          label="Field"
-                          options={[
-                            { label: "Price", value: "price" },
-                            { label: "Inventory", value: "inventory" },
-                            { label: "Tags", value: "tags" },
-                            { label: "Product Type", value: "product_type" },
-                            { label: "Created Date", value: "created_date" },
-                            { label: "Vendor", value: "vendor" }
-                          ]}
-                          value=""
-                          onChange={() => {}}
-                        />
-                        <Select
-                          label="Operator"
-                          options={[
-                            { label: "Contains", value: "contains" },
-                            { label: "Equals", value: "equals" },
-                            { label: "Greater than", value: "gt" },
-                            { label: "Less than", value: "lt" },
-                            { label: "Not equal", value: "ne" }
-                          ]}
-                          value=""
-                          onChange={() => {}}
-                        />
-                        <TextField
-                          label="Value"
-                          value=""
-                          onChange={() => {}}
-                          autoComplete="off"
-                        />
-                      </InlineStack>
-                      
-                      <InlineStack gap="200">
-                        <Button size="micro" variant="secondary">+ Add AND condition</Button>
-                        <Button size="micro" variant="secondary">+ Add OR condition</Button>
-                        <Button size="micro" variant="tertiary" tone="critical">Remove</Button>
-                      </InlineStack>
-                    </BlockStack>
-                  </Card>
-                </BlockStack>
-                
-                                <Text variant="bodySm" as="p" tone="subdued">
-                  Examples: Show badge for products that are "Electronics" AND price greater than $100 AND have "premium" tag
-          </Text>
-              </BlockStack>
-            </Card>
-          )}
-        </BlockStack>
+       
 
         <Bleed marginInline="400">
           <Divider />
