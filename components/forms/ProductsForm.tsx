@@ -58,6 +58,13 @@ const ProductsForm = ({ data, onChange, type = "BADGE" }: ProductsFormProps) => 
   const [quantityThreshold, setQuantityThreshold] = useState("");
   const [tagCondition, setTagCondition] = useState("");
   const [productTags, setProductTags] = useState("");
+  
+  // Judge.me integration state
+  const [judgeIntegrationSelected, setJudgeIntegrationSelected] = useState(false);
+  const [reviewOption, setReviewOption] = useState("");
+  const [reviewCondition, setReviewCondition] = useState("");
+  const [reviewValue, setReviewValue] = useState("");
+  const [showReviewText, setShowReviewText] = useState(false);
 
   const togglePopoverActive = useCallback(
     () => setPopoverActive((popoverActive) => !popoverActive),
@@ -515,11 +522,102 @@ const ProductsForm = ({ data, onChange, type = "BADGE" }: ProductsFormProps) => 
             <Icon source="external" tone="subdued" />
           </InlineStack>
           
-          <Button variant="primary" size="medium">
+          <Button variant="primary" size="medium" onClick={() => setJudgeIntegrationSelected(true)}>
             Select
           </Button>
         </InlineStack>
       </Card>
+      
+      {/* Judge.me Integration Form */}
+      {judgeIntegrationSelected && (
+        <Card background="bg-surface-secondary">
+          <BlockStack gap="400">
+            <InlineStack gap="200" align="space-between" blockAlign="center">
+              <InlineStack gap="200" align="start" blockAlign="center">
+                <div style={{
+                  width: "32px",
+                  height: "32px",
+                  borderRadius: "6px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexShrink: 0,
+                  overflow: "hidden"
+                }}>
+                  <img 
+                    src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAflBMVEU+s6M/sqQ+s6I9tKFAsaQ2tJ9IsqQzsKDW8ez///8qrZzI6eP///6Qz8T9//8jrZi14tvW7exCsKOFyr/+/f/f7+8xspu/497y+vmz2dar3Nbd8vAsqprS7umg189wwbec18xcu6p/yLtqwLJyxbZZua5rx7WEzcDp+flRv63FFClNAAABU0lEQVR4AXyQB2LDIAxFJYGrfEqUpe7dZt7/gg3EJc183tYDDboGMzFdRwJdJXY311YTiw6ulkA6APXoOSHdIte9hGTYxaOKpcQN1YyjMSbd9L/BRGkMYCfoDI67+3i4/wO8CoVHmGNyzxRaB6MnuPWCPmOL46Uj/jNe679eGBmKa3hTFqqkd+QmyAesfJlhkLj8KHHzJuhnESovVQg6RKEJ4153+9IivM5gR4LbrspRLPm/YX4gPMNQhbdXiaTfLWhmj0UoY+pTREk/aLj5F20JLeXjfPEOMzR+tM5hUoyG7xN81KKJl8g4wTLmqR+cvuEUx0qngWsNLI+ww+UwzFIMtIO7OfKhkfH5GoV6pDTvOGCY9nEOxOnbkGGGXK4Sp0BCe6bd1x3gbuaesf5JUzqAQ2RdPaJin6Ix8KEwDcI62rw/P7//JGUJrYJDdIvQ76gLAK3TGRSf3nldAAAAAElFTkSuQmCC"
+                    alt="Judge.me Logo"
+                    style={{
+                      width: "24px",
+                      height: "24px",
+                      objectFit: "contain"
+                    }}
+                  />
+                </div>
+                <Text variant="bodyMd" as="p" fontWeight="medium">
+                  Judge.me Product Reviews App
+                </Text>
+              </InlineStack>
+              
+              <Button variant="plain" onClick={() => setJudgeIntegrationSelected(false)}>
+                Remove
+              </Button>
+            </InlineStack>
+            
+            <BlockStack gap="300">
+              <Text variant="bodyMd" as="p" fontWeight="medium">
+                Review option
+              </Text>
+              <Select
+                label=""
+                options={[
+                  { label: "Number of reviews", value: "number_of_reviews" },
+                  { label: "Average star rating", value: "average_rating" },
+                  { label: "Has reviews", value: "has_reviews" },
+                  { label: "Review score", value: "review_score" }
+                ]}
+                value={reviewOption}
+                onChange={setReviewOption}
+                placeholder="Choose review option"
+              />
+            </BlockStack>
+            
+            <BlockStack gap="300">
+              <Text variant="bodyMd" as="p" fontWeight="medium">
+                Condition
+              </Text>
+              <InlineStack gap="200">
+                <div style={{ flex: 1 }}>
+                  <Select
+                    label=""
+                    options={[
+                      { label: "Greater than", value: "greater_than" },
+                      { label: "Less than", value: "less_than" },
+                      { label: "Equal to", value: "equal_to" },
+                      { label: "Between", value: "between" }
+                    ]}
+                    value={reviewCondition}
+                    onChange={setReviewCondition}
+                    placeholder="Choose condition"
+                  />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <TextField
+                    label=""
+                    value={reviewValue}
+                    onChange={setReviewValue}
+                    type="number"
+                    placeholder={reviewOption === "average_rating" ? "4.5" : "10"}
+                    autoComplete="off"
+                  />
+                </div>
+              </InlineStack>
+            </BlockStack>
+            
+           
+          </BlockStack>
+        </Card>
+      )}
     </BlockStack>
   </BlockStack>
 </Card>
