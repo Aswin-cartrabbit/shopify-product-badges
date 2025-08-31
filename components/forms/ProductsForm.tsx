@@ -25,6 +25,9 @@ import { useBadgeStore } from "@/stores/BadgeStore";
 import { useAppBridge } from '@shopify/app-bridge-react';
 import { useState, useCallback } from 'react';
 import { imageTemplates, textTemplates } from "@/utils/templateData";
+import {
+  DomainLandingPageIcon
+} from '@shopify/polaris-icons';
 
 interface ProductsFormProps {
   data?: any;
@@ -190,9 +193,9 @@ const ProductsForm = ({ data, onChange, type = "BADGE" }: ProductsFormProps) => 
   );
 
   return (
-    <>
+    <BlockStack gap="600">
     <Card>
-      <BlockStack gap="400">
+      <BlockStack gap="600">
         <InlineStack gap="100" align="start">
           <Text variant="headingMd" as="h2">
             Display Logic
@@ -460,26 +463,66 @@ const ProductsForm = ({ data, onChange, type = "BADGE" }: ProductsFormProps) => 
           </BlockStack>
         )}
 
-        <Bleed marginInline="400">
-          <Divider />
-        </Bleed>
-
-      
-
        
 
-        <Bleed marginInline="400">
-          <Divider />
-        </Bleed>
-
-        <Text as="p" variant="bodySm" tone="subdued">
-          Advanced product targeting available with Pro plan.{" "}
-          <a href="#" style={{ color: "blue" }}>
-            Upgrade now.
-          </a>
-        </Text>
+    
       </BlockStack>
     </Card>
+
+  {/* Integrations Card */}
+<Card >
+  <BlockStack gap="400">
+    <InlineStack gap="200" align="start">
+      <Text  alignment="start" variant="headingMd" as="h2">
+      Integrations
+      </Text>
+
+    </InlineStack>
+
+    <BlockStack gap="300">
+     
+      
+      <Text variant="bodySm" as="p" tone="subdued">
+        Show labels on products with a specific review number or star rating.
+      </Text>
+      <Card background="bg-surface-secondary">
+        <InlineStack gap="200" align="space-between" blockAlign="center" wrap={false}>
+          <InlineStack gap="200" align="start" blockAlign="center" wrap={false}>
+            <div style={{
+              width: "40px",
+              height: "40px",
+              borderRadius: "8px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+              overflow: "hidden"
+            }}>
+              <img 
+                src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAflBMVEU+s6M/sqQ+s6I9tKFAsaQ2tJ9IsqQzsKDW8ez///8qrZzI6eP///6Qz8T9//8jrZi14tvW7exCsKOFyr/+/f/f7+8xspu/497y+vmz2dar3Nbd8vAsqprS7umg189wwbec18xcu6p/yLtqwLJyxbZZua5rx7WEzcDp+flRv63FFClNAAABU0lEQVR4AXyQB2LDIAxFJYGrfEqUpe7dZt7/gg3EJc183tYDDboGMzFdRwJdJXY311YTiw6ulkA6APXoOSHdIte9hGTYxaOKpcQN1YyjMSbd9L/BRGkMYCfoDI67+3i4/wO8CoVHmGNyzxRaB6MnuPWCPmOL46Uj/jNe679eGBmKa3hTFqqkd+QmyAesfJlhkLj8KHHzJuhnESovVQg6RKEJ4153+9IivM5gR4LbrspRLPm/YX4gPMNQhbdXiaTfLWhmj0UoY+pTREk/aLj5F20JLeXjfPEOMzR+tM5hUoyG7xN81KKJl8g4wTLmqR+cvuEUx0qngWsNLI+ww+UwzFIMtIO7OfKhkfH5GoV6pDTvOGCY9nEOxOnbkGGGXK4Sp0BCe6bd1x3gbuaesf5JUzqAQ2RdPaJin6Ix8KEwDcI62rw/P7//JGUJrYJDdIvQ76gLAK3TGRSf3nldAAAAAElFTkSuQmCC"
+                alt="Judge.me Logo"
+                style={{
+                  width: "32px",
+                  height: "32px",
+                  objectFit: "contain"
+                }}
+              />
+            </div>
+            
+            <Text variant="bodyMd" as="p" fontWeight="medium">
+              Judge.me Product Reviews App
+            </Text>
+            <Icon source="external" tone="subdued" />
+          </InlineStack>
+          
+          <Button variant="primary" size="medium">
+            Select
+          </Button>
+        </InlineStack>
+      </Card>
+    </BlockStack>
+  </BlockStack>
+</Card>
     
     {/* Template Gallery Modal - Polaris Modal */}
     <Modal
@@ -631,7 +674,9 @@ const ProductsForm = ({ data, onChange, type = "BADGE" }: ProductsFormProps) => 
         </BlockStack>
       </Modal.Section>
     </Modal>
-  </>
+    </BlockStack>
+
+  
   );
 };
 
