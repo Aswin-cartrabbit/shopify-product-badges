@@ -23,21 +23,39 @@ interface TemplateGalleryModalProps {
   templateType?: "text" | "image"; // New prop to specify template type
 }
 
-const TemplateGalleryModal = ({ isOpen, onClose, onSelect, templateType = "image" }: TemplateGalleryModalProps) => {
+const TemplateGalleryModal = ({
+  isOpen,
+  onClose,
+  onSelect,
+  templateType = "image",
+}: TemplateGalleryModalProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
 
   // Use the appropriate templates based on type
-  const predefinedTemplates = templateType === "text" ? textTemplates : imageTemplates;
+  const predefinedTemplates =
+    templateType === "text" ? textTemplates : imageTemplates;
 
-  const categories = ["All", "Sales", "New", "Christmas", "Black friday", "Stock", "Shipping", "Popular"];
+  const categories = [
+    "All",
+    "Sales",
+    "New",
+    "Christmas",
+    "Black friday",
+    "Stock",
+    "Shipping",
+    "Popular",
+  ];
 
-  const filteredTemplates = predefinedTemplates.filter(template => {
-    const searchText = templateType === "text" 
-      ? (template as any).text?.toLowerCase() 
-      : (template as any).alt?.toLowerCase();
+  const filteredTemplates = predefinedTemplates.filter((template) => {
+    const searchText =
+      templateType === "text"
+        ? (template as any).text?.toLowerCase()
+        : (template as any).alt?.toLowerCase();
     const matchesSearch = searchText?.includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === "All" || (template.category && template.category.includes(selectedCategory));
+    const matchesCategory =
+      selectedCategory === "All" ||
+      (template.category && template.category.includes(selectedCategory));
     return matchesSearch && matchesCategory;
   });
 
@@ -77,8 +95,17 @@ const TemplateGalleryModal = ({ isOpen, onClose, onSelect, templateType = "image
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
-          <Text variant="headingLg" as="h2">Template gallery</Text>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: "1rem",
+          }}
+        >
+          <Text variant="headingLg" as="h2">
+            Template gallery
+          </Text>
           <Button onClick={onClose}>✕</Button>
         </div>
         <BlockStack gap="400">
@@ -97,7 +124,8 @@ const TemplateGalleryModal = ({ isOpen, onClose, onSelect, templateType = "image
             <InlineStack align="space-between" blockAlign="center">
               <BlockStack gap="100">
                 <Text variant="bodyMd" as="p">
-                  Need a custom label or badge that fits your brand vibe? Let us help! 😎
+                  Need a custom label or badge that fits your brand vibe? Let us
+                  help! 😎
                 </Text>
                 <Button variant="plain" textAlign="left">
                   Chat now to get started!
@@ -115,7 +143,9 @@ const TemplateGalleryModal = ({ isOpen, onClose, onSelect, templateType = "image
                   key={category}
                   pressed={selectedCategory === category}
                   onClick={() => setSelectedCategory(category)}
-                  variant={selectedCategory === category ? "primary" : "secondary"}
+                  variant={
+                    selectedCategory === category ? "primary" : "secondary"
+                  }
                 >
                   {category}
                 </Button>
@@ -126,10 +156,13 @@ const TemplateGalleryModal = ({ isOpen, onClose, onSelect, templateType = "image
           {/* Template Grid */}
           <Grid>
             {filteredTemplates.map((template) => (
-              <Grid.Cell key={template.id} columnSpan={{ xs: 6, sm: 3, md: 2, lg: 2, xl: 2 }}>
+              <Grid.Cell
+                key={template.id}
+                columnSpan={{ xs: 6, sm: 3, md: 2, lg: 2, xl: 2 }}
+              >
                 <Card>
-                  <div 
-                    style={{ 
+                  <div
+                    style={{
                       cursor: "pointer",
                       textAlign: "center",
                       padding: "1rem",
@@ -171,17 +204,19 @@ const TemplateGalleryModal = ({ isOpen, onClose, onSelect, templateType = "image
                               textOverflow: "clip",
                               // Ensure the text is properly positioned within shaped containers
                               padding: "4px 8px",
-                              boxSizing: "border-box"
+                              boxSizing: "border-box",
                             }}
                           >
-                            <span style={{
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              width: "100%",
-                              height: "100%",
-                              textAlign: "center"
-                            }}>
+                            <span
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                width: "100%",
+                                height: "100%",
+                                textAlign: "center",
+                              }}
+                            >
                               {(template as any).text}
                             </span>
                           </div>
@@ -206,11 +241,19 @@ const TemplateGalleryModal = ({ isOpen, onClose, onSelect, templateType = "image
                               style={{
                                 width: "60px",
                                 height: "30px",
-                                backgroundColor: template.category?.includes("Sales") ? "#dc2626" : 
-                                               template.category?.includes("New") ? "#16a34a" :
-                                               template.category?.includes("Christmas") ? "#dc2626" :
-                                               template.category?.includes("Black friday") ? "#000000" :
-                                               "#3b82f6",
+                                backgroundColor: template.category?.includes(
+                                  "Sales"
+                                )
+                                  ? "#dc2626"
+                                  : template.category?.includes("New")
+                                    ? "#16a34a"
+                                    : template.category?.includes("Christmas")
+                                      ? "#dc2626"
+                                      : template.category?.includes(
+                                            "Black friday"
+                                          )
+                                        ? "#000000"
+                                        : "#3b82f6",
                                 borderRadius: "4px",
                                 display: "none",
                                 alignItems: "center",
@@ -226,10 +269,12 @@ const TemplateGalleryModal = ({ isOpen, onClose, onSelect, templateType = "image
                         )}
                       </div>
                     </Box>
-                    
+
                     {/* Template Name */}
                     <Text variant="bodySm" as="p" alignment="center">
-                      {templateType === "text" ? (template as any).text : (template as any).alt}
+                      {templateType === "text"
+                        ? (template as any).text
+                        : (template as any).alt}
                     </Text>
                   </div>
                 </Card>
