@@ -8,9 +8,9 @@ import {
   Page,
 } from "@shopify/polaris";
 import { useCallback, useState, useEffect } from "react";
-import {Modal, TitleBar} from '@shopify/app-bridge-react';
+import { Modal, TitleBar } from "@shopify/app-bridge-react";
 import TrustBadgeContentForm from "./TrustBadgeContentForm";
-import TrustBadgePreview from "../TrustBadgePreview"; 
+import TrustBadgePreview from "../TrustBadgePreview";
 
 interface TrustBadgeBuilderProps {
   selectedTemplate?: any;
@@ -18,13 +18,13 @@ interface TrustBadgeBuilderProps {
   onCancel?: () => void;
 }
 
-export const TrustBadgeBuilder = ({ 
-  selectedTemplate, 
+export const TrustBadgeBuilder = ({
+  selectedTemplate,
   onSave,
-  onCancel 
+  onCancel,
 }: TrustBadgeBuilderProps) => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(true);
-  
+
   const getBadges = (status: "DRAFT" | "ACTIVE") => {
     switch (status) {
       case "DRAFT":
@@ -47,39 +47,40 @@ export const TrustBadgeBuilder = ({
       iconSize: 40,
       spacing: 8,
       showTitle: true,
-      title: selectedTemplate?.title || "Secure payment with"
+      title: selectedTemplate?.title || "Secure payment with",
     },
     design: {
       background: "transparent",
       borderRadius: 0,
-      padding: 16
+      padding: 16,
     },
     placement: {},
-    settings: {}
+    settings: {},
   });
 
   // Update formData when selectedTemplate changes
   useEffect(() => {
     if (selectedTemplate) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         name: selectedTemplate.title || "Trust Badge",
         content: {
           ...prev.content,
           icons: selectedTemplate.icons || selectedTemplate.images || [],
-          title: selectedTemplate.title || (selectedTemplate.type === "payment-group" ? "Secure payment with" : selectedTemplate.title)
-        }
+          title:
+            selectedTemplate.title ||
+            (selectedTemplate.type === "payment-group"
+              ? "Secure payment with"
+              : selectedTemplate.title),
+        },
       }));
     }
   }, [selectedTemplate]);
 
-  const handleTabChange = useCallback(
-    (selectedTabIndex: any) => {
-      console.log("Tab changed to:", selectedTabIndex);
-      setSelectedTab(selectedTabIndex);
-    },
-    []
-  );
+  const handleTabChange = useCallback((selectedTabIndex: any) => {
+    console.log("Tab changed to:", selectedTabIndex);
+    setSelectedTab(selectedTabIndex);
+  }, []);
 
   const handleSave = async () => {
     try {
@@ -90,7 +91,7 @@ export const TrustBadgeBuilder = ({
         design: formData.design,
         placement: formData.placement,
         settings: formData.settings,
-        status: "DRAFT"
+        status: "DRAFT",
       };
 
       console.log("Saving trust badge payload:", payload);
@@ -99,23 +100,23 @@ export const TrustBadgeBuilder = ({
         onSave(payload);
       } else {
         // Default API call if no custom onSave handler
-        const response = await fetch('/api/badge/create', {
-          method: 'POST',
+        const response = await fetch("/api/badge/create", {
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify(payload),
         });
 
         if (response.ok) {
-          console.log('Trust badge created successfully');
+          console.log("Trust badge created successfully");
           setIsModalOpen(false);
         } else {
-          console.error('Failed to create trust badge');
+          console.error("Failed to create trust badge");
         }
       }
     } catch (error) {
-      console.error('Error creating trust badge:', error);
+      console.error("Error creating trust badge:", error);
     }
   };
 
@@ -128,9 +129,9 @@ export const TrustBadgeBuilder = ({
   };
 
   const handleContentChange = (newContent: any) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      content: { ...prev.content, ...newContent }
+      content: { ...prev.content, ...newContent },
     }));
   };
 
@@ -139,7 +140,7 @@ export const TrustBadgeBuilder = ({
       <TitleBar title="Trust Badge Editor" />
       <Page
         fullWidth
-        backAction={{ content: "Trust Badges", url: "#" }}
+        backAction={{ content: "Trust Badges", url: "/badges" }}
         title="Trust Badge Editor"
         titleMetadata={getBadges(currentStatus)}
         subtitle="Customize your trust badge"
@@ -187,7 +188,7 @@ export const TrustBadgeBuilder = ({
             </Button>
           </ButtonGroup>
         </div>
-        
+
         <div
           style={{
             display: "grid",
@@ -198,11 +199,11 @@ export const TrustBadgeBuilder = ({
         >
           <div>
             {selectedTab === 0 && (
-              <TrustBadgeContentForm 
+              <TrustBadgeContentForm
                 data={formData.content}
                 onChange={handleContentChange}
                 badgeName={formData.name}
-                setBadgeName={(name) => setFormData({...formData, name})}
+                setBadgeName={(name) => setFormData({ ...formData, name })}
               />
             )}
             {selectedTab === 1 && (
