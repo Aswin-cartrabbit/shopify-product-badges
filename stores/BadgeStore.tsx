@@ -1,6 +1,7 @@
 import { create } from "zustand";
+import { BadgeHorizontalPosition, BadgeAlignment } from "@/components/BadgeHorizontalPosition";
 
-enum GridPosition {
+enum  GridPosition {
   TOP_LEFT = "TOP_LEFT",
   TOP_CENTER = "TOP_CENTER",
   TOP_RIGHT = "TOP_RIGHT",
@@ -54,6 +55,10 @@ export type BadgeDesign = {
   positionX?: number;
   positionY?: number;
   gridPosition?: GridPosition;
+  // Horizontal position for badges (below product title)
+  horizontalPosition?: BadgeHorizontalPosition;
+  // Text alignment for badges
+  textAlignment?: BadgeAlignment;
   // Text formatting controls
   isBold?: boolean;
   isItalic?: boolean;
@@ -140,6 +145,8 @@ const useBadgeStore = create<BadgeStore>()((set) => ({
       positionX: 0,
       positionY: 0,
       gridPosition: GridPosition.TOP_LEFT,
+      horizontalPosition: BadgeHorizontalPosition.BELOW_PRODUCT_TITLE,
+      textAlignment: BadgeAlignment.LEFT,
       // Text formatting defaults
       isBold: false,
       isItalic: false,

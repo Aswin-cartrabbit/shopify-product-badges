@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useBadgeStore } from "@/stores/BadgeStore";
+import { BadgeHorizontalPosition, BadgeAlignment } from "./BadgeHorizontalPosition";
 import { Icon } from "@shopify/polaris";
 
 interface TemplatePreviewProps {
@@ -331,53 +332,161 @@ export default function TemplatePreview({ selectedTemplate, device = 'desktop', 
           </div>
         ))}
       </div>
-      <div style={{ padding: "16px" }}>
-        <h3 className="product-title" style={{ 
-          fontSize: "1rem", 
-          fontWeight: "600", 
-          marginBottom: "8px",
-          color: "#111827",
-          lineHeight: "1.4"
+      
+      {/* Show badges below product image for BADGE type */}
+      {type === "BADGE" && showUserBadge && design.horizontalPosition === BadgeHorizontalPosition.BELOW_PRODUCT_IMAGE && (
+        <div style={{ 
+          padding: "16px", 
+          paddingBottom: "8px", 
+          display: "flex", 
+          alignItems: "center", 
+          justifyContent: design.textAlignment === BadgeAlignment.CENTER ? "center" : 
+                         design.textAlignment === BadgeAlignment.RIGHT ? "flex-end" : "flex-start"
         }}>
-          Product name
-        </h3>
+          {renderBadgeContent()}
+        </div>
+      )}
+      
+      <div style={{ padding: "16px" }}>
+        {/* Show product title normally unless it's inline with badge */}
+        {!(type === "BADGE" && showUserBadge && (design.horizontalPosition === BadgeHorizontalPosition.BEFORE_PRODUCT_TITLE || design.horizontalPosition === BadgeHorizontalPosition.AFTER_PRODUCT_TITLE)) && (
+          <h3 className="product-title" style={{ 
+            fontSize: "1rem", 
+            fontWeight: "600", 
+            marginBottom: "8px",
+            color: "#111827",
+            lineHeight: "1.4"
+          }}>
+            Product name
+          </h3>
+        )}
         
-        {/* Show badges below product name for BADGE type */}
-        {type === "BADGE" && showUserBadge && (
-          <div style={{ marginBottom: "8px", display: "flex", alignItems: "center" }}>
+        {/* Show badges after product name for BADGE type */}
+        {type === "BADGE" && showUserBadge && design.horizontalPosition === BadgeHorizontalPosition.AFTER_PRODUCT_TITLE && (
+          <div style={{ marginBottom: "8px", display: "flex", alignItems: "center", gap: "8px" }}>
+            <h3 className="product-title" style={{ 
+              fontSize: "1rem", 
+              fontWeight: "600", 
+              marginBottom: "0",
+              color: "#111827",
+              lineHeight: "1.4",
+              display: "inline"
+            }}>
+              Product name
+            </h3>
             {renderBadgeContent()}
           </div>
         )}
         
-        {/* Show sample badges below product name for BADGE type */}
-        {type === "BADGE" && !showUserBadge && (
-          <div style={{ marginBottom: "8px", display: "flex", flexWrap: "wrap", gap: "6px" }}>
-            {badges.slice(0, 2).map((badgeData, index) => (
-              <div 
-                key={index}
-                style={{
-                  padding: "4px 8px",
-                  background: badgeData.color || design.color,
-                  color: "white",
-                  fontSize: "0.75rem",
-                  fontWeight: "600",
-                  borderRadius: "4px",
-                  whiteSpace: "nowrap"
-                }}
-              >
-                {badgeData.text}
-              </div>
-            ))}
+        {/* Show badges above product name for BADGE type */}
+        {type === "BADGE" && showUserBadge && design.horizontalPosition === BadgeHorizontalPosition.ABOVE_PRODUCT_TITLE && (
+          <div style={{ 
+            marginBottom: "8px", 
+            display: "flex", 
+            alignItems: "center",
+            justifyContent: design.textAlignment === BadgeAlignment.CENTER ? "center" : 
+                           design.textAlignment === BadgeAlignment.RIGHT ? "flex-end" : "flex-start"
+          }}>
+            {renderBadgeContent()}
           </div>
         )}
         
-        <p className="price" style={{ 
-          fontSize: "1rem", 
-          fontWeight: "600", 
-          color: "#111827" 
-        }}>
-          $10 USD <span className="original-price" style={{ fontSize: "0.875rem", color: "#6B7280", fontWeight: "400" }}>(Product price)</span>
-        </p>
+        {/* Show badges before product name for BADGE type */}
+        {type === "BADGE" && showUserBadge && design.horizontalPosition === BadgeHorizontalPosition.BEFORE_PRODUCT_TITLE && (
+          <div style={{ marginBottom: "8px", display: "flex", alignItems: "center", gap: "8px" }}>
+            {renderBadgeContent()}
+            <h3 className="product-title" style={{ 
+              fontSize: "1rem", 
+              fontWeight: "600", 
+              marginBottom: "0",
+              color: "#111827",
+              lineHeight: "1.4",
+              display: "inline"
+            }}>
+              Product name
+            </h3>
+          </div>
+        )}
+        
+        {/* Show badges below product name for BADGE type */}
+        {type === "BADGE" && showUserBadge && design.horizontalPosition === BadgeHorizontalPosition.BELOW_PRODUCT_TITLE && (
+          <div style={{ 
+            marginBottom: "8px", 
+            display: "flex", 
+            alignItems: "center",
+            justifyContent: design.textAlignment === BadgeAlignment.CENTER ? "center" : 
+                           design.textAlignment === BadgeAlignment.RIGHT ? "flex-end" : "flex-start"
+          }}>
+            {renderBadgeContent()}
+          </div>
+        )}
+        
+        {/* Show badges above product price for BADGE type */}
+        {type === "BADGE" && showUserBadge && design.horizontalPosition === BadgeHorizontalPosition.ABOVE_PRODUCT_PRICE && (
+          <div style={{ 
+            marginBottom: "8px", 
+            display: "flex", 
+            alignItems: "center",
+            justifyContent: design.textAlignment === BadgeAlignment.CENTER ? "center" : 
+                           design.textAlignment === BadgeAlignment.RIGHT ? "flex-end" : "flex-start"
+          }}>
+            {renderBadgeContent()}
+          </div>
+        )}
+        
+        {/* Show badges before product price for BADGE type */}
+        {type === "BADGE" && showUserBadge && design.horizontalPosition === BadgeHorizontalPosition.BEFORE_PRODUCT_PRICE && (
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            {renderBadgeContent()}
+            <p className="price" style={{ 
+              fontSize: "1rem", 
+              fontWeight: "600", 
+              color: "#111827",
+              margin: 0
+            }}>
+              $10 USD <span className="original-price" style={{ fontSize: "0.875rem", color: "#6B7280", fontWeight: "400" }}>(Product price)</span>
+            </p>
+          </div>
+        )}
+        
+        {/* Show price normally unless it's inline with badge */}
+        {!(type === "BADGE" && showUserBadge && (design.horizontalPosition === BadgeHorizontalPosition.BEFORE_PRODUCT_PRICE || design.horizontalPosition === BadgeHorizontalPosition.AFTER_PRODUCT_PRICE)) && (
+          <p className="price" style={{ 
+            fontSize: "1rem", 
+            fontWeight: "600", 
+            color: "#111827" 
+          }}>
+            $10 USD <span className="original-price" style={{ fontSize: "0.875rem", color: "#6B7280", fontWeight: "400" }}>(Product price)</span>
+          </p>
+        )}
+        
+        {/* Show badges after product price for BADGE type */}
+        {type === "BADGE" && showUserBadge && design.horizontalPosition === BadgeHorizontalPosition.AFTER_PRODUCT_PRICE && (
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <p className="price" style={{ 
+              fontSize: "1rem", 
+              fontWeight: "600", 
+              color: "#111827",
+              margin: 0
+            }}>
+              $10 USD <span className="original-price" style={{ fontSize: "0.875rem", color: "#6B7280", fontWeight: "400" }}>(Product price)</span>
+            </p>
+            {renderBadgeContent()}
+          </div>
+        )}
+        
+        {/* Show badges below product price for BADGE type */}
+        {type === "BADGE" && showUserBadge && design.horizontalPosition === BadgeHorizontalPosition.BELOW_PRODUCT_PRICE && (
+          <div style={{ 
+            marginTop: "8px", 
+            display: "flex", 
+            alignItems: "center",
+            justifyContent: design.textAlignment === BadgeAlignment.CENTER ? "center" : 
+                           design.textAlignment === BadgeAlignment.RIGHT ? "flex-end" : "flex-start"
+          }}>
+            {renderBadgeContent()}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -20,6 +20,7 @@ import {
 } from "@shopify/polaris";
 import { useCallback, useState, useEffect } from "react";
 import { useBadgeStore, GridPosition } from "@/stores/BadgeStore";
+import { BadgeHorizontalPosition, BadgeAlignment } from "@/components/BadgeHorizontalPosition";
 import HtmlPreviewer from "../HtmlPreviewer";
 import ContentForm from "./ContentForm";
 import DesignForm from "./DesignForm";
@@ -83,7 +84,8 @@ export const BadgeBuilder = ({
     if (type === "LABEL") {
       updateDesign("gridPosition", GridPosition.TOP_LEFT);
     } else if (type === "BADGE") {
-      updateDesign("gridPosition", GridPosition.TOP_RIGHT);
+      updateDesign("horizontalPosition", BadgeHorizontalPosition.BELOW_PRODUCT_TITLE);
+      updateDesign("textAlignment", BadgeAlignment.LEFT);
     }
   }, [type, updateDesign]);
 

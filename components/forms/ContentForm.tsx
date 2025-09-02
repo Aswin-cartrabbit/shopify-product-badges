@@ -19,12 +19,13 @@ import {
   Popover,
   ActionList,
 } from "@shopify/polaris";
-import { QuestionCircleIcon, ProductUnavailableIcon, TextBoldIcon, TextItalicIcon, TextUnderlineIcon } from "@shopify/polaris-icons";
+import { QuestionCircleIcon, ProductUnavailableIcon, TextBoldIcon, TextItalicIcon, TextUnderlineIcon, ArrowLeftIcon, ArrowDiagonalIcon, ArrowRightIcon } from "@shopify/polaris-icons";
 import { useCallback, useState, useEffect } from "react";
 import { useBadgeStore, GridPosition } from "@/stores/BadgeStore";
 import TemplateGalleryModal from "../TemplateGalleryModal";
 import ColorPickerInput from "../pickers/ColourPicker";
 import PositionGrid from "../PositionGrid";
+import BadgeHorizontalPositionComponent, { BadgeHorizontalPosition, BadgeAlignmentComponent, BadgeAlignment } from "../BadgeHorizontalPosition";
 import React from "react";
 
 interface ContentFormProps {
@@ -692,23 +693,58 @@ const ContentForm = ({ data, onChange, type = "BADGE", badgeName, setBadgeName }
           <Text variant="headingMd" as={"h3"}>
             Position
           </Text>
-          <TooltipIcon content="Choose where to position your badge on the product image" />
+          <TooltipIcon content={type === "LABEL" ? "Choose where to position your label on the product image" : "Choose how to align your badge below the product title"} />
         </InlineStack>
 
         <BlockStack gap="200">
-          <Text as="p" variant="bodyMd" tone="subdued">
-            Choose badge position
-          </Text>
-          
-          <Box>
-            <PositionGrid
-              selectedPosition={badge.design.gridPosition || GridPosition.TOP_LEFT}
-              onPositionChange={(position) => updateDesign("gridPosition", position)}
-            />
-            <Text as="p" variant="bodySm" tone="subdued">
-              Click to select badge position
-            </Text>
-          </Box>
+          {type === "LABEL" ? (
+            // Show 9-position grid for labels (overlays on product images)
+            <>
+              <Text as="p" variant="bodyMd" tone="subdued">
+                Choose label position on product image
+              </Text>
+              
+              <Box>
+                <PositionGrid
+                  selectedPosition={badge.design.gridPosition || GridPosition.TOP_LEFT}
+                  onPositionChange={(position) => updateDesign("gridPosition", position)}
+                />
+                <Text as="p" variant="bodySm" tone="subdued">
+                  Click to select label position
+                </Text>
+              </Box>
+            </>
+          ) : (
+            // Show horizontal position for badges (below product title)
+            <>
+              <Text as="p" variant="bodyMd" tone="subdued">
+                Choose badge position on product page
+              </Text>
+              
+              <Box>
+                <BadgeHorizontalPositionComponent
+                  selectedPosition={badge.design.horizontalPosition || BadgeHorizontalPosition.BELOW_PRODUCT_TITLE}
+                  onPositionChange={(position) => updateDesign("horizontalPosition", position)}
+                />
+                <Text as="p" variant="bodySm" tone="subdued">
+                  Select where to position the badge on the product page
+                </Text>
+              </Box>
+              
+              <BlockStack gap="200">
+                <Text as="p" variant="bodyMd" tone="subdued">
+                  Alignment
+                </Text>
+                <BadgeAlignmentComponent
+                  selectedAlignment={badge.design.textAlignment || BadgeAlignment.LEFT}
+                  onAlignmentChange={(alignment) => updateDesign("textAlignment", alignment)}
+                />
+                <Text as="p" variant="bodySm" tone="subdued">
+                  Choose how to align the badge horizontally
+                </Text>
+              </BlockStack>
+            </>
+          )}
         </BlockStack>
 
         <Bleed marginInline="400">
