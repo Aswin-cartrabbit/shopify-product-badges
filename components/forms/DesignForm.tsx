@@ -13,7 +13,7 @@ import {
   Tooltip,
   Icon,
 } from "@shopify/polaris";
-import { QuestionCircleIcon } from "@shopify/polaris-icons";
+import { ImageIcon, QuestionCircleIcon } from "@shopify/polaris-icons";
 import ColorPickerInput from "../pickers/ColourPicker";
 import { useBadgeStore, GridPosition } from "@/stores/BadgeStore";
 import LabelGrid from "../LabelGrid";
