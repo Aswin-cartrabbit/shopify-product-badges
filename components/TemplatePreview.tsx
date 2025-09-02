@@ -409,7 +409,7 @@ export default function TemplatePreview({ selectedTemplate, device = 'desktop', 
         )}
         
         {/* Show badges below product name for BADGE type */}
-        {type === "BADGE" && showUserBadge && design.horizontalPosition === BadgeHorizontalPosition.BELOW_PRODUCT_TITLE && (
+        {type === "BADGE" && showUserBadge && (design.horizontalPosition === BadgeHorizontalPosition.BELOW_PRODUCT_TITLE || !design.horizontalPosition) && (
           <div style={{ 
             marginBottom: "8px", 
             display: "flex", 
