@@ -49,6 +49,8 @@ const ContentForm = ({ data, onChange, type = "BADGE", badgeName, setBadgeName }
   const [localText, setLocalText] = useState("");
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
+  const [hasInitialized, setHasInitialized] = useState(false);
+  const [previewKey, setPreviewKey] = useState(0);
 
 
   // AutoText options
@@ -64,8 +66,13 @@ const ContentForm = ({ data, onChange, type = "BADGE", badgeName, setBadgeName }
   ];
 
   // Initialize local state from props/data and auto-detect content type
+  // Only run once when component mounts or when a completely new template is selected
+  
   useEffect(() => {
-    if (data) {
+    // Only initialize on first mount or when data prop changes from parent (not from template selection)
+    if (data && !hasInitialized) {
+      console.log('Initializing ContentForm with data:', data);
+      
       const initialName = badgeName || 
         data?.name || 
         (data?.text ? `${data.text} ${type.toLowerCase()}` : "") ||
@@ -73,36 +80,53 @@ const ContentForm = ({ data, onChange, type = "BADGE", badgeName, setBadgeName }
         `New ${type.toLowerCase()}`;
       
       setLocalName(initialName);
-      setLocalText(data?.text || badge.content.text || "");
-
-      // Set selected template if data has template info
-      if (data?.text && data?.style) {
-        setSelectedTemplate(data);
-      }
-
-      // Auto-detect content type based on template
-      if (data?.src) {
-        // If template has src, it's an image
-        updateContent("contentType", "image");
-        updateContent("icon", data.src);
-        updateContent("iconUploaded", true);
-      } else if (data?.text) {
-        // If template has text, it's a text template
-        updateContent("contentType", "text");
-        updateContent("text", data.text);
+      
+      // Initialize with data from parent component (initial template selection)
+      if (data?.text || data?.src) {
+        if (data.src) {
+          // Image template from parent
+          updateContent("contentType", "image");
+          updateContent("icon", data.src);
+          updateContent("iconUploaded", true);
+          updateContent("text", data.alt || "");
+          setLocalText(data.alt || "");
+        } else if (data.text) {
+          // Text template from parent
+          updateContent("contentType", "text");
+          updateContent("text", data.text);
+          setLocalText(data.text);
+        }
+        
+        // Set selected template if data has template info
+        if ((data.text && data.style) || data.src) {
+          setSelectedTemplate(data);
+        }
       } else {
-        // Default to text if no clear type
-        updateContent("contentType", "text");
+        // No initial template - use existing badge store text if available
+        setLocalText(badge.content.text || "");
+        
+        // Set default content type
+        if (!badge.content.contentType) {
+          updateContent("contentType", "text");
+        }
       }
+      
+      setHasInitialized(true);
     }
-  }, [data?.id, data?.text, data?.alt, data?.src, badgeName, type, updateContent]); // Only trigger when template actually changes
+  }, [data, badgeName, type, updateContent, hasInitialized, badge.content.text, badge.content.contentType]); // Only trigger when data actually changes from parent
 
-  // Sync local text state with badge store (avoid infinite loops)
+  // Sync local text state with badge store only when badge store is updated externally
+  // Don't sync if the change came from this component to avoid loops
   useEffect(() => {
-    if (badge.content.text && badge.content.text !== localText) {
+    if (badge.content.text !== localText && document.activeElement?.tagName !== 'TEXTAREA' && document.activeElement?.tagName !== 'INPUT') {
       setLocalText(badge.content.text);
     }
-  }, [badge.content.text]); // Sync when badge store text changes
+  }, [badge.content.text]); // Sync when badge store text changes externally
+
+  // Force re-render when badge store content changes to update preview
+  useEffect(() => {
+    setPreviewKey(prev => prev + 1);
+  }, [badge.content.text, badge.design.color, badge.design.cornerRadius, badge.design.shape, badge.design.isBold, badge.design.isItalic, badge.design.isUnderline]);
 
            // AutoText popover state
          const [autoTextPopoverActive, setAutoTextPopoverActive] = useState(false);
@@ -206,24 +230,38 @@ const ContentForm = ({ data, onChange, type = "BADGE", badgeName, setBadgeName }
 
   const handleTemplateSelect = useCallback(
     (template: any) => {
+      console.log('Template selected:', template);
+      
       if (template.src) {
         // Image template
         updateContent("icon", template.src);
         updateContent("iconUploaded", true);
         updateContent("contentType", "image");
+        updateContent("text", template.alt || ""); // Clear text for image templates
+        setLocalText(template.alt || "");
+        setSelectedTemplate(template);
+        
         if (onChange) {
           onChange({ 
             icon: template.src, 
             iconUploaded: true, 
-            contentType: "image" 
+            contentType: "image",
+            text: template.alt || ""
           });
         }
       } else if (template.text) {
-        // Text template
+        // Text template - force update all content
+        console.log('Updating text template with:', template.text);
+        
+        // Update badge store content
         updateContent("text", template.text);
         updateContent("contentType", "text");
+        updateContent("icon", ""); // Clear any existing icon
+        updateContent("iconUploaded", false);
+        
+        // Update local state
         setLocalText(template.text);
-        setSelectedTemplate(template); // Store the selected template for preview
+        setSelectedTemplate(template);
         
         // Apply template styling if available
         if (template.style) {
@@ -239,6 +277,8 @@ const ContentForm = ({ data, onChange, type = "BADGE", badgeName, setBadgeName }
           if (template.style.clipPath) {
             updateDesign("shape", `clip-path: ${template.style.clipPath}`);
           }
+          // Set template identifier
+          updateDesign("template", `Template_${template.id}`);
         }
         
         // Force update the form data to ensure parent component knows about the change
@@ -246,14 +286,20 @@ const ContentForm = ({ data, onChange, type = "BADGE", badgeName, setBadgeName }
           onChange({ 
             text: template.text,
             contentType: "text",
-            template: template
+            template: template,
+            icon: "",
+            iconUploaded: false
           });
         }
         
-
+        // Force preview update
+        setPreviewKey(prev => prev + 1);
       }
+      
+      // Close the template modal
+      setIsTemplateModalOpen(false);
     },
-    [updateContent, updateDesign, onChange, setLocalText]
+    [updateContent, updateDesign, onChange, setLocalText, setPreviewKey, setIsTemplateModalOpen]
   );
 
   const handleRemoveIcon = useCallback(() => {
@@ -338,26 +384,34 @@ const ContentForm = ({ data, onChange, type = "BADGE", badgeName, setBadgeName }
               Text Content
             </Text>
             
-            {/* Show selected template preview if any */}
-            {((data && data.text && data.style) || (selectedTemplate && selectedTemplate.text && selectedTemplate.style)) && (
-              <Box>
-                
+            {/* Show current badge content preview */}
+            {(localText || badge.content.text || (selectedTemplate && selectedTemplate.text) || (data && data.text)) && (
+              <Box key={previewKey}>
                 <div
                   style={{
-                    ...(selectedTemplate?.style || data?.style),
+                    // Use badge store design values first, then fall back to template
+                    background: badge.design.color && badge.design.color !== "#7700ffff" ? badge.design.color : (selectedTemplate?.style?.background || data?.style?.background || "#7700ffff"),
+                    color: badge.content.textColor || (selectedTemplate?.style?.color || data?.style?.color || "#ffffff"),
                     padding: "8px 12px",
-                    borderRadius: (selectedTemplate?.style?.borderRadius || data?.style?.borderRadius) || "4px",
+                    borderRadius: badge.design.cornerRadius !== undefined && badge.design.cornerRadius !== 8 ? `${badge.design.cornerRadius}px` : (selectedTemplate?.style?.borderRadius || data?.style?.borderRadius || "4px"),
                     display: "inline-block",
                     fontSize: "0.875rem",
                     fontWeight: 600,
-                    marginBottom: "8px"
+                    marginBottom: "8px",
+                    // Apply clip-path if exists
+                    ...(badge.design.shape && badge.design.shape.includes("clip-path") ? {
+                      clipPath: badge.design.shape.match(/clip-path:\s*([^;]+)/)?.[1]
+                    } : {})
                   }}
                 >
-                  {selectedTemplate?.text || data?.text}
+                  <span style={{
+                    fontWeight: badge.design.isBold ? 'bold' : 'normal',
+                    fontStyle: badge.design.isItalic ? 'italic' : 'normal',
+                    textDecoration: badge.design.isUnderline ? 'underline' : 'none'
+                  }}>
+                    {localText || badge.content.text || "Badge Text"}
+                  </span>
                 </div>
-                
-                {/* Remove template button */}
-                
               </Box>
             )}
 

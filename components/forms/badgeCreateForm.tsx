@@ -1,3 +1,5 @@
+// BadgeBuilder.tsx - Fixed version to prevent content reset on tab switch
+
 "use client";
 import {
   Badge,
@@ -39,6 +41,7 @@ export const BadgeBuilder = ({
   onCancel 
 }: BadgeBuilderProps) => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(true);
+  const [hasInitializedTemplate, setHasInitializedTemplate] = useState(false);
   
   const getBadges = (status: "DRAFT" | "ACTIVE") => {
     switch (status) {
@@ -50,7 +53,6 @@ export const BadgeBuilder = ({
   };
   const [name, setName] = useState(`Your ${type.toLowerCase()}`);
   const [componentType, setComponentType] = useState(type);
-  // Example usage of the getBadges function
   const currentStatus: "DRAFT" | "ACTIVE" = "ACTIVE";
 
   const [selectedTab, setSelectedTab] = useState<number>(0);
@@ -85,12 +87,13 @@ export const BadgeBuilder = ({
     }
   }, [type, updateDesign]);
 
-  // Initialize the badge store with selected template data
+  // Initialize the badge store with selected template data - only once
   useEffect(() => {
-    // Clear previous badge data to avoid state issues
-    clearBadge();
-    
-    if (selectedTemplate) {
+    // Only initialize when we have a new template and haven't initialized yet
+    if (selectedTemplate && !hasInitializedTemplate) {
+      // Clear previous badge data to avoid state issues - only on first load
+      clearBadge();
+      
       // For text templates
       if (selectedTemplate.text && !selectedTemplate.src) {
         updateContent("text", selectedTemplate.text);
@@ -129,8 +132,10 @@ export const BadgeBuilder = ({
         // No shapes for image templates
         updateDesign("shape", "");
       }
+      
+      setHasInitializedTemplate(true);
     }
-  }, [selectedTemplate, updateContent, updateDesign, clearBadge]);
+  }, [selectedTemplate?.id, hasInitializedTemplate, updateContent, updateDesign, clearBadge]);
 
   const handleTabChange = useCallback(
     (selectedTabIndex: any) => {
@@ -214,7 +219,6 @@ export const BadgeBuilder = ({
           onAction: handleSave,
         }}
         secondaryActions={[
-          
           {
             content: "Close",
             onAction: handleCancel,
@@ -340,7 +344,8 @@ export const BadgeBuilder = ({
           }}
         >
           <div>
-            {selectedTab === 0 && (
+            {/* SOLUTION: Always render all forms but hide them with CSS */}
+            <div style={{ display: selectedTab === 0 ? 'block' : 'none' }}>
               <ContentForm 
                 data={selectedTemplate}
                 onChange={(data) => setFormData({...formData, ...data})}
@@ -348,29 +353,29 @@ export const BadgeBuilder = ({
                 badgeName={formData.name}
                 setBadgeName={(name) => setFormData({...formData, name})}
               />
-            )}
-            {selectedTab === 1 && (
+            </div>
+            <div style={{ display: selectedTab === 1 ? 'block' : 'none' }}>
               <DesignForm 
                 data={formData}
                 onChange={(data) => setFormData({...formData, design: data})}
                 selectedTemplate={selectedTemplate}
                 type={componentType}
               />
-            )}
-            {selectedTab === 2 && (
+            </div>
+            <div style={{ display: selectedTab === 2 ? 'block' : 'none' }}>
               <ProductsForm 
                 data={formData}
                 onChange={(data) => setFormData({...formData, products: data})}
                 type={componentType}
               />
-            )}
+            </div>
           </div>
           <div
             style={{
               position: "sticky",
               top: "1rem", // distance from top while scrolling
               height: "calc(100vh - 2rem)", // keep within viewport height
-              overflow: "auto", // scroll inside preview if
+              overflow: "auto", // scroll inside preview if needed
             }}
           >
             <Card>
