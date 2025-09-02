@@ -5,9 +5,10 @@ import { Icon } from "@shopify/polaris";
 interface TemplatePreviewProps {
   selectedTemplate?: any;
   device?: string;
+  type?: "BADGE" | "LABEL";
 }
 
-export default function TemplatePreview({ selectedTemplate, device = 'desktop' }: TemplatePreviewProps) {
+export default function TemplatePreview({ selectedTemplate, device = 'desktop', type = 'BADGE' }: TemplatePreviewProps) {
   const { badge } = useBadgeStore();
   const [forceUpdate, setForceUpdate] = useState(0);
 
@@ -303,15 +304,15 @@ export default function TemplatePreview({ selectedTemplate, device = 'desktop' }
         backgroundSize: "cover",
         backgroundPosition: "center"
       }}>
-        {/* Show user's current badge if showUserBadge is true */}
-        {showUserBadge && (
+        {/* Show user's current badge/label if showUserBadge is true - only for LABELS */}
+        {showUserBadge && type === "LABEL" && (
           <div className={`product-badge ${positionClass}`} style={{ position: "absolute", zIndex: 10 }}>
             {renderBadgeContent()}
           </div>
         )}
         
-        {/* Show sample badges if not showing user badge */}
-        {!showUserBadge && badges.map((badgeData, index) => (
+        {/* Show sample badges if not showing user badge - only for LABELS */}
+        {!showUserBadge && type === "LABEL" && badges.map((badgeData, index) => (
           <div 
             key={index}
             className={`product-badge ${badgeData.position || positionClass}`}
@@ -340,6 +341,36 @@ export default function TemplatePreview({ selectedTemplate, device = 'desktop' }
         }}>
           Product name
         </h3>
+        
+        {/* Show badges below product name for BADGE type */}
+        {type === "BADGE" && showUserBadge && (
+          <div style={{ marginBottom: "8px", display: "flex", alignItems: "center" }}>
+            {renderBadgeContent()}
+          </div>
+        )}
+        
+        {/* Show sample badges below product name for BADGE type */}
+        {type === "BADGE" && !showUserBadge && (
+          <div style={{ marginBottom: "8px", display: "flex", flexWrap: "wrap", gap: "6px" }}>
+            {badges.slice(0, 2).map((badgeData, index) => (
+              <div 
+                key={index}
+                style={{
+                  padding: "4px 8px",
+                  background: badgeData.color || design.color,
+                  color: "white",
+                  fontSize: "0.75rem",
+                  fontWeight: "600",
+                  borderRadius: "4px",
+                  whiteSpace: "nowrap"
+                }}
+              >
+                {badgeData.text}
+              </div>
+            ))}
+          </div>
+        )}
+        
         <p className="price" style={{ 
           fontSize: "1rem", 
           fontWeight: "600", 

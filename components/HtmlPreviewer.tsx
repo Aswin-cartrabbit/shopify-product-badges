@@ -10,9 +10,10 @@ import TemplatePreview from "./TemplatePreview";
 
 interface HtmlPreviewerProps {
   selectedTemplate?: any;
+  type?: "BADGE" | "LABEL";
 }
 
-export default function HtmlPreviewer({ selectedTemplate }: HtmlPreviewerProps) {
+export default function HtmlPreviewer({ selectedTemplate, type = "BADGE" }: HtmlPreviewerProps) {
   const [device, setDevice] = useState("desktop");
 
   return (
@@ -114,6 +115,7 @@ export default function HtmlPreviewer({ selectedTemplate }: HtmlPreviewerProps) 
               key={`preview-${selectedTemplate?.id || 'default'}`}
               selectedTemplate={selectedTemplate}
               device={device}
+              type={type}
             />
           </div>
         </div>

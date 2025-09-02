@@ -379,7 +379,7 @@ export const BadgeBuilder = ({
             }}
           >
             <Card>
-              <HtmlPreviewer selectedTemplate={selectedTemplate} />
+              <HtmlPreviewer selectedTemplate={selectedTemplate} type={componentType} />
             </Card>
           </div>
         </div>
