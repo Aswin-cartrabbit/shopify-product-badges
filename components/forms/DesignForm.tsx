@@ -171,7 +171,7 @@ export default function DesignForm({ data, onChange, selectedTemplate, type }: D
               <BlockStack gap="200">
                 <RangeSlider
                   label="Badge Width"
-                  min={50}
+                  min={0}
                   max={300}
                   value={badge.design.width || 120}
                   onChange={(value) => {
@@ -188,7 +188,7 @@ export default function DesignForm({ data, onChange, selectedTemplate, type }: D
               <BlockStack gap="200">
                 <RangeSlider
                   label="Badge Height"
-                  min={20}
+                  min={0}
                   max={100}
                   value={badge.design.height || 40}
                   onChange={(value) => {

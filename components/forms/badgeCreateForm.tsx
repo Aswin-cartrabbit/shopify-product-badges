@@ -104,8 +104,8 @@ export const BadgeBuilder = ({
         
         if (selectedTemplate.style) {
           // Convert template styles to badge store format
-          if (selectedTemplate.style.background) {
-            updateDesign("color", selectedTemplate.style.background);
+          if (selectedTemplate.style.background || selectedTemplate.style.backgroundColor) {
+            updateDesign("color", selectedTemplate.style.backgroundColor || selectedTemplate.style.background);
             updateDesign("background", "solid");
           }
           

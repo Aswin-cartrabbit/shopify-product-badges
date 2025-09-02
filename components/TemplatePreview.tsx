@@ -19,6 +19,31 @@ export default function TemplatePreview({ selectedTemplate, device = 'desktop', 
   }, [selectedTemplate?.id, selectedTemplate?.text, selectedTemplate?.src]);
   const { content, design, placement } = badge;
 
+  // Calculate responsive font size based on width and text length
+  const calculateFontSize = () => {
+    const width = design.width || 120;
+    const textLength = (content.text || "Badge Text").length;
+    
+    // Make font much smaller for longer text to ensure it fits and wraps
+    if (textLength > 30) return Math.max(4, Math.min(6, width / 20));
+    if (textLength > 20) return Math.max(5, Math.min(7, width / 18));
+    if (textLength > 15) return Math.max(6, Math.min(8, width / 15));
+    if (textLength > 10) return Math.max(7, Math.min(9, width / 12));
+    
+    // Base size calculation for shorter text
+    if (width <= 0) return 6;
+    if (width <= 50) return 6;
+    if (width <= 100) return 8;
+    if (width <= 150) return 10;
+    return Math.min(12, design.fontSize || 12);
+  };
+
+  // Replace curly braces with XX
+  const processText = (text: string) => {
+    if (!text) return "";
+    return text.replace(/\{[^}]*\}/g, "XX");
+  };
+
   // Helper function to detect shape type from clip-path
   const getShapeType = (clipPath: string): string => {
     const lowerPath = clipPath.toLowerCase();
@@ -122,16 +147,10 @@ export default function TemplatePreview({ selectedTemplate, device = 'desktop', 
           // Adjust styling for shaped badges based on shape type
           if (shapeType === 'circular' || shapeType === 'oval') {
             responsiveBadgeStyle.padding = "12px";
-            responsiveBadgeStyle.minWidth = `${Math.max(80, textLength * 8)}px`;
-            responsiveBadgeStyle.minHeight = `${Math.max(80, textLength * 8)}px`;
           } else if (shapeType === 'hexagon' || shapeType === 'star') {
             responsiveBadgeStyle.padding = "6px 12px";
-            responsiveBadgeStyle.minWidth = `${Math.max(90, textLength * 9)}px`;
-            responsiveBadgeStyle.minHeight = "50px";
           } else {
             responsiveBadgeStyle.padding = "8px 16px";
-            responsiveBadgeStyle.minWidth = `${Math.max(100, textLength * 10)}px`;
-            responsiveBadgeStyle.minHeight = "40px";
           }
           
           // Create shaped text container with adaptive styling
@@ -159,7 +178,7 @@ export default function TemplatePreview({ selectedTemplate, device = 'desktop', 
                   fontStyle: design.isItalic ? 'italic' : 'normal',
                   textDecoration: design.isUnderline ? 'underline' : 'none'
                 }}>
-                  {content.text || selectedTemplate.text}
+                  {processText(content.text || selectedTemplate.text)}
                 </span>
               </div>
             </div>
@@ -169,7 +188,7 @@ export default function TemplatePreview({ selectedTemplate, device = 'desktop', 
 
       return (
         <div style={responsiveBadgeStyle}>
-          {content.text || selectedTemplate.text}
+          {processText(content.text || selectedTemplate.text)}
         </div>
       );
     }
@@ -179,23 +198,25 @@ export default function TemplatePreview({ selectedTemplate, device = 'desktop', 
       padding: "6px 12px", // Optimized for card view
       background: getBackgroundCSS(),
       color: content.textColor || "#ffffff",
-      fontSize: `${design.fontSize || 14}px`, // Use fontSize from design
+      fontSize: `${calculateFontSize()}px`, // Use responsive font size
       fontWeight: 600,
       borderRadius: `${design.cornerRadius || 4}px`,
-      whiteSpace: "nowrap",
+      whiteSpace: "normal", // Allow text wrapping
+      wordWrap: "break-word",
+      overflowWrap: "break-word",
       boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
       border: `${design.borderSize || 0}px solid ${design.borderColor || "transparent"}`,
       fontFamily: content.font === "own_theme" ? "inherit" : content.font?.replace("_", " "),
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      // Use design dimensions
-      width: `${design.width || 120}px`,
-      height: `${design.height || 40}px`,
-      overflow: "visible", // Allow content to be visible
-      textOverflow: "clip",
-      lineHeight: 1.2,
-      wordBreak: "keep-all"
+      textAlign: "center",
+      // Use design dimensions with minimum values
+      width: `${Math.max(0, design.width || 120)}px`,
+      height: `${Math.max(0, design.height || 40)}px`,
+      overflow: "hidden", // Keep text within bounds
+      lineHeight: 1.0,
+      flexWrap: "wrap"
     };
 
     // Apply clip-path if it exists in design - with proper text container
@@ -214,16 +235,10 @@ export default function TemplatePreview({ selectedTemplate, device = 'desktop', 
         // Adjust styling for shaped badges based on shape type
         if (shapeType === 'circular' || shapeType === 'oval') {
           badgeStyles.padding = "12px";
-          badgeStyles.minWidth = `${Math.max(80, textLength * 8)}px`;
-          badgeStyles.minHeight = `${Math.max(80, textLength * 8)}px`;
         } else if (shapeType === 'hexagon' || shapeType === 'star') {
           badgeStyles.padding = "6px 12px";
-          badgeStyles.minWidth = `${Math.max(90, textLength * 9)}px`;
-          badgeStyles.minHeight = "50px";
         } else {
           badgeStyles.padding = "8px 16px";
-          badgeStyles.minWidth = `${Math.max(100, textLength * 10)}px`;
-          badgeStyles.minHeight = "40px";
         }
         
         // Create shaped text container with adaptive styling
@@ -503,27 +518,27 @@ export default function TemplatePreview({ selectedTemplate, device = 'desktop', 
         /* Badge positioning */
         .badge-top-left {
           position: absolute;
-          top: 8px;
-          left: 8px;
+          top: 0;
+          left: 0;
         }
 
         .badge-top-center {
           position: absolute;
-          top: 8px;
+          top: 0;
           left: 50%;
           transform: translateX(-50%);
         }
 
         .badge-top-right {
           position: absolute;
-          top: 8px;
-          right: 8px;
+          top: 0;
+          right: 0;
         }
 
         .badge-middle-left {
           position: absolute;
           top: 50%;
-          left: 8px;
+          left: 0;
           transform: translateY(-50%);
         }
 
@@ -537,27 +552,27 @@ export default function TemplatePreview({ selectedTemplate, device = 'desktop', 
         .badge-middle-right {
           position: absolute;
           top: 50%;
-          right: 8px;
+          right: 0;
           transform: translateY(-50%);
         }
 
         .badge-bottom-left {
           position: absolute;
-          bottom: 8px;
-          left: 8px;
+          bottom: 0;
+          left: 0;
         }
 
         .badge-bottom-center {
           position: absolute;
-          bottom: 8px;
+          bottom: 0;
           left: 50%;
           transform: translateX(-50%);
         }
 
         .badge-bottom-right {
           position: absolute;
-          bottom: 8px;
-          right: 8px;
+          bottom: 0;
+          right: 0;
         }
 
         .product-card:hover {

@@ -24,27 +24,47 @@ export default function getHtmlPreviewCode() {
     return design.color;
   };
 
+  // Calculate responsive font size based on width
+  const calculateFontSize = () => {
+    const width = design.width || 120;
+    if (width <= 0) return 8;
+    if (width <= 50) return 8;
+    if (width <= 100) return 10;
+    if (width <= 150) return 12;
+    return design.fontSize || 14;
+  };
+
+  // Replace curly braces with XX
+  const processText = (text) => {
+    if (!text) return "";
+    return text.replace(/\{[^}]*\}/g, "XX");
+  };
+
   // Generate badge inline styles
   const badgeStyles = `
     position: absolute;
     z-index: 10;
-    padding: ${design.spacing.insideTop}px ${design.spacing.insideBottom}px;
+    padding: ${Math.max(2, (design.spacing.insideTop || 8))}px ${Math.max(2, (design.spacing.insideBottom || 8))}px;
     background: ${getBackgroundCSS()};
     color: white;
-    font-size: ${design.fontSize || 14}px;
+    font-size: ${calculateFontSize()}px;
     font-weight: 600;
     border-radius: ${design.cornerRadius}px;
-    white-space: nowrap;
+    white-space: normal;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     border: ${design.borderSize}px solid ${design.borderColor};
     font-family: ${content.font === "own_theme" ? "inherit" : content.font.replace("_", " ")};
     margin-top: ${design.spacing.outsideTop}px;
     margin-bottom: ${design.spacing.outsideBottom}px;
-    width: ${design.width || 120}px;
-    height: ${design.height || 40}px;
+    width: ${Math.max(0, design.width || 120)}px;
+    height: ${Math.max(0, design.height || 40)}px;
     display: flex;
     align-items: center;
     justify-content: center;
+    text-align: center;
+    line-height: 1.2;
     ${design.shape ? design.shape : "none"};
   `
     .replace(/\s+/g, " ")
@@ -52,7 +72,7 @@ export default function getHtmlPreviewCode() {
 
   const positionClass = placement.position
     ? positionMap[placement.position]
-    : "badge-top-right";
+    : "badge-top-left";
   return `<div
   style="display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:start">
   <div>
@@ -66,7 +86,7 @@ export default function getHtmlPreviewCode() {
         font-weight: ${design.isBold ? 'bold' : 'normal'};
         font-style: ${design.isItalic ? 'italic' : 'normal'};
         text-decoration: ${design.isUnderline ? 'underline' : 'none'};
-      ">${content.text}</span>
+      ">${processText(content.text)}</span>
     </div> 
     ${design.shape}
     </div>
@@ -163,8 +183,8 @@ export default function getHtmlPreviewCode() {
 
       /* Top row positions */
       .badge-top-left {
-        top: 0.5rem;
-        left: 0.5rem;
+        top: 0;
+        left: 0;
       }
 
       .badge-top-center {
