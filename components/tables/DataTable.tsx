@@ -25,7 +25,11 @@ import { useRouter } from "next/router";
 
 import { useCallback, useEffect, useState } from "react";
 
-export function DataTable() {
+export function DataTable({
+  type,
+}: {
+  type: "BANNER" | "BADGE" | "TRUST_BADGE" | "LABEL";
+}) {
   // Utility functions
   const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -317,10 +321,7 @@ export function DataTable() {
         params.append("search", queryValue);
       }
 
-      const response = await fetch(
-        `/api/badge?${params}`,
-        getGetOptions()
-      );
+      const response = await fetch(`/api/badge?${params}&type=${type}`, getGetOptions());
 
       const data = await response.json();
 
@@ -632,43 +633,20 @@ export function DataTable() {
           setMode={setMode}
         />
         <EmptyState
-          heading="No visual components found"
-          image="https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png"
+          heading={`No ${type.toLowerCase()}s found`}
+          image="https://u6rrdvqerrb6efrx-74627055920.shopifypreview.com/cdn/shop/files/1_ef0e920c-660d-4694-8b5c-454f22a6e1d2_720x.png?v=1754898246"
           action={{
-            content: "Create component",
+            content: `Create ${type.toLowerCase()}`,
+            onAction: () => router.push(`/${type.toLowerCase()}s/create`),
+          }}
+          secondaryAction={{
+            content: "Learn more",
             onAction: () => {
-              // Navigate to create component page
+              // Add learn more functionality
             },
           }}
-        >
-                  <Card>
-          <div style={{ 
-            display: "flex", 
-            justifyContent: "center", 
-            alignItems: "center",
-            minHeight: "450px",
-            padding: "40px 20px"
-          }}>
-            <div style={{ maxWidth: "500px", textAlign: "center" }}>
-              <EmptyState
-                heading="There is no label here"
-                action={{
-                  content: "Create label",
-                  onAction: () => router.push("/labels/create"),
-                }}
-                secondaryAction={{
-                  content: "Learn more",
-                  onAction: () => {
-                    // Add learn more functionality
-                  },
-                }}
-                image="https://u6rrdvqerrb6efrx-74627055920.shopifypreview.com/cdn/shop/files/1_ef0e920c-660d-4694-8b5c-454f22a6e1d2_720x.png?v=1754898246"
-              >
-                <p>Start creating labels or watch guidelines.</p>
-              </EmptyState>
-            </div>
-          </div>
-        </Card>
+          >
+          <p>Start creating {type.toLowerCase()}s or watch guidelines.</p>
         </EmptyState>
       </LegacyCard>
     );

@@ -372,7 +372,7 @@ const ContentForm = ({ data, onChange, type = "BADGE", badgeName, setBadgeName }
   ];
 
   return (
-    <>
+    <div style={{marginBottom: "16px"}}>
     <Card>
       {/* <BlockStack>
         <TextField
@@ -789,7 +789,7 @@ const ContentForm = ({ data, onChange, type = "BADGE", badgeName, setBadgeName }
       onSelect={handleTemplateSelect}
       templateType={badge.content.contentType === "text" ? "text" : "image"}
     />
-    </>
+    </div>
   );
 };
 

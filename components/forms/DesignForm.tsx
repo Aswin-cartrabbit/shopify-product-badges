@@ -346,9 +346,9 @@ export default function DesignForm({ data, onChange, selectedTemplate, type }: D
               />
             )}
 
-            <Bleed marginInline="400">
+            {/* <Bleed marginInline="400">
               <Divider />
-            </Bleed>
+            </Bleed> */}
           </BlockStack>
         )}
 

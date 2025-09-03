@@ -1017,7 +1017,7 @@ export default function CreateLabel() {
           </div>
           
           {/* Image Icon and Text */}
-          <div style={{
+          {/* <div style={{
            
             alignItems: "center",
             justifyContent: "center",
@@ -1026,7 +1026,7 @@ export default function CreateLabel() {
           }}>
             <Icon source={ImageIcon} tone="subdued" />
             <Text as="span" tone="subdued" variant="bodySm">Image</Text>
-          </div>
+          </div> */}
           
           {/* Label Title */}
           <div style={{ marginBottom: "12px" }}>
@@ -1090,8 +1090,8 @@ export default function CreateLabel() {
                 Create label with most popular collections
               </Text>
             </InlineStack>
-            <Button variant="tertiary">
-              My labels
+            <Button variant="secondary" onClick={() => router.push("/labels")}>
+              My Labels
             </Button>
           </InlineStack>
         </div>

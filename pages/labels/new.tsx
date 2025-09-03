@@ -16,6 +16,8 @@ export default function ChooseLabelType() {
   const router = useRouter();
   const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
   const [showBuilder, setShowBuilder] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (router.query.template && router.query.templateData) {
@@ -37,29 +39,44 @@ export default function ChooseLabelType() {
 
   const handleSave = async (labelData: any) => {
     try {
-      const response = await fetch('/api/badge/create', {
-        method: 'POST',
+      setIsSaving(true);
+      setErrorMessage(null);
+      const response = await fetch("/api/badge/create", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           ...labelData,
-          type: 'LABEL'
+          type: "LABEL",
         }),
       });
 
+      console.log('response ------->', response);
+
       if (response.ok) {
-        router.push('/labels');
+        router.push("/labels");
       } else {
-        console.error('Failed to create label');
+        // Handle error response
+        try {
+          const errorData = await response.json();
+          console.error('Error response:', errorData);
+          setErrorMessage(errorData.message || `Failed to create label (${response.status})`);
+        } catch (parseError) {
+          // If we can't parse the error response, show a generic error
+          setErrorMessage(`Failed to create label (${response.status})`);
+        }
       }
     } catch (error) {
-      console.error('Error creating label:', error);
+      console.error("Error creating label:", error);
+      setErrorMessage(error.message || "An unexpected error occurred");
+    } finally {
+      setIsSaving(false);
     }
   };
 
   const handleCancel = () => {
-    router.push('/labels');
+    router.push("/labels");
   };
 
   if (showBuilder) {
@@ -69,6 +86,9 @@ export default function ChooseLabelType() {
         selectedTemplate={selectedTemplate}
         onSave={handleSave}
         onCancel={handleCancel}
+        isSaving={isSaving}
+        errorMessage={errorMessage}
+        onClearError={() => setErrorMessage(null)}
       />
     );
   }
