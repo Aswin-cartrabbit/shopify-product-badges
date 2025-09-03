@@ -15,6 +15,7 @@ import {
   FormLayout,
   ChoiceList,
   Select,
+  Checkbox,
 } from "@shopify/polaris";
 import { useCallback, useState, useEffect } from "react";
 import { DateTimePicker } from "../pickers/DateTimePicker";
@@ -29,102 +30,13 @@ interface DisplayFormProps {
 }
 
 const DisplayForm = ({ data, onChange, type }: DisplayFormProps) => {
-  const [visibility, setVisibility] = useState<"all" | "single" | "multiple">(
-    "all"
-  );
   const { badge, updateDisplay } = useBadgeStore();
   const app = useAppBridge();
-
-  // Initialize visibility based on existing badge data
-  useEffect(() => {
-    if (badge.display.resourceIds && badge.display.resourceIds.length > 0) {
-      setVisibility(badge.display.resourceIds.length === 1 ? "single" : "multiple");
-    } else {
-      setVisibility("all");
-    }
-  }, [badge.display.resourceIds]);
-  async function openResourcePicker(multiple = false, initQuery = "") {
-
-    
-    try {
-      // Try multiple approaches to open the resource picker
-      let selected = null;
-      
-      // Method 1: Try window.shopify.resourcePicker (traditional method)
-      if (window?.shopify?.resourcePicker) {
-        console.log('Using window.shopify.resourcePicker');
-        selected = await window.shopify.resourcePicker({
-          type: "product",
-          query: initQuery,
-          filter: {
-            hidden: false,
-            variants: true,
-          },
-          action: "select",
-          multiple,
-        });
-      }
-      // Method 2: Try with shopify global (alternative)
-      else if (window?.shopify) {
-        console.log('Trying alternative Shopify API access');
-        // Force refresh the shopify object
-        await new Promise(resolve => setTimeout(resolve, 500));
-        if (window.shopify.resourcePicker) {
-          selected = await window.shopify.resourcePicker({
-            type: "product",
-            action: "select",
-            multiple,
-          });
-        }
-      } 
-      // Method 3: Direct app bridge approach
-      else {
-        console.error('Shopify resource picker API not available');
-        alert('Product selector is not available. This might be a context issue. Please try refreshing the page.');
-        return;
-      }
-
-      console.log('Resource picker result:', selected);
-
-      if (selected && selected.length > 0) {
-        const mappedProducts = selected.map((product) => {
-          return {
-            productTitle: product.title,
-            productHandle: product.handle,
-            productId: product.id,
-            variants: product.variants?.map((variant) => {
-              return {
-                variantId: variant.id,
-                variantDisplayName: variant.displayName,
-              };
-            }) || [],
-          };
-        });
-        
-        console.log('Updating display with products:', mappedProducts);
-        updateDisplay("resourceIds", mappedProducts);
-      } else {
-        console.log('No products selected or picker was cancelled');
-      }
-    } catch (error) {
-      console.error('Resource picker error:', error);
-      alert(`Failed to open product selector: ${error.message || 'Unknown error'}. Please try refreshing the page and try again.`);
-    }
-  }
-
-  const handleVisibilityChange = (value: "all" | "single" | "multiple") => {
-    setVisibility(value);
-
-    if (value === "single") {
-      // Small delay to ensure modal context is ready
-      setTimeout(() => openResourcePicker(false), 100);
-    } else if (value === "multiple") {
-      // Small delay to ensure modal context is ready
-      setTimeout(() => openResourcePicker(true), 100);
-    } else {
-      updateDisplay("resourceIds", []);
-    }
-  };
+  // Local UI-only states
+  const [displayRules, setDisplayRules] = useState(false);
+  const [selectedConditions, setSelectedConditions] = useState([]);
+  const [priceRange, setPriceRange] = useState({ min: "", max: "" });
+  const [newLink, setNewLink] = useState<string>("");
 
   const handleScheduleToggle = () => {
     updateDisplay("isScheduled", !badge.display.isScheduled);
@@ -134,9 +46,6 @@ const DisplayForm = ({ data, onChange, type }: DisplayFormProps) => {
     }
   };
 
-  const [displayRules, setDisplayRules] = useState(false);
-  const [selectedConditions, setSelectedConditions] = useState([]);
-  const [priceRange, setPriceRange] = useState({ min: "", max: "" });
   const handleConditionsChange = useCallback(
     (value) => setSelectedConditions(value),
     []
@@ -206,6 +115,126 @@ const DisplayForm = ({ data, onChange, type }: DisplayFormProps) => {
         </Card>
 
         <Divider />
+
+        {/* Page display (new) */}
+        <Card>
+          <BlockStack gap="200">
+            <InlineStack gap="200" blockAlign="center">
+              <Text variant="headingSm" as="h3">Page display</Text>
+              <Tooltip content="Choose which store pages should show this label">
+                <Icon source={QuestionCircleIcon} tone="subdued" />
+              </Tooltip>
+            </InlineStack>
+            <BlockStack gap="200">
+              <Checkbox label="Product page" checked={badge.display?.pageDisplay?.product ?? true} onChange={(v) => updateDisplay("pageDisplay", { ...(badge.display?.pageDisplay||{}), product: v } as any)} />
+              <Checkbox label="Collection page" checked={badge.display?.pageDisplay?.collection ?? true} onChange={(v) => updateDisplay("pageDisplay", { ...(badge.display?.pageDisplay||{}), collection: v } as any)} />
+              <Checkbox label="Home page" checked={badge.display?.pageDisplay?.home ?? true} onChange={(v) => updateDisplay("pageDisplay", { ...(badge.display?.pageDisplay||{}), home: v } as any)} />
+              <Checkbox label="Search page" checked={badge.display?.pageDisplay?.search ?? true} onChange={(v) => updateDisplay("pageDisplay", { ...(badge.display?.pageDisplay||{}), search: v } as any)} />
+              <Checkbox label="Cart page" checked={badge.display?.pageDisplay?.cart ?? false} onChange={(v) => updateDisplay("pageDisplay", { ...(badge.display?.pageDisplay||{}), cart: v } as any)} />
+            </BlockStack>
+          </BlockStack>
+        </Card>
+
+        {/* Languages (new) */}
+        <Card>
+          <BlockStack gap="200">
+            <Text variant="headingSm" as="h3">Show label on store languages</Text>
+            <RadioButton label="All Languages" checked={(badge.display?.languagesMode ?? "all") === "all"} id="allLanguages" name="languages" onChange={() => updateDisplay("languagesMode", "all" as any)} />
+            <RadioButton label="Custom languages" checked={(badge.display?.languagesMode ?? "all") === "custom"} id="customLanguages" name="languages" onChange={() => updateDisplay("languagesMode", "custom" as any)} />
+            {badge.display?.languagesMode === "custom" && (
+              <FormLayout>
+                <ChoiceList
+                  title="Select languages"
+                  allowMultiple
+                  selected={(((badge.display as any)?.customLanguages) || []) as any}
+                  onChange={(values) => updateDisplay("customLanguages" as any, values as any)}
+                  choices={[
+                    { label: "English", value: "en" },
+                    { label: "French", value: "fr" },
+                    { label: "German", value: "de" },
+                    { label: "Spanish", value: "es" },
+                    { label: "Italian", value: "it" },
+                    { label: "Portuguese", value: "pt" },
+                    { label: "Dutch", value: "nl" },
+                    { label: "Japanese", value: "ja" },
+                    { label: "Korean", value: "ko" },
+                    { label: "Chinese (Simplified)", value: "zh-CN" },
+                    { label: "Chinese (Traditional)", value: "zh-TW" },
+                    { label: "Arabic", value: "ar" },
+                    { label: "Hindi", value: "hi" },
+                    { label: "Swedish", value: "sv" },
+                    { label: "Polish", value: "pl" },
+                  ]}
+                />
+              </FormLayout>
+            )}
+          </BlockStack>
+        </Card>
+
+        {/* Customer condition (new) */}
+        <Card>
+          <BlockStack gap="200">
+            <Text variant="headingSm" as="h3">Customer condition</Text>
+            <RadioButton label="All customers" checked={(badge.display?.customerCondition ?? "all") === "all"} id="allCustomers" name="customerCondition" onChange={() => updateDisplay("customerCondition", "all" as any)} />
+            <RadioButton label="Customer with tags" checked={badge.display?.customerCondition === "tags"} id="customersWithTags" name="customerCondition" onChange={() => updateDisplay("customerCondition", "tags" as any)} />
+            {badge.display?.customerCondition === "tags" && (
+              <FormLayout>
+                <TextField
+                  label="Customer tags"
+                  placeholder="vip, wholesale, influencer"
+                  helpText="Enter customer tags as a comma-separated list."
+                  autoComplete="off"
+                  value={(((badge.display as any)?.customerTags) || []).join(", ")}
+                  onChange={(value) => {
+                    const tags = value
+                      .split(",")
+                      .map((t) => t.trim())
+                      .filter((t) => t.length > 0);
+                    updateDisplay("customerTags" as any, tags as any);
+                  }}
+                />
+              </FormLayout>
+            )}
+            <RadioButton label="Logged-in customers" checked={badge.display?.customerCondition === "logged_in"} id="loggedInCustomers" name="customerCondition" onChange={() => updateDisplay("customerCondition", "logged_in" as any)} />
+          </BlockStack>
+        </Card>
+
+        {/* Schedule (new) */}
+        <Card>
+          <BlockStack gap="300">
+            <InlineStack gap="200" blockAlign="center">
+              <Icon source={CalendarTimeIcon} tone="subdued" />
+              <Text variant="headingSm" as="h3">Schedule</Text>
+            </InlineStack>
+            <BlockStack gap="200">
+              <Checkbox label="Start date" checked={Boolean(badge.display?.startDateTime)} onChange={(v) => updateDisplay("startDateTime", v ? (badge.display?.startDateTime || Date.now()) : undefined)} />
+              {badge.display?.startDateTime && (
+                <InlineStack gap="200">
+                  <div style={{ flex: 1 }}>
+                    <DateTimePicker dateLabel="" timeLabel="" initialValue={badge.display.startDateTime} onChange={(value) => updateDisplay("startDateTime", value)} />
+                  </div>
+                </InlineStack>
+              )}
+              <Checkbox label="End date" checked={Boolean(badge.display?.endDateTime)} onChange={(v) => updateDisplay("endDateTime", v ? (badge.display?.endDateTime || Date.now()) : undefined)} />
+              {badge.display?.endDateTime && (
+                <InlineStack gap="200">
+                  <div style={{ flex: 1 }}>
+                    <DateTimePicker dateLabel="" timeLabel="" initialValue={badge.display.endDateTime} onChange={(value) => updateDisplay("endDateTime", value)} />
+                  </div>
+                </InlineStack>
+              )}
+            </BlockStack>
+          </BlockStack>
+        </Card>
+
+        {/* Priority (new) */}
+        <Card>
+          <BlockStack gap="200">
+            <Text variant="headingSm" as="h3">Priority</Text>
+            <TextField label="" type="number" value={(badge.display?.priority ?? 0).toString()} onChange={(val) => updateDisplay("priority", parseInt(val || "0", 10) as any)} helpText="0 is for the highest priority, and 100 is for the lowest." autoComplete="off" />
+            <Checkbox label="Hide if products has higher priority labels/badges." checked={Boolean(badge.display?.respectProductPriority ?? true)} onChange={(v) => updateDisplay("respectProductPriority", v as any)} />
+          </BlockStack>
+        </Card>
 
         <Card>
           <BlockStack gap="300">
@@ -454,87 +483,7 @@ const DisplayForm = ({ data, onChange, type }: DisplayFormProps) => {
           </BlockStack>
         </Card>
 
-        {/* Product Visibility Section */}
-        <BlockStack gap="300">
-          <InlineStack align="space-between" blockAlign="center">
-            <Text variant="headingSm" as="h3">
-              Product Visibility
-            </Text>
-            <Tooltip content="Choose which products will display the badge. You can show it on all products or select specific ones.">
-              <Icon source={QuestionCircleIcon} tone="subdued" />
-            </Tooltip>
-          </InlineStack>
-
-          <BlockStack gap="200">
-            <RadioButton
-              label="Show on all products"
-              checked={visibility === "all"}
-              id="allProducts"
-              name="visibility"
-              onChange={() => handleVisibilityChange("all")}
-              helpText="Badge will appear on every product in your store"
-            />
-
-            <RadioButton
-              label="Show on a single product"
-              checked={visibility === "single"}
-              id="singleProduct"
-              name="visibility"
-              onChange={() => handleVisibilityChange("single")}
-              helpText="Choose one specific product to display the badge"
-            />
-            
-          
-
-            <RadioButton
-              label="Show on multiple specific products"
-              checked={visibility === "multiple"}
-              id="multipleProducts"
-              name="visibility"
-              onChange={() => handleVisibilityChange("multiple")}
-              helpText="Select multiple products to display the badge"
-            />
-          </BlockStack>
-
-          {(visibility === "single" || visibility === "multiple") &&
-            badge.display.resourceIds.length > 0 && (
-              <Card>
-                <BlockStack gap="200">
-                  <Text variant="bodyMd" as="p" fontWeight="medium">
-                    {visibility === "single"
-                      ? "Selected product:"
-                      : `Selected products (${badge.display.resourceIds.length}):`}
-                  </Text>
-                  <BlockStack gap="100">
-                    {badge.display.resourceIds.map((product, index) => (
-                      <InlineStack key={index} gap="200" blockAlign="center">
-                        <Text as="p">• {product.productTitle}</Text>
-                        {product.productHandle && (
-                          <Link
-                            url={`/products/${product.productHandle}`}
-                            target="_blank"
-                            removeUnderline
-                          >
-                            View product
-                          </Link>
-                        )}
-                      </InlineStack>
-                    ))}
-                  </BlockStack>
-
-                  {visibility === "multiple" && (
-                    <Button
-                      variant="plain"
-                      onClick={() => setTimeout(() => openResourcePicker(true), 100)}
-                    >
-                      Edit selection
-                    </Button>
-                  )}
-                </BlockStack>
-              </Card>
-            )}
-        </BlockStack>
-        <Divider />
+        {/* Product selection moved to Products tab; no visibility controls here */}
 
         {/* Help Section */}
         <Card>

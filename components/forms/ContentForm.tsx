@@ -732,9 +732,9 @@ const ContentForm = ({ data, onChange, type = "BADGE", badgeName, setBadgeName }
                   selectedPosition={badge.design.gridPosition || GridPosition.TOP_LEFT}
                   onPositionChange={(position) => updateDesign("gridPosition", position)}
                 />
-                <Text as="p" variant="bodySm" tone="subdued">
+                {/* <Text as="p" variant="bodySm" tone="subdued">
                   Click to select label position
-                </Text>
+                </Text> */}
               </Box>
             </>
           ) : (
@@ -770,12 +770,12 @@ const ContentForm = ({ data, onChange, type = "BADGE", badgeName, setBadgeName }
           )}
         </BlockStack>
 
-        <Bleed marginInline="400">
+        {/* <Bleed marginInline="400">
           <Divider />
-        </Bleed>
+        </Bleed> */}
       </BlockStack>
 
-      <Button fullWidth>Continue to design</Button>
+      {/* <Button fullWidth>Continue to design</Button> */}
     </Card>
 
     <TemplateGalleryModal
