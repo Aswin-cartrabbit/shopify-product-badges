@@ -23,16 +23,17 @@ const nextConfig = {
   async headers() {
     return [
       {
-        source: "/(.*)", // apply to all routes
+        source: "/(.*)",
         headers: [
+          {
+            key: "X-Frame-Options",
+            value: "SAMEORIGIN",
+          },
+          // Optional: Also set CSP frame-ancestors for additional security
           {
             key: "Content-Security-Policy",
             value:
-              "frame-ancestors https://admin.shopify.com https://*.myshopify.com;",
-          },
-          {
-            key: "X-Frame-Options",
-            value: "ALLOWALL", // optional, Shopify prefers CSP instead
+              "frame-ancestors 'self' https://*.shopify.com https://admin.shopify.com",
           },
         ],
       },
