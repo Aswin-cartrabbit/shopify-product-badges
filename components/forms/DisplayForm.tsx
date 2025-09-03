@@ -63,7 +63,7 @@ const DisplayForm = ({ data, onChange, type }: DisplayFormProps) => {
         </InlineStack>
 
         {/* Scheduling Section */}
-        <Card>
+        {/* <Card>
           <BlockStack gap="300">
             <InlineStack align="space-between" blockAlign="center">
               <InlineStack gap="200" blockAlign="center">
@@ -99,7 +99,6 @@ const DisplayForm = ({ data, onChange, type }: DisplayFormProps) => {
                     }}
                   />
                 </div>
-                {/* </InlineStack> */}
 
                 {badge.display.startDateTime && badge.display.endDateTime && (
                   <InlineStack gap="200">
@@ -114,7 +113,7 @@ const DisplayForm = ({ data, onChange, type }: DisplayFormProps) => {
           </BlockStack>
         </Card>
 
-        <Divider />
+        <Divider /> */}
 
         {/* Page display (new) */}
         <Card>
@@ -200,7 +199,7 @@ const DisplayForm = ({ data, onChange, type }: DisplayFormProps) => {
         </Card>
 
         {/* Schedule (new) */}
-        <Card>
+        {/* <Card>
           <BlockStack gap="300">
             <InlineStack gap="200" blockAlign="center">
               <Icon source={CalendarTimeIcon} tone="subdued" />
@@ -225,7 +224,7 @@ const DisplayForm = ({ data, onChange, type }: DisplayFormProps) => {
               )}
             </BlockStack>
           </BlockStack>
-        </Card>
+        </Card> */}
 
         {/* Priority (new) */}
         <Card>
@@ -236,7 +235,8 @@ const DisplayForm = ({ data, onChange, type }: DisplayFormProps) => {
           </BlockStack>
         </Card>
 
-        <Card>
+        {/* Display Rules (new) */}
+        {/* <Card>
           <BlockStack gap="300">
             <InlineStack align="space-between">
               <Text variant="headingSm" as="h3">
@@ -481,7 +481,7 @@ const DisplayForm = ({ data, onChange, type }: DisplayFormProps) => {
               </BlockStack>
             </Collapsible>
           </BlockStack>
-        </Card>
+        </Card> */}
 
         {/* Product selection moved to Products tab; no visibility controls here */}
 

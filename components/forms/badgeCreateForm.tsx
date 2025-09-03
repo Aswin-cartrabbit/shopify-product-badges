@@ -8,6 +8,7 @@ import {
   Button,
   ButtonGroup,
   Card,
+  Banner,
   Divider,
   Icon,
   Page,
@@ -34,16 +35,35 @@ interface BadgeBuilderProps {
   selectedTemplate?: any;
   onSave?: (data: any) => void;
   onCancel?: () => void;
+  isSaving?: boolean;
+  errorMessage?: string;
+  onClearError?: () => void;
 }
 
 export const BadgeBuilder = ({ 
   type = "BADGE", 
   selectedTemplate, 
   onSave,
-  onCancel 
+  onCancel,
+  isSaving,
+  errorMessage,
+  onClearError
 }: BadgeBuilderProps) => {
+
+  console.log('errorMessage ------->', errorMessage);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(true);
   const [hasInitializedTemplate, setHasInitializedTemplate] = useState(false);
+  
+  // Auto-dismiss error message after 5 seconds
+  useEffect(() => {
+    if (errorMessage && onClearError) {
+      const timer = setTimeout(() => {
+        onClearError();
+      }, 5000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [errorMessage, onClearError]);
   
   const getBadges = (status: "DRAFT" | "ACTIVE") => {
     switch (status) {
@@ -75,6 +95,7 @@ export const BadgeBuilder = ({
         name: selectedTemplate.text || selectedTemplate.alt || `New ${componentType.toLowerCase()}`,
         design: selectedTemplate
       }));
+      setName(selectedTemplate.text || selectedTemplate.alt || `New ${componentType.toLowerCase()}`);
     }
   }, [selectedTemplate, componentType]);
 
@@ -222,29 +243,39 @@ export const BadgeBuilder = ({
   };
 
   return (
-    <Modal variant="max" open={isModalOpen} onHide={handleCancel}>
-      <TitleBar title="Badge Editor" />
-      <Page
-        fullWidth
-        backAction={{
-          content: type === "LABEL" ? "Labels" : "Badges",
-          onAction: handleCancel,
-        }}
-        title={`Your ${componentType.toLowerCase()}`}
-        titleMetadata={getBadges(currentStatus)}
-        subtitle={`${componentType.charAt(0) + componentType.slice(1).toLowerCase()} Editor`}
-        primaryAction={{
-          content: "Save",
-          disabled: false,
-          onAction: handleSave,
-        }}
-        secondaryActions={[
-          {
-            content: "Close",
+    <>
+      <Modal variant="max" open={isModalOpen} onHide={handleCancel}>
+        <TitleBar title={`${componentType} Editor`} />
+        <Page
+          fullWidth
+          backAction={{
+            content: type === "LABEL" ? "Labels" : "Badges",
             onAction: handleCancel,
-          },
-        ]}
-      >
+          }}
+          title={`${name}`}
+          titleMetadata={getBadges(currentStatus)}
+          subtitle={`${componentType.charAt(0) + componentType.slice(1).toLowerCase()} Editor`}
+          primaryAction={{
+            content: isSaving ? "Saving..." : "Save",
+            disabled: isSaving,
+            onAction: handleSave,
+            loading: isSaving,
+          }}
+          secondaryActions={[
+            {
+              content: "Close",
+              onAction: handleCancel,
+            },
+          ]}
+        >
+        {/* Error Banner inside Page/Modal */}
+        {errorMessage && (
+          <div style={{ marginBottom: "12px" }}>
+            <Banner tone="critical" onDismiss={onClearError}>
+              {errorMessage}
+            </Banner>
+          </div>
+        )}
         {/* Custom Tab Implementation */}
         <div style={{ marginBottom: "1rem" }}>
           <div
@@ -258,233 +289,120 @@ export const BadgeBuilder = ({
               maxWidth: "100%",
             }}
           >
-            {type === "LABEL" ? (
-              <>
-                {/* Design (index 0) */}
-                <button
-                  style={{
-                    padding: "10px 16px",
-                    borderRadius: "8px",
-                    border: "none",
-                    backgroundColor:
-                      selectedTab === 0 ? "#ffffff" : "transparent",
-                    color: selectedTab === 0 ? "#1a1a1a" : "#6b7280",
-                    fontWeight: selectedTab === 0 ? "600" : "500",
-                    fontSize: "14px",
-                    cursor: "pointer",
-                    transition: "all 0.2s ease",
-                    boxShadow:
-                      selectedTab === 0
-                        ? "0 1px 3px rgba(0, 0, 0, 0.1)"
-                        : "none",
-                    minWidth: "auto",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "6px",
-                  }}
-                  onClick={() => handleTabChange(0)}
-                  onMouseEnter={(e) => {
-                    if (selectedTab !== 0) {
-                      e.currentTarget.style.backgroundColor = "#eeeeee";
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (selectedTab !== 0) {
-                      e.currentTarget.style.backgroundColor = "transparent";
-                    }
-                  }}
-                >
-                  <Icon source={EditIcon} tone="base" />
-                  Design
-                </button>
-                {/* Products (index 1) */}
-                <button
-                  style={{
-                    padding: "10px 16px",
-                    borderRadius: "8px",
-                    border: "none",
-                    backgroundColor:
-                      selectedTab === 1 ? "#ffffff" : "transparent",
-                    color: selectedTab === 1 ? "#1a1a1a" : "#6b7280",
-                    fontWeight: selectedTab === 1 ? "600" : "500",
-                    fontSize: "14px",
-                    cursor: "pointer",
-                    transition: "all 0.2s ease",
-                    boxShadow:
-                      selectedTab === 1
-                        ? "0 1px 3px rgba(0, 0, 0, 0.1)"
-                        : "none",
-                    minWidth: "auto",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "6px",
-                  }}
-                  onClick={() => handleTabChange(1)}
-                  onMouseEnter={(e) => {
-                    if (selectedTab !== 1) {
-                      e.currentTarget.style.backgroundColor = "#eeeeee";
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (selectedTab !== 1) {
-                      e.currentTarget.style.backgroundColor = "transparent";
-                    }
-                  }}
-                >
-                  <Icon source={ProductAddIcon} tone="base" />
-                  Products
-                </button>
-                {/* Display (index 2) */}
-                <button
-                  style={{
-                    padding: "10px 16px",
-                    borderRadius: "8px",
-                    border: "none",
-                    backgroundColor:
-                      selectedTab === 2 ? "#ffffff" : "transparent",
-                    color: selectedTab === 2 ? "#1a1a1a" : "#6b7280",
-                    fontWeight: selectedTab === 2 ? "600" : "500",
-                    fontSize: "14px",
-                    cursor: "pointer",
-                    transition: "all 0.2s ease",
-                    boxShadow:
-                      selectedTab === 2
-                        ? "0 1px 3px rgba(0, 0, 0, 0.1)"
-                        : "none",
-                    minWidth: "auto",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "6px",
-                  }}
-                  onClick={() => handleTabChange(2)}
-                  onMouseEnter={(e) => {
-                    if (selectedTab !== 2) {
-                      e.currentTarget.style.backgroundColor = "#eeeeee";
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (selectedTab !== 2) {
-                      e.currentTarget.style.backgroundColor = "transparent";
-                    }
-                  }}
-                >
-                  <Icon source={ContentIcon} tone="base" />
-                  Display
-                </button>
-              </>
-            ) : (
-              <>
-                {/* Original tabs for BADGE */}
-                <button
-                  style={{
-                    padding: "10px 16px",
-                    borderRadius: "8px",
-                    border: "none",
-                    backgroundColor:
-                      selectedTab === 0 ? "#ffffff" : "transparent",
-                    color: selectedTab === 0 ? "#1a1a1a" : "#6b7280",
-                    fontWeight: selectedTab === 0 ? "600" : "500",
-                    fontSize: "14px",
-                    cursor: "pointer",
-                    transition: "all 0.2s ease",
-                    boxShadow:
-                      selectedTab === 0
-                        ? "0 1px 3px rgba(0, 0, 0, 0.1)"
-                        : "none",
-                    minWidth: "auto",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "6px",
-                  }}
-                  onClick={() => handleTabChange(0)}
-                  onMouseEnter={(e) => {
-                    if (selectedTab !== 0) {
-                      e.currentTarget.style.backgroundColor = "#eeeeee";
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (selectedTab !== 0) {
-                      e.currentTarget.style.backgroundColor = "transparent";
-                    }
-                  }}
-                >
-                  <Icon source={ContentIcon} tone="base" />
-                  Content
-                </button>
-                <button
-                  style={{
-                    padding: "10px 16px",
-                    borderRadius: "8px",
-                    border: "none",
-                    backgroundColor:
-                      selectedTab === 1 ? "#ffffff" : "transparent",
-                    color: selectedTab === 1 ? "#1a1a1a" : "#6b7280",
-                    fontWeight: selectedTab === 1 ? "600" : "500",
-                    fontSize: "14px",
-                    cursor: "pointer",
-                    transition: "all 0.2s ease",
-                    boxShadow:
-                      selectedTab === 1
-                        ? "0 1px 3px rgba(0, 0, 0, 0.1)"
-                        : "none",
-                    minWidth: "auto",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "6px",
-                  }}
-                  onClick={() => handleTabChange(1)}
-                  onMouseEnter={(e) => {
-                    if (selectedTab !== 1) {
-                      e.currentTarget.style.backgroundColor = "#eeeeee";
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (selectedTab !== 1) {
-                      e.currentTarget.style.backgroundColor = "transparent";
-                    }
-                  }}
-                >
-                  <Icon source={EditIcon} tone="base" />
-                  Design
-                </button>
-                <button
-                  style={{
-                    padding: "10px 16px",
-                    borderRadius: "8px",
-                    border: "none",
-                    backgroundColor:
-                      selectedTab === 2 ? "#ffffff" : "transparent",
-                    color: selectedTab === 2 ? "#1a1a1a" : "#6b7280",
-                    fontWeight: selectedTab === 2 ? "600" : "500",
-                    fontSize: "14px",
-                    cursor: "pointer",
-                    transition: "all 0.2s ease",
-                    boxShadow:
-                      selectedTab === 2
-                        ? "0 1px 3px rgba(0, 0, 0, 0.1)"
-                        : "none",
-                    minWidth: "auto",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "6px",
-                  }}
-                  onClick={() => handleTabChange(2)}
-                  onMouseEnter={(e) => {
-                    if (selectedTab !== 2) {
-                      e.currentTarget.style.backgroundColor = "#eeeeee";
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (selectedTab !== 2) {
-                      e.currentTarget.style.backgroundColor = "transparent";
-                    }
-                  }}
-                >
-                  <Icon source={ProductAddIcon} tone="base" />
-                  Products
-                </button>
-              </>
-            )}
+            {/* Unified tabs for both LABEL and BADGE types */}
+            <>
+              {/* Design (index 0) */}
+              <button
+                style={{
+                  padding: "10px 16px",
+                  borderRadius: "8px",
+                  border: "none",
+                  backgroundColor:
+                    selectedTab === 0 ? "#ffffff" : "transparent",
+                  color: selectedTab === 0 ? "#1a1a1a" : "#6b7280",
+                  fontWeight: selectedTab === 0 ? "600" : "500",
+                  fontSize: "14px",
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
+                  boxShadow:
+                    selectedTab === 0
+                      ? "0 1px 3px rgba(0, 0, 0, 0.1)"
+                      : "none",
+                  minWidth: "auto",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                }}
+                onClick={() => handleTabChange(0)}
+                onMouseEnter={(e) => {
+                  if (selectedTab !== 0) {
+                    e.currentTarget.style.backgroundColor = "#eeeeee";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (selectedTab !== 0) {
+                    e.currentTarget.style.backgroundColor = "transparent";
+                  }
+                }}
+              >
+                <Icon source={EditIcon} tone="base" />
+                Design
+              </button>
+              {/* Products (index 1) */}
+              <button
+                style={{
+                  padding: "10px 16px",
+                  borderRadius: "8px",
+                  border: "none",
+                  backgroundColor:
+                    selectedTab === 1 ? "#ffffff" : "transparent",
+                  color: selectedTab === 1 ? "#1a1a1a" : "#6b7280",
+                  fontWeight: selectedTab === 1 ? "600" : "500",
+                  fontSize: "14px",
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
+                  boxShadow:
+                    selectedTab === 1
+                      ? "0 1px 3px rgba(0, 0, 0, 0.1)"
+                      : "none",
+                  minWidth: "auto",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                }}
+                onClick={() => handleTabChange(1)}
+                onMouseEnter={(e) => {
+                  if (selectedTab !== 1) {
+                    e.currentTarget.style.backgroundColor = "#eeeeee";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (selectedTab !== 1) {
+                    e.currentTarget.style.backgroundColor = "transparent";
+                  }
+                }}
+              >
+                <Icon source={ProductAddIcon} tone="base" />
+                Products
+              </button>
+              {/* Display (index 2) */}
+              <button
+                style={{
+                  padding: "10px 16px",
+                  borderRadius: "8px",
+                  border: "none",
+                  backgroundColor:
+                    selectedTab === 2 ? "#ffffff" : "transparent",
+                  color: selectedTab === 2 ? "#1a1a1a" : "#6b7280",
+                  fontWeight: selectedTab === 2 ? "600" : "500",
+                  fontSize: "14px",
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
+                  boxShadow:
+                    selectedTab === 2
+                      ? "0 1px 3px rgba(0, 0, 0, 0.1)"
+                      : "none",
+                  minWidth: "auto",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                }}
+                onClick={() => handleTabChange(2)}
+                onMouseEnter={(e) => {
+                  if (selectedTab !== 2) {
+                    e.currentTarget.style.backgroundColor = "#eeeeee";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (selectedTab !== 2) {
+                    e.currentTarget.style.backgroundColor = "transparent";
+                  }
+                }}
+              >
+                <Icon source={ContentIcon} tone="base" />
+                Display
+              </button>
+            </>
           </div>
         </div>
 
@@ -494,89 +412,55 @@ export const BadgeBuilder = ({
             gap: "1rem",
             gridTemplateColumns: "25% 75%",
             alignItems: "flex-start",
+            marginBottom: "16px",
           }}
         >
           <div>
-            {/* Always render forms but toggle visibility */}
-            {type === "LABEL" ? (
-              <>
-                {/* Design tab combines former Content + Design */}
-                {/* Add space between the two forms */}
-                <div
-                  style={{
-                    display: selectedTab === 0 ? "block" : "none",
-                  }}
-                >
-                  <ContentForm
-                    data={selectedTemplate}
-                    onChange={(data) => setFormData({ ...formData, ...data })}
-                    type={componentType}
-                    badgeName={formData.name}
-                    setBadgeName={(name) => setFormData({ ...formData, name })}
-                  />
-                  <DesignForm
-                    data={formData}
-                    onChange={(data) =>
-                      setFormData({ ...formData, design: data })
-                    }
-                    selectedTemplate={selectedTemplate}
-                    type={componentType}
-                  />
-                </div>
-                {/* Products */}
-                <div style={{ display: selectedTab === 1 ? "block" : "none" }}>
-                  <ProductsForm
-                    data={formData}
-                    onChange={(data) =>
-                      setFormData({ ...formData, products: data })
-                    }
-                    type={componentType}
-                  />
-                </div>
-                {/* Display */}
-                <div style={{ display: selectedTab === 2 ? "block" : "none" }}>
-                  <DisplayForm
-                    data={formData}
-                    onChange={(data) =>
-                      setFormData({ ...formData, display: data })
-                    }
-                    type={componentType}
-                  />
-                </div>
-              </>
-            ) : (
-              <>
-                {/* Original flow for BADGE */}
-                <div style={{ display: selectedTab === 0 ? "block" : "none" }}>
-                  <ContentForm
-                    data={selectedTemplate}
-                    onChange={(data) => setFormData({ ...formData, ...data })}
-                    type={componentType}
-                    badgeName={formData.name}
-                    setBadgeName={(name) => setFormData({ ...formData, name })}
-                  />
-                </div>
-                <div style={{ display: selectedTab === 1 ? "block" : "none" }}>
-                  <DesignForm
-                    data={formData}
-                    onChange={(data) =>
-                      setFormData({ ...formData, design: data })
-                    }
-                    selectedTemplate={selectedTemplate}
-                    type={componentType}
-                  />
-                </div>
-                <div style={{ display: selectedTab === 2 ? "block" : "none" }}>
-                  <ProductsForm
-                    data={formData}
-                    onChange={(data) =>
-                      setFormData({ ...formData, products: data })
-                    }
-                    type={componentType}
-                  />
-                </div>
-              </>
-            )}
+            {/* Unified form structure for both LABEL and BADGE types */}
+            <>
+              {/* Design tab combines Content + Design for both types */}
+              <div
+                style={{
+                  display: selectedTab === 0 ? "block" : "none",
+                }}
+              >
+                <ContentForm
+                  data={selectedTemplate}
+                  onChange={(data) => setFormData({ ...formData, ...data })}
+                  type={componentType}
+                  badgeName={formData.name}
+                  setBadgeName={(name) => setFormData({ ...formData, name })}
+                />
+                <DesignForm
+                  data={formData}
+                  onChange={(data) =>
+                    setFormData({ ...formData, design: data })
+                  }
+                  selectedTemplate={selectedTemplate}
+                  type={componentType}
+                />
+              </div>
+              {/* Products */}
+              <div style={{ display: selectedTab === 1 ? "block" : "none" }}>
+                <ProductsForm
+                  data={formData}
+                  onChange={(data) =>
+                    setFormData({ ...formData, products: data })
+                  }
+                  type={componentType}
+                />
+              </div>
+              {/* Display */}
+              <div style={{ display: selectedTab === 2 ? "block" : "none" }}>
+                <DisplayForm
+                  data={formData}
+                  onChange={(data) =>
+                    setFormData({ ...formData, display: data })
+                  }
+                  type={componentType}
+                />
+              </div>
+            </>
           </div>
           <div
             style={{
@@ -598,7 +482,13 @@ export const BadgeBuilder = ({
                   }}
                 >
                   {/* Label Name Input */}
-                  <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "16px",
+                    }}
+                  >
                     <TextField
                       label=""
                       value={formData.name || name}
@@ -610,27 +500,25 @@ export const BadgeBuilder = ({
                       autoComplete="off"
                     />
 
-                     {/* Status Toggle */}
-                  <div style={{ minWidth: "200px" }}>
-                    <ButtonGroup variant="segmented">
-                      <Button
-                        pressed={currentStatus === "ACTIVE"}
-                        onClick={() => setCurrentStatus("ACTIVE")}
-                      >
-                        Active
-                      </Button>
-                      <Button
-                        pressed={currentStatus === "DRAFT"}
-                        onClick={() => setCurrentStatus("DRAFT")}
-                      >
-                        Inactive
-                      </Button>
-                    </ButtonGroup>
+                    {/* Status Toggle */}
+                    <div style={{ minWidth: "200px" }}>
+                      <ButtonGroup variant="segmented">
+                        <Button
+                          pressed={currentStatus === "ACTIVE"}
+                          onClick={() => setCurrentStatus("ACTIVE")}
+                        >
+                          Active
+                        </Button>
+                        <Button
+                          pressed={currentStatus === "DRAFT"}
+                          onClick={() => setCurrentStatus("DRAFT")}
+                        >
+                          Inactive
+                        </Button>
+                      </ButtonGroup>
+                    </div>
                   </div>
 
-                  </div>
-
-                 
                   {/* Support Button */}
                   <Button variant="secondary">Support</Button>
                 </div>
@@ -648,5 +536,6 @@ export const BadgeBuilder = ({
         </div>
       </Page>
     </Modal>
+  </>
   );
 };
