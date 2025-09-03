@@ -76,6 +76,21 @@ export type BadgeDisplay = {
   visibility: "all" | "single" | "multiple" | "specific" | "collections";
   resourceIds?: any[];
   bgColor?: string;
+  // New Display controls
+  pageDisplay?: {
+    product: boolean;
+    collection: boolean;
+    home: boolean;
+    search: boolean;
+    cart: boolean;
+  };
+  specificLinks?: string[];
+  languagesMode?: "all" | "custom";
+  customLanguages?: string[];
+  customerCondition?: "all" | "tags" | "logged_in";
+  customerTags?: string[];
+  priority?: number; // 0 highest
+  respectProductPriority?: boolean;
 };
 
 export type Badge = {
@@ -162,6 +177,14 @@ const useBadgeStore = create<BadgeStore>()((set) => ({
       visibility: "all",
       resourceIds: [],
       bgColor: "#ffffff",
+      pageDisplay: { product: true, collection: true, home: true, search: true, cart: false },
+      specificLinks: [],
+      languagesMode: "all",
+      customLanguages: [],
+      customerCondition: "all",
+      customerTags: [],
+      priority: 0,
+      respectProductPriority: true,
     },
   },
 
@@ -266,6 +289,14 @@ const useBadgeStore = create<BadgeStore>()((set) => ({
           visibility: "all",
           resourceIds: [],
           bgColor: "#ffffff",
+          pageDisplay: { product: true, collection: true, home: true, search: true, cart: false },
+          specificLinks: [],
+          languagesMode: "all",
+          customLanguages: [],
+          customerCondition: "all",
+          customerTags: [],
+          priority: 0,
+          respectProductPriority: true,
         },
       },
     })),
