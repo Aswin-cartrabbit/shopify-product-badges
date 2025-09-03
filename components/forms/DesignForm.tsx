@@ -60,7 +60,9 @@ export default function DesignForm({ data, onChange, selectedTemplate, type }: D
   const handleDesignChange = (key: any, value: any) => {
     updateDesign(key, value);
     if (onChange) {
-      onChange({ [key]: value });
+      // Pass the complete updated design object
+      const updatedDesign = { ...badge.design, [key]: value };
+      onChange(updatedDesign);
     }
   };
 
