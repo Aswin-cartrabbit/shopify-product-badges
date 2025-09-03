@@ -3,6 +3,7 @@ import {
   Badge,
   Button,
   ButtonGroup,
+  Card,
   ChoiceList,
   EmptyState,
   Frame,
@@ -20,6 +21,7 @@ import {
 } from "@shopify/polaris";
 
 import { DeleteIcon, EditIcon } from "@shopify/polaris-icons";
+import { useRouter } from "next/router";
 
 import { useCallback, useEffect, useState } from "react";
 
@@ -498,6 +500,7 @@ export function DataTable() {
       </Badge>
     );
   };
+  const router = useRouter();
 
   const getPublishedBadge = (isPublished) => {
     if (isPublished) {
@@ -638,10 +641,34 @@ export function DataTable() {
             },
           }}
         >
-          <p>
-            Start by creating your first visual component or adjust your
-            filters.
-          </p>
+                  <Card>
+          <div style={{ 
+            display: "flex", 
+            justifyContent: "center", 
+            alignItems: "center",
+            minHeight: "450px",
+            padding: "40px 20px"
+          }}>
+            <div style={{ maxWidth: "500px", textAlign: "center" }}>
+              <EmptyState
+                heading="There is no label here"
+                action={{
+                  content: "Create label",
+                  onAction: () => router.push("/labels/create"),
+                }}
+                secondaryAction={{
+                  content: "Learn more",
+                  onAction: () => {
+                    // Add learn more functionality
+                  },
+                }}
+                image="https://u6rrdvqerrb6efrx-74627055920.shopifypreview.com/cdn/shop/files/1_ef0e920c-660d-4694-8b5c-454f22a6e1d2_720x.png?v=1754898246"
+              >
+                <p>Start creating labels or watch guidelines.</p>
+              </EmptyState>
+            </div>
+          </div>
+        </Card>
         </EmptyState>
       </LegacyCard>
     );
