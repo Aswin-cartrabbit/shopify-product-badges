@@ -35,7 +35,9 @@ export default function ColorPickerInput({
     onChange(value);
   };
 
-  const handleColorInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleColorInputChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const newColor = event.target.value;
     setHex(newColor);
     onChange(newColor);
@@ -72,7 +74,7 @@ export default function ColorPickerInput({
                 borderRadius: "4px",
                 border: "2px solid #ddd",
                 position: "relative",
-                overflow: "hidden"
+                overflow: "hidden",
               }}
               onClick={toggleActive}
             >
@@ -88,7 +90,7 @@ export default function ColorPickerInput({
                   cursor: "pointer",
                   border: "none",
                   padding: 0,
-                  margin: 0
+                  margin: 0,
                 }}
               />
             </div>
@@ -97,7 +99,7 @@ export default function ColorPickerInput({
         >
           <Card>
             <div style={{ padding: "16px", width: "200px" }}>
-              <Text variant="bodyMd" as="p" style={{ marginBottom: "8px" }}>
+              <Text variant="bodyMd" as="p">
                 Choose Color
               </Text>
               <input
@@ -110,7 +112,7 @@ export default function ColorPickerInput({
                   border: "1px solid #ddd",
                   borderRadius: "4px",
                   cursor: "pointer",
-                  marginBottom: "8px"
+                  marginBottom: "8px",
                 }}
               />
               <TextField
@@ -135,5 +137,3 @@ export default function ColorPickerInput({
     </div>
   );
 }
-
-
