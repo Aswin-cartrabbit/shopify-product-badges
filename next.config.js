@@ -19,6 +19,25 @@ const nextConfig = {
   allowedDevOrigins: [
     process.env.SHOPIFY_APP_URL.toString().replace("https://", ""),
   ],
+  // ✅ Fix X-Frame-Options issue
+  async headers() {
+    return [
+      {
+        source: "/(.*)", // apply to all routes
+        headers: [
+          {
+            key: "Content-Security-Policy",
+            value:
+              "frame-ancestors https://admin.shopify.com https://*.myshopify.com;",
+          },
+          {
+            key: "X-Frame-Options",
+            value: "ALLOWALL", // optional, Shopify prefers CSP instead
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;
