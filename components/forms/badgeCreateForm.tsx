@@ -149,7 +149,11 @@ export const BadgeBuilder = ({
 
   const handleSave = async () => {
     try {
+      // Get the latest badge store state right before creating payload
       const { badge } = useBadgeStore.getState();
+      
+      console.log("Form data before save:", formData);
+      console.log("Badge store content before save:", badge.content);
       
       const payload = {
         name: formData.name || name,
@@ -159,7 +163,7 @@ export const BadgeBuilder = ({
             id: selectedTemplate.id,
             type: selectedTemplate.src ? "image" : "text",
             data: selectedTemplate
-          } : badge.design,
+          } : null,
           ...badge.design
         },
         display: {
@@ -167,14 +171,23 @@ export const BadgeBuilder = ({
           ...formData.display
         },
         settings: {
-          content: badge.content,
+          content: {
+            ...badge.content,
+            // Ensure we're using the latest content from the badge store
+            text: badge.content.text || "",
+            contentType: badge.content.contentType || "text",
+            icon: badge.content.icon || "",
+            iconUploaded: badge.content.iconUploaded || false,
+            textColor: badge.content.textColor || "#ffffff"
+          },
           placement: badge.placement,
           ...formData.settings
         },
         status: "DRAFT"
       };
 
-      console.log("Saving payload:", payload);
+      console.log("Final payload:", payload);
+      console.log("Payload content text:", payload.settings.content.text);
 
       if (onSave) {
         onSave(payload);
@@ -351,7 +364,11 @@ export const BadgeBuilder = ({
             <div style={{ display: selectedTab === 0 ? 'block' : 'none' }}>
               <ContentForm 
                 data={selectedTemplate}
-                onChange={(data) => setFormData({...formData, ...data})}
+                onChange={(data) => {
+                  console.log("ContentForm onChange called with:", data);
+                  setFormData({...formData, ...data});
+                  console.log("Updated formData:", {...formData, ...data});
+                }}
                 type={componentType}
                 badgeName={formData.name}
                 setBadgeName={(name) => setFormData({...formData, name})}

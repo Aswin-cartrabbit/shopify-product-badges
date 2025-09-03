@@ -56,14 +56,14 @@ const ContentForm = ({ data, onChange, type = "BADGE", badgeName, setBadgeName }
 
   // AutoText options
   const autoTextOptions = [
-    { content: 'Discount %', value: '{Discount %}' },
-    { content: 'Discount amount', value: '{Discount amount}' },
-    { content: 'Price', value: '{Price}' },
-    { content: 'Day release', value: '{Day release}' },
-    { content: 'Remaining stock', value: '{Remaining stock}' },
-    { content: 'Number of reviews', value: '{Number of reviews}' },
-    { content: 'Average rating', value: '{Average rating}' },
-    { content: 'Product metafields', value: '{Product metafields}' },
+    { content: 'Discount %', value: '{{discount_percentage}}' },
+    { content: 'Discount amount', value: '{{discount_amount}}' },
+    { content: 'Price', value: '{{price}}' },
+    { content: 'Day release', value: '{{day_release}}' },
+    { content: 'Remaining stock', value: '{{remaining_stock}}' },
+    { content: 'Number of reviews', value: '{{review_count}}' },
+    { content: 'Average rating', value: '{{average_rating}}' },
+    { content: 'Product metafields', value: '{{product_metafields}}' },
   ];
 
   // Initialize local state from props/data and auto-detect content type
@@ -138,19 +138,31 @@ const ContentForm = ({ data, onChange, type = "BADGE", badgeName, setBadgeName }
 
          // Function to insert AutoText placeholders
          const insertAutoText = useCallback((placeholder: string) => {
-           const autoTextPattern = /\{[^}]+\}/g;
+           console.log("insertAutoText called with:", placeholder);
+           const autoTextPattern = /\{\{[^}]+\}\}/g;
            const textWithoutAutoText = localText.replace(autoTextPattern, '').trim();
            const newText = textWithoutAutoText ? `${textWithoutAutoText} ${placeholder}` : placeholder;
+           console.log("New text after AutoText insertion:", newText);
            setLocalText(newText);
            updateContent("text", newText);
-         }, [localText, updateContent]);
+           if (onChange) {
+             console.log("Calling onChange with AutoText:", newText);
+             onChange({ text: newText });
+           }
+         }, [localText, updateContent, onChange]);
 
          // Function to insert emojis
          const insertEmoji = useCallback((emoji: string) => {
+           console.log("insertEmoji called with:", emoji);
            const newText = localText ? `${localText} ${emoji}` : emoji;
+           console.log("New text after emoji insertion:", newText);
            setLocalText(newText);
            updateContent("text", newText);
-         }, [localText, updateContent]);
+           if (onChange) {
+             console.log("Calling onChange with emoji:", newText);
+             onChange({ text: newText });
+           }
+         }, [localText, updateContent, onChange]);
 
          // Formatting functions
          const handleBold = useCallback(() => {
@@ -160,8 +172,11 @@ const ContentForm = ({ data, onChange, type = "BADGE", badgeName, setBadgeName }
              const newText = localText.replace(selection, `<b>${selection}</b>`);
              setLocalText(newText);
              updateContent("text", newText);
+             if (onChange) {
+               onChange({ text: newText });
+             }
            }
-         }, [localText, updateContent, boldPressed]);
+         }, [localText, updateContent, boldPressed, onChange]);
 
          const handleItalic = useCallback(() => {
            setItalicPressed(!italicPressed);
@@ -170,8 +185,11 @@ const ContentForm = ({ data, onChange, type = "BADGE", badgeName, setBadgeName }
              const newText = localText.replace(selection, `<i>${selection}</i>`);
              setLocalText(newText);
              updateContent("text", newText);
+             if (onChange) {
+               onChange({ text: newText });
+             }
            }
-         }, [localText, updateContent, italicPressed]);
+         }, [localText, updateContent, italicPressed, onChange]);
 
          const handleUnderline = useCallback(() => {
            setUnderlinePressed(!underlinePressed);
@@ -180,8 +198,11 @@ const ContentForm = ({ data, onChange, type = "BADGE", badgeName, setBadgeName }
              const newText = localText.replace(selection, `<u>${selection}</u>`);
              setLocalText(newText);
              updateContent("text", newText);
+             if (onChange) {
+               onChange({ text: newText });
+             }
            }
-         }, [localText, updateContent, underlinePressed]);
+         }, [localText, updateContent, underlinePressed, onChange]);
 
          // Local state for form elements not directly related to badge data
 
@@ -200,9 +221,11 @@ const ContentForm = ({ data, onChange, type = "BADGE", badgeName, setBadgeName }
 
   const handleTextChange = useCallback(
     (newValue: string) => {
+      console.log("handleTextChange called with:", newValue);
       setLocalText(newValue);
       updateContent("text", newValue);
       if (onChange) {
+        console.log("Calling onChange with text:", newValue);
         onChange({ text: newValue });
       }
     },
