@@ -16,7 +16,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./init-scripts:/docker-entrypoint-initdb.d
     networks:
-      - postgres_network
+      - app_network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 30s
@@ -32,9 +32,43 @@ services:
     volumes:
       - redis_data:/data
     networks:
-      - postgres_network
+      - app_network
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  redis_gui:
+    image: redislabs/redisinsight:1.14.0
+    container_name: redis_gui
+    restart: always
+    ports:
+      - "9002:8001"
+    networks:
+      - app_network
+    volumes:
+      - redis_insight_volume_data:/db
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8001 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+  bullboard:
+    image: deadly0/bull-board
+    container_name: bull_board
+    restart: unless-stopped
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    ports:
+      - "3000:3002"
+    depends_on:
+      - redis
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000 || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -42,7 +76,8 @@ services:
 volumes:
   postgres_data:
   redis_data:
+  redis_insight_volume_data:
 
 networks:
-  postgres_network:
+  app_network:
     driver: bridge
