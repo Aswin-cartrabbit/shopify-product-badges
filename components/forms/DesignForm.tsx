@@ -369,9 +369,9 @@ export default function DesignForm({ data, onChange, selectedTemplate, type }: D
               helpText="Theme fonts will match your store's design perfectly but won't show in preview mode - publish to see the final result in your store."
             />
 
-            <Bleed marginInline="400">
+            {/* <Bleed marginInline="400">
               <Divider />
-            </Bleed>
+            </Bleed> */}
           </BlockStack>
         )}
       </BlockStack>

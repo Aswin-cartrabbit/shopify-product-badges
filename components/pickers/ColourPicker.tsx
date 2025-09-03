@@ -97,9 +97,11 @@ export default function ColorPickerInput({
         >
           <Card>
             <div style={{ padding: "16px", width: "200px" }}>
-              <Text variant="bodyMd" as="p" style={{ marginBottom: "8px" }}>
-                Choose Color
-              </Text>
+              <div style={{ marginBottom: "8px" }}>
+                <Text variant="bodyMd" as="p">
+                  Choose Color
+                </Text>
+              </div>
               <input
                 type="color"
                 value={hex}

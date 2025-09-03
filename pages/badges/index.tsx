@@ -1,3 +1,4 @@
+import { DataTable } from "@/components/tables/DataTable";
 import {
   Page,
   Card,
@@ -15,7 +16,6 @@ export default function Badges() {
   return (
     <div style={{ 
       padding: "20px 24px", 
-      backgroundColor: "#f6f6f7", 
       minHeight: "100vh"
     }}>
       <div style={{ maxWidth: "1000px", margin: "0 auto", padding: "0 60px" }}>
@@ -63,6 +63,9 @@ export default function Badges() {
             </div>
           </div>
         </Card>
+
+        <DataTable />
+
       </div>
     </div>
   );
