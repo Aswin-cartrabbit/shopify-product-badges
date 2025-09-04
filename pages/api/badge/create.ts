@@ -27,11 +27,25 @@ const create = async (req, res) => {
       name,
       description,
       type,
-      design: templates,
-      display: rules,
+      design,
+      display,
       settings,
       status,
     } = req.body;
+
+    // Map the payload structure to database fields
+    const templates = design; // design data goes to templates field
+    const rules = display;    // display data goes to rules field
+
+    // Debug logging to verify data structure
+    console.log("=== BACKEND DEBUG ===");
+    console.log("Received design data:", JSON.stringify(design, null, 2));
+    console.log("Design width:", design?.width);
+    console.log("Design height:", design?.height);
+    console.log("Design size:", design?.size);
+    console.log("Design shape:", design?.shape);
+    console.log("Mapped to templates field:", JSON.stringify(templates, null, 2));
+    console.log("===================");
 
     // Validate required fields
     if (!name || !type || !templates || !rules) {
