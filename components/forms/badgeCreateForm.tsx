@@ -306,6 +306,7 @@ export const BadgeBuilder = ({
 
   return (
     <>
+    <div style={{zIndex: 99}}>
       <Modal variant="max" open={isModalOpen} onHide={handleCancel}>
         <TitleBar title={`${componentType} Editor`} />
         <Page
@@ -511,7 +512,8 @@ export const BadgeBuilder = ({
                 />
               </div>
               {/* Products */}
-              <div style={{ display: selectedTab === 1 ? "block" : "none" }}>
+              <div style={{zIndex: 9999999999999999999}}>
+              <div style={{ display: selectedTab === 1 ? "block" : "none" , zIndex: 999999999 }}>
                 <ProductsForm
                   data={formData}
                   onChange={(data) => {
@@ -524,6 +526,7 @@ export const BadgeBuilder = ({
                   }}
                   type={componentType}
                 />
+              </div>
               </div>
               {/* Display */}
               <div style={{ display: selectedTab === 2 ? "block" : "none" }}>
@@ -614,6 +617,7 @@ export const BadgeBuilder = ({
         </div>
       </Page>
     </Modal>
+    </div>
   </>
   );
 };

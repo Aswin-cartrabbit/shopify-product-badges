@@ -91,6 +91,7 @@ export type BadgeDisplay = {
   customerTags?: string[];
   priority?: number; // 0 highest
   respectProductPriority?: boolean;
+  metafields?: any[];
 };
 
 export type Badge = {
@@ -185,6 +186,7 @@ const useBadgeStore = create<BadgeStore>()((set) => ({
       customerTags: [],
       priority: 0,
       respectProductPriority: true,
+      metafields: [],
     },
   },
 
