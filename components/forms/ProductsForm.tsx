@@ -20,7 +20,7 @@ import {
   Checkbox,
   Badge,
 } from "@shopify/polaris";
-import { QuestionCircleIcon, ChevronDownIcon, ChevronUpIcon } from "@shopify/polaris-icons";
+import { QuestionCircleIcon, ChevronDownIcon, ChevronUpIcon, DeleteIcon } from "@shopify/polaris-icons";
 import { useBadgeStore, BadgeDisplay } from "@/stores/BadgeStore";
 import { useAppBridge, Modal, TitleBar } from '@shopify/app-bridge-react'; 
 import { useState, useCallback } from 'react';
@@ -71,6 +71,9 @@ const ProductsForm = ({ data, onChange, type = "BADGE" }: ProductsFormProps) => 
   const [isMetafieldModalOpen, setIsMetafieldModalOpen] = useState(false);
   const [metafieldDefinitionTypes, setMetafieldDefinitionTypes] = useState<any[]>([]);
   const [isLoadingMetafields, setIsLoadingMetafields] = useState(false);
+  
+  // Metafield condition states
+  const [metafieldConditions, setMetafieldConditions] = useState<any[]>([]);
 
   const togglePopoverActive = useCallback(
     () => setPopoverActive((popoverActive) => !popoverActive),
@@ -263,27 +266,59 @@ const ProductsForm = ({ data, onChange, type = "BADGE" }: ProductsFormProps) => 
     
     const updatedMetafields = [...selectedMetafields, mappedMetafield];
     setSelectedMetafields(updatedMetafields);
+    
+    // Create a condition entry for this metafield
+    const newCondition = {
+      id: `${metafield.namespace}.${metafield.key}`,
+      metafield: mappedMetafield,
+      operator: 'equal_to',
+      value: ''
+    };
+    
+    const updatedConditions = [...metafieldConditions, newCondition];
+    setMetafieldConditions(updatedConditions);
+    
     updateDisplay("metafields" as keyof BadgeDisplay, updatedMetafields);
+    updateDisplay("metafieldConditions" as keyof BadgeDisplay, updatedConditions);
     
     if (onChange) {
-      onChange({ metafields: updatedMetafields });
+      onChange({ metafields: updatedMetafields, metafieldConditions: updatedConditions });
     }
     
     setIsMetafieldModalOpen(false);
-  }, [selectedMetafields, updateDisplay, onChange]);
+  }, [selectedMetafields, metafieldConditions, updateDisplay, onChange]);
 
   const handleMetafieldRemove = useCallback((index: number) => {
+    const metafieldToRemove = selectedMetafields[index];
     const updatedMetafields = selectedMetafields.filter((_, i) => i !== index);
+    const updatedConditions = metafieldConditions.filter(condition => 
+      condition.id !== `${metafieldToRemove.namespace}.${metafieldToRemove.key}`
+    );
+    
     setSelectedMetafields(updatedMetafields);
+    setMetafieldConditions(updatedConditions);
     updateDisplay("metafields" as keyof BadgeDisplay, updatedMetafields);
+    updateDisplay("metafieldConditions" as keyof BadgeDisplay, updatedConditions);
     
     if (onChange) {
-      onChange({ metafields: updatedMetafields });
+      onChange({ metafields: updatedMetafields, metafieldConditions: updatedConditions });
     }
-  }, [selectedMetafields, updateDisplay, onChange]);
+  }, [selectedMetafields, metafieldConditions, updateDisplay, onChange]);
 
-
- 
+  const handleMetafieldConditionUpdate = useCallback((conditionId: string, field: 'operator' | 'value', newValue: string) => {
+    const updatedConditions = metafieldConditions.map(condition => 
+      condition.id === conditionId 
+        ? { ...condition, [field]: newValue }
+        : condition
+    );
+    
+    setMetafieldConditions(updatedConditions);
+    updateDisplay("metafieldConditions" as keyof BadgeDisplay, updatedConditions);
+    
+    if (onChange) {
+      onChange({ metafieldConditions: updatedConditions });
+    }
+  }, [metafieldConditions, updateDisplay, onChange]);
 
   const TooltipIcon = ({ content }) => (
     <Tooltip content={content}>
@@ -501,6 +536,7 @@ const ProductsForm = ({ data, onChange, type = "BADGE" }: ProductsFormProps) => 
               </BlockStack>
             </Box>
           )}
+          
         </BlockStack>
 
         {(badge.display.visibility === "specific" || badge.display.visibility === "collections") && (
@@ -578,17 +614,15 @@ const ProductsForm = ({ data, onChange, type = "BADGE" }: ProductsFormProps) => 
     <Card>
       <BlockStack gap="400">
         <InlineStack gap="200" align="start">
-        
           <Text variant="headingMd" as="h2">
             Metafield
           </Text>
-          
         </InlineStack>
 
         <BlockStack gap="300">
           <InlineStack gap="200" align="space-between" blockAlign="center">
             <Text variant="bodyMd" as="p" fontWeight="medium">
-              Product metafield
+              Product metafield conditions
             </Text>
             <Button 
               variant="secondary"
@@ -598,37 +632,64 @@ const ProductsForm = ({ data, onChange, type = "BADGE" }: ProductsFormProps) => 
             </Button>
           </InlineStack>
 
-          {selectedMetafields && selectedMetafields.length > 0 && (
-            <Card background="bg-surface-secondary">
-              <BlockStack gap="200">
-                <Text variant="bodyMd" as="p" fontWeight="medium">
-                  Selected metafields ({selectedMetafields.length}):
-                </Text>
-                <BlockStack gap="100">
-                  {selectedMetafields.map((metafield, index) => (
-                    <InlineStack key={index} gap="200" blockAlign="center">
-                      <Text as="p">
-                        • {metafield.namespace}.{metafield.key} ({metafield.type.name})
+          {metafieldConditions && metafieldConditions.length > 0 && (
+            <BlockStack gap="300">
+              {metafieldConditions.map((condition, index) => (
+                <Card key={condition.id} background="bg-surface-secondary">
+                  <BlockStack gap="300">
+                    <InlineStack gap="200" align="space-between" blockAlign="center">
+                      <Text variant="bodyMd" as="p" fontWeight="medium">
+                        Condition {index + 1}
                       </Text>
                       <Button 
                         variant="plain" 
                         size="micro"
                         onClick={() => handleMetafieldRemove(index)}
-                      >
-                        Remove
-                      </Button>
+                        accessibilityLabel="Remove metafield condition"
+                        icon={DeleteIcon}
+                      />
                     </InlineStack>
-                  ))}
-                </BlockStack>
-                <Button
-                  variant="plain"
-                  onClick={openMetafieldPicker}
-                >
-                  Edit selection
-                </Button>
-              </BlockStack>
-            </Card>
+                    
+                    {/* Metafield Name */}
+                    <TextField
+                      label="Metafield"
+                      value={condition.metafield.name || `${condition.metafield.namespace}.${condition.metafield.key}`}
+                      onChange={() => {}} // Read-only for now
+                      placeholder="Metafield name"
+                      autoComplete="off"
+                      readOnly
+                    />
+                    
+                    {/* Operator Dropdown */}
+                    <Select
+                      label="Condition"
+                      options={[
+                        { label: "Equal to", value: "equal_to" },
+                        { label: "Exists", value: "exists" },
+                      
+                      ]}
+                      value={condition.operator}
+                      onChange={(value) => handleMetafieldConditionUpdate(condition.id, 'operator', value)}
+                      placeholder="Choose condition"
+                    />
+                    
+                    {/* Value Input */}
+                    <TextField
+                      label="Value"
+                      value={condition.value}
+                      onChange={(value) => handleMetafieldConditionUpdate(condition.id, 'value', value)}
+                      placeholder="Enter value"
+                      autoComplete="off"
+                    />
+                  </BlockStack>
+                </Card>
+              ))}
+            </BlockStack>
           )}
+          
+          <Text variant="bodySm" as="p" tone="subdued">
+            Examples: Show badge when metafield "care instruction" equals "sunlight prefer"
+          </Text>
         </BlockStack>
       </BlockStack>
     </Card>
@@ -967,17 +1028,8 @@ const ProductsForm = ({ data, onChange, type = "BADGE" }: ProductsFormProps) => 
                         <Text variant="bodyMd" as="p" fontWeight="medium">
                           {metafield.name || `${metafield.namespace}.${metafield.key}`}
                         </Text>
-                        <Text variant="bodySm" as="p" tone="subdued">
-                          <strong>Key:</strong> {metafield.namespace}.{metafield.key}
-                        </Text>
-                        <Text variant="bodySm" as="p" tone="subdued">
-                          <strong>Type:</strong> {metafield.type}
-                        </Text>
-                        {metafield.description && (
-                          <Text variant="bodySm" as="p" tone="subdued">
-                            <strong>Description:</strong> {metafield.description}
-                          </Text>
-                        )}
+                        
+                        
                       </BlockStack>
                       <Button 
                         variant="primary" 
