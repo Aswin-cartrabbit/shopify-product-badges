@@ -191,7 +191,7 @@ const ProductsForm = ({ data, onChange, type = "BADGE" }: ProductsFormProps) => 
     }
   }
 
-  const fetchProductMetafields = useCallback(async () => {
+  const fetchAllProductMetafields = useCallback(async () => {
     setIsLoadingMetafields(true);
     try {
       const response = await fetch('/api/graphql', {
@@ -201,88 +201,46 @@ const ProductsForm = ({ data, onChange, type = "BADGE" }: ProductsFormProps) => 
         },
         body: JSON.stringify({
           query: `
-            query ProductMetafields($id: ID!) {
-              product(id: $id) {
-                id
-                title
-                metafields(first: 50) {
-                  edges {
-                    node {
-                      id
-                      namespace
-                      key
-                      value
-                      type
-                      description
+            query AllProductMetafields {
+              metafieldDefinitions(first: 50, ownerType: PRODUCT) {
+                edges {
+                  node {
+                    id
+                    namespace
+                    key
+                    name
+                    description
+                    type {
+                      name
                     }
                   }
                 }
               }
             }
-          `,
-          variables: {
-            id: "gid://shopify/Product/10329309741359"
-          }
+          `
         })
       });
 
       const data = await response.json();
-      console.log('Product metafields response:', data);
+      console.log('All product metafields response:', data);
 
-      if (data.data?.product?.metafields?.edges) {
-        const metafields = data.data.product.metafields.edges.map((edge: any) => edge.node);
-        setMetafieldDefinitionTypes(metafields);
+      if (data.data?.metafieldDefinitions?.edges) {
+        const metafieldDefinitions = data.data.metafieldDefinitions.edges.map((edge: any) => ({
+          id: edge.node.id,
+          namespace: edge.node.namespace,
+          key: edge.node.key,
+          name: edge.node.name,
+          description: edge.node.description,
+          type: edge.node.type.name
+        }));
+        setMetafieldDefinitionTypes(metafieldDefinitions);
       } else {
-        console.error('Error fetching product metafields:', data);
-        // Fallback to mock data if API fails
-        setMetafieldDefinitionTypes([
-          {
-            id: "mock1",
-            namespace: "custom",
-            key: "product_type",
-            value: "Electronics",
-            type: "single_line_text_field",
-            description: "Custom product type"
-          },
-          {
-            id: "mock2", 
-            namespace: "custom",
-            key: "brand",
-            value: "Apple",
-            type: "single_line_text_field",
-            description: "Product brand"
-          },
-          {
-            id: "mock3",
-            namespace: "custom", 
-            key: "rating",
-            value: "4.5",
-            type: "number_decimal",
-            description: "Product rating"
-          }
-        ]);
+        console.error('Error fetching metafield definitions:', data);
+        setMetafieldDefinitionTypes([]);
       }
     } catch (error) {
-      console.error('Error fetching product metafields:', error);
-      // Fallback to mock data on error
-      setMetafieldDefinitionTypes([
-        {
-          id: "mock1",
-          namespace: "custom",
-          key: "product_type", 
-          value: "Electronics",
-          type: "single_line_text_field",
-          description: "Custom product type"
-        },
-        {
-          id: "mock2",
-          namespace: "custom",
-          key: "brand",
-          value: "Apple", 
-          type: "single_line_text_field",
-          description: "Product brand"
-        }
-      ]);
+      console.error('Error fetching metafield definitions:', error);
+      setMetafieldDefinitionTypes([]);
     } finally {
       setIsLoadingMetafields(false);
     }
@@ -290,9 +248,9 @@ const ProductsForm = ({ data, onChange, type = "BADGE" }: ProductsFormProps) => 
 
   const openMetafieldPicker = useCallback(() => {
     console.log('Opening metafield modal');
-    fetchProductMetafields();
+    fetchAllProductMetafields();
     setIsMetafieldModalOpen(true);
-  }, [fetchProductMetafields]);
+  }, [fetchAllProductMetafields]);
 
   const handleMetafieldSelect = useCallback((metafield: any) => {
     const mappedMetafield = {
@@ -992,14 +950,14 @@ const ProductsForm = ({ data, onChange, type = "BADGE" }: ProductsFormProps) => 
             </InlineStack>
             
             <Text variant="bodyMd" as="p" tone="subdued">
-              Select metafields from product ID 10329309741359. These are the actual key-value pairs for this specific product.
+              Select metafield definitions available for all products. These metafield types can be used for display conditions across your entire store.
             </Text>
 
-            {/* Real product metafields with key-value pairs */}
+            {/* All product metafield definitions */}
             <BlockStack gap="200">
               {isLoadingMetafields ? (
                 <Text variant="bodyMd" as="p" alignment="center">
-                  Loading product metafields...
+                  Loading metafield definitions...
                 </Text>
               ) : metafieldDefinitionTypes.length > 0 ? (
                 metafieldDefinitionTypes.map((metafield, index) => (
@@ -1007,10 +965,10 @@ const ProductsForm = ({ data, onChange, type = "BADGE" }: ProductsFormProps) => 
                     <InlineStack gap="200" align="space-between" blockAlign="center">
                       <BlockStack gap="100">
                         <Text variant="bodyMd" as="p" fontWeight="medium">
-                          {metafield.namespace}.{metafield.key}
+                          {metafield.name || `${metafield.namespace}.${metafield.key}`}
                         </Text>
                         <Text variant="bodySm" as="p" tone="subdued">
-                          <strong>Value:</strong> {metafield.value}
+                          <strong>Key:</strong> {metafield.namespace}.{metafield.key}
                         </Text>
                         <Text variant="bodySm" as="p" tone="subdued">
                           <strong>Type:</strong> {metafield.type}
@@ -1027,10 +985,9 @@ const ProductsForm = ({ data, onChange, type = "BADGE" }: ProductsFormProps) => 
                         onClick={() => handleMetafieldSelect({
                           namespace: metafield.namespace,
                           key: metafield.key,
-                          name: `${metafield.namespace}.${metafield.key}`,
+                          name: metafield.name || `${metafield.namespace}.${metafield.key}`,
                           description: metafield.description || `Metafield: ${metafield.namespace}.${metafield.key}`,
-                          type: { name: metafield.type },
-                          value: metafield.value
+                          type: { name: metafield.type }
                         })}
                       >
                         Select
@@ -1040,7 +997,7 @@ const ProductsForm = ({ data, onChange, type = "BADGE" }: ProductsFormProps) => 
                 ))
               ) : (
                 <Text variant="bodyMd" as="p" alignment="center" tone="subdued">
-                  No metafields found for this product
+                  No metafield definitions found
                 </Text>
               )}
             </BlockStack>
