@@ -687,9 +687,7 @@ const ProductsForm = ({ data, onChange, type = "BADGE" }: ProductsFormProps) => 
             </BlockStack>
           )}
           
-          <Text variant="bodySm" as="p" tone="subdued">
-            Examples: Show badge when metafield "care instruction" equals "sunlight prefer"
-          </Text>
+          
         </BlockStack>
       </BlockStack>
     </Card>
