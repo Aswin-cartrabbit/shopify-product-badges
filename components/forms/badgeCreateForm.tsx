@@ -529,7 +529,7 @@ export const BadgeBuilder = ({
               </div>
               </div>
               {/* Display */}
-              <div style={{ display: selectedTab === 2 ? "block" : "none" }}>
+              <div style={{ display: selectedTab === 2 ? "block" : "none", zIndex: 10}}>
                 <DisplayForm
                   data={formData}
                   onChange={(data) => {
