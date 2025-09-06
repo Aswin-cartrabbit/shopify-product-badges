@@ -37,26 +37,26 @@ const TrustBadgePreview = ({ data }: TrustBadgePreviewProps) => {
 
   const iconsContainerStyle: React.CSSProperties = {
     display: "flex",
-    flexDirection: "row",
+    flexDirection: layout === "horizontal" ? "row" : "column",
     alignItems: "center",
-    gap: "12px",
-    flexWrap: "wrap",
+    gap: `${spacing}px`,
+    flexWrap: layout === "horizontal" ? "wrap" : "nowrap",
     justifyContent: "center",
     maxWidth: "100%"
   };
 
   const iconStyle: React.CSSProperties = {
-    width: "130px",
-    height: "80px",
+    width: `${iconSize * 2}px`,
+    height: "auto",
     objectFit: "contain",
     borderRadius: "6px",
-    padding: "8px",
-  
+    padding: `${Math.max(2, spacing / 4)}px`,
+    backgroundColor: "#ffffff",
     transition: "all 0.2s ease"
   };
 
   return (
-    <BlockStack gap="400">
+    <BlockStack  gap="400">
       <Text as="h2" variant="headingMd">Preview</Text>
       
       <div style={containerStyle}>

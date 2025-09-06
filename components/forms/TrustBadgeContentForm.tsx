@@ -255,8 +255,8 @@ const TrustBadgeContentForm = ({
             <RangeSlider
               label={`Size: ${data.iconSize || 40}px`}
               value={data.iconSize || 40}
-              min={20}
-              max={80}
+              min={0}
+              max={100}
               onChange={handleIconSizeChange}
             />
           </BlockStack>
@@ -272,7 +272,7 @@ const TrustBadgeContentForm = ({
               label={`Spacing: ${data.spacing || 8}px`}
               value={data.spacing || 8}
               min={0}
-              max={40}
+              max={100}
               onChange={handleSpacingChange}
             />
           </BlockStack>
