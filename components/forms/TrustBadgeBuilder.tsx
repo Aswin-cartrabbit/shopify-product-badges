@@ -7,9 +7,11 @@ import {
   ButtonGroup,
   Card,
   Page,
+  Icon,
 } from "@shopify/polaris";
 import { useCallback, useState, useEffect } from "react";
 import {Modal, TitleBar} from '@shopify/app-bridge-react';
+import { EditIcon, ProductAddIcon, ContentIcon } from "@shopify/polaris-icons";
 import TrustBadgeContentForm from "./TrustBadgeContentForm";
 import TrustBadgePreview from "../TrustBadgePreview"; 
 
@@ -111,33 +113,32 @@ export const TrustBadgeBuilder = ({
 
       console.log("Saving trust badge payload:", payload);
 
-      if (onSave) {
-        console.log("Using custom onSave handler");
-        onSave(payload);
-        // Don't close modal here - let the parent component handle it
-      } else {
-        console.log("Using default API call");
-        // Default API call if no custom onSave handler
-        const response = await fetch('/api/badge/create', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(payload),
-        });
+      // Always make the API call first
+      const response = await fetch('/api/badge/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
 
-        console.log("API response status:", response.status);
+      console.log("API response status:", response.status);
+      
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Trust badge created successfully:', result);
         
-        if (response.ok) {
-          const result = await response.json();
-          console.log('Trust badge created successfully:', result);
-          // Only close modal after successful save
-          setIsModalOpen(false);
-        } else {
-          const error = await response.json();
-          console.error('Failed to create trust badge:', error);
-          setErrorMessage(error.message || 'Failed to create trust badge');
+        // Call parent's onSave handler if provided (for refresh logic)
+        if (onSave) {
+          await onSave(payload);
         }
+        
+        // Close modal after successful save
+        setIsModalOpen(false);
+      } else {
+        const error = await response.json();
+        console.error('Failed to create trust badge:', error);
+        setErrorMessage(error.message || 'Failed to create trust badge');
       }
     } catch (error) {
       console.error('Error creating trust badge:', error);
@@ -233,26 +234,129 @@ export const TrustBadgeBuilder = ({
         
         {/* Custom Tab Implementation */}
         <div style={{ marginBottom: "1rem" }}>
-          <ButtonGroup variant="segmented">
-            <Button
-              pressed={selectedTab === 0}
+          <div
+            style={{
+              display: "flex",
+              gap: "4px",
+              backgroundColor: "#f6f6f7",
+              padding: "4px",
+              borderRadius: "12px",
+              width: "fit-content",
+              maxWidth: "100%",
+            }}
+          >
+            {/* Content (index 0) */}
+            <button
+              style={{
+                padding: "10px 16px",
+                borderRadius: "8px",
+                border: "none",
+                backgroundColor:
+                  selectedTab === 0 ? "#ffffff" : "transparent",
+                color: selectedTab === 0 ? "#1a1a1a" : "#6b7280",
+                fontWeight: selectedTab === 0 ? "600" : "500",
+                fontSize: "14px",
+                cursor: "pointer",
+                transition: "all 0.2s ease",
+                boxShadow:
+                  selectedTab === 0
+                    ? "0 1px 3px rgba(0, 0, 0, 0.1)"
+                    : "none",
+                minWidth: "auto",
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+              }}
               onClick={() => handleTabChange(0)}
+              onMouseEnter={(e) => {
+                if (selectedTab !== 0) {
+                  e.currentTarget.style.backgroundColor = "#eeeeee";
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (selectedTab !== 0) {
+                  e.currentTarget.style.backgroundColor = "transparent";
+                }
+              }}
             >
+              <Icon source={EditIcon} tone="base" />
               Content
-            </Button>
-            <Button
-              pressed={selectedTab === 1}
+            </button>
+            {/* Design (index 1) */}
+            <button
+              style={{
+                padding: "10px 16px",
+                borderRadius: "8px",
+                border: "none",
+                backgroundColor:
+                  selectedTab === 1 ? "#ffffff" : "transparent",
+                color: selectedTab === 1 ? "#1a1a1a" : "#6b7280",
+                fontWeight: selectedTab === 1 ? "600" : "500",
+                fontSize: "14px",
+                cursor: "pointer",
+                transition: "all 0.2s ease",
+                boxShadow:
+                  selectedTab === 1
+                    ? "0 1px 3px rgba(0, 0, 0, 0.1)"
+                    : "none",
+                minWidth: "auto",
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+              }}
               onClick={() => handleTabChange(1)}
+              onMouseEnter={(e) => {
+                if (selectedTab !== 1) {
+                  e.currentTarget.style.backgroundColor = "#eeeeee";
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (selectedTab !== 1) {
+                  e.currentTarget.style.backgroundColor = "transparent";
+                }
+              }}
             >
+              <Icon source={ProductAddIcon} tone="base" />
               Design
-            </Button>
-            <Button
-              pressed={selectedTab === 2}
+            </button>
+            {/* Placement (index 2) */}
+            <button
+              style={{
+                padding: "10px 16px",
+                borderRadius: "8px",
+                border: "none",
+                backgroundColor:
+                  selectedTab === 2 ? "#ffffff" : "transparent",
+                color: selectedTab === 2 ? "#1a1a1a" : "#6b7280",
+                fontWeight: selectedTab === 2 ? "600" : "500",
+                fontSize: "14px",
+                cursor: "pointer",
+                transition: "all 0.2s ease",
+                boxShadow:
+                  selectedTab === 2
+                    ? "0 1px 3px rgba(0, 0, 0, 0.1)"
+                    : "none",
+                minWidth: "auto",
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+              }}
               onClick={() => handleTabChange(2)}
+              onMouseEnter={(e) => {
+                if (selectedTab !== 2) {
+                  e.currentTarget.style.backgroundColor = "#eeeeee";
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (selectedTab !== 2) {
+                  e.currentTarget.style.backgroundColor = "transparent";
+                }
+              }}
             >
+              <Icon source={ContentIcon} tone="base" />
               Placement
-            </Button>
-          </ButtonGroup>
+            </button>
+          </div>
         </div>
         
         <div
@@ -261,10 +365,16 @@ export const TrustBadgeBuilder = ({
             gap: "1rem",
             gridTemplateColumns: "25% 75%",
             alignItems: "flex-start",
+            marginBottom: "16px",
           }}
         >
           <div>
-            {selectedTab === 0 && (
+            {/* Content tab */}
+            <div
+              style={{
+                display: selectedTab === 0 ? "block" : "none",
+              }}
+            >
               <TrustBadgeContentForm 
                 data={formData.content}
                 onChange={handleContentChange}
@@ -274,23 +384,33 @@ export const TrustBadgeBuilder = ({
                   setFormData(prev => ({...prev, name}));
                 }}
               />
-            )}
-            {selectedTab === 1 && (
+            </div>
+            {/* Design tab */}
+            <div
+              style={{
+                display: selectedTab === 1 ? "block" : "none",
+              }}
+            >
               <Card>
                 <BlockStack gap="400">
                   <div>Design options coming soon...</div>
                   {/* TODO: Add design form when ready */}
                 </BlockStack>
               </Card>
-            )}
-            {selectedTab === 2 && (
+            </div>
+            {/* Placement tab */}
+            <div
+              style={{
+                display: selectedTab === 2 ? "block" : "none",
+              }}
+            >
               <Card>
                 <BlockStack gap="400">
                   <div>Placement options coming soon...</div>
                   {/* TODO: Add placement form when ready */}
                 </BlockStack>
               </Card>
-            )}
+            </div>
           </div>
           <div
             style={{
@@ -298,11 +418,15 @@ export const TrustBadgeBuilder = ({
               top: "1rem",
               height: "calc(100vh - 2rem)",
               overflow: "auto",
+              
             }}
           >
-            <Card>
+
+<div style={{ border:"none !important" }}>
+            
               <TrustBadgePreview data={formData.content} />
-            </Card>
+            
+            </div>
           </div>
         </div>
       </Page>
