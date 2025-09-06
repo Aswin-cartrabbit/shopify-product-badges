@@ -1,6 +1,7 @@
 "use client";
 import {
   Badge,
+  Banner,
   BlockStack,
   Button,
   ButtonGroup,
@@ -24,6 +25,8 @@ export const TrustBadgeBuilder = ({
   onCancel 
 }: TrustBadgeBuilderProps) => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string>("");
   
   const getBadges = (status: "DRAFT" | "ACTIVE") => {
     switch (status) {
@@ -82,22 +85,38 @@ export const TrustBadgeBuilder = ({
   );
 
   const handleSave = async () => {
+    setIsLoading(true);
+    setErrorMessage("");
+    
     try {
+      console.log("Current formData before save:", formData);
+      
+      // Structure the payload to match the API expectations
       const payload = {
         name: formData.name || name,
-        type: "TRUST_BADGE",
-        content: formData.content,
-        design: formData.design,
-        placement: formData.placement,
-        settings: formData.settings,
-        status: "DRAFT"
+        type: "TRUST_BADGE", // Using uppercase as defined in ComponentType enum
+        design: {
+          // Map content to design structure for templates field
+          content: formData.content,
+          ...formData.design
+        },
+        display: {
+          // Map placement and settings to display structure for rules field
+          placement: formData.placement,
+          ...formData.settings
+        },
+        settings: formData.settings || {},
+        status: currentStatus
       };
 
       console.log("Saving trust badge payload:", payload);
 
       if (onSave) {
+        console.log("Using custom onSave handler");
         onSave(payload);
+        // Don't close modal here - let the parent component handle it
       } else {
+        console.log("Using default API call");
         // Default API call if no custom onSave handler
         const response = await fetch('/api/badge/create', {
           method: 'POST',
@@ -107,15 +126,24 @@ export const TrustBadgeBuilder = ({
           body: JSON.stringify(payload),
         });
 
+        console.log("API response status:", response.status);
+        
         if (response.ok) {
-          console.log('Trust badge created successfully');
+          const result = await response.json();
+          console.log('Trust badge created successfully:', result);
+          // Only close modal after successful save
           setIsModalOpen(false);
         } else {
-          console.error('Failed to create trust badge');
+          const error = await response.json();
+          console.error('Failed to create trust badge:', error);
+          setErrorMessage(error.message || 'Failed to create trust badge');
         }
       }
     } catch (error) {
       console.error('Error creating trust badge:', error);
+      setErrorMessage('An unexpected error occurred while creating the trust badge');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -128,10 +156,39 @@ export const TrustBadgeBuilder = ({
   };
 
   const handleContentChange = (newContent: any) => {
-    setFormData(prev => ({
-      ...prev,
-      content: { ...prev.content, ...newContent }
-    }));
+    console.log("handleContentChange called with:", newContent);
+    setFormData(prev => {
+      const updated = {
+        ...prev,
+        content: { ...prev.content, ...newContent }
+      };
+      console.log("Updated formData:", updated);
+      return updated;
+    });
+  };
+
+  const handleDesignChange = (newDesign: any) => {
+    console.log("handleDesignChange called with:", newDesign);
+    setFormData(prev => {
+      const updated = {
+        ...prev,
+        design: { ...prev.design, ...newDesign }
+      };
+      console.log("Updated formData:", updated);
+      return updated;
+    });
+  };
+
+  const handlePlacementChange = (newPlacement: any) => {
+    console.log("handlePlacementChange called with:", newPlacement);
+    setFormData(prev => {
+      const updated = {
+        ...prev,
+        placement: { ...prev.placement, ...newPlacement }
+      };
+      console.log("Updated formData:", updated);
+      return updated;
+    });
   };
 
   return (
@@ -144,9 +201,10 @@ export const TrustBadgeBuilder = ({
         titleMetadata={getBadges(currentStatus)}
         subtitle="Customize your trust badge"
         primaryAction={{
-          content: "Save",
-          disabled: false,
+          content: isLoading ? "Saving..." : "Save",
+          disabled: isLoading,
           onAction: handleSave,
+          loading: isLoading,
         }}
         secondaryActions={[
           {
@@ -164,6 +222,15 @@ export const TrustBadgeBuilder = ({
           },
         ]}
       >
+        {/* Error Banner */}
+        {errorMessage && (
+          <div style={{ marginBottom: "12px" }}>
+            <Banner tone="critical" onDismiss={() => setErrorMessage("")}>
+              {errorMessage}
+            </Banner>
+          </div>
+        )}
+        
         {/* Custom Tab Implementation */}
         <div style={{ marginBottom: "1rem" }}>
           <ButtonGroup variant="segmented">
@@ -202,13 +269,17 @@ export const TrustBadgeBuilder = ({
                 data={formData.content}
                 onChange={handleContentChange}
                 badgeName={formData.name}
-                setBadgeName={(name) => setFormData({...formData, name})}
+                setBadgeName={(name) => {
+                  console.log("Setting badge name:", name);
+                  setFormData(prev => ({...prev, name}));
+                }}
               />
             )}
             {selectedTab === 1 && (
               <Card>
                 <BlockStack gap="400">
                   <div>Design options coming soon...</div>
+                  {/* TODO: Add design form when ready */}
                 </BlockStack>
               </Card>
             )}
@@ -216,6 +287,7 @@ export const TrustBadgeBuilder = ({
               <Card>
                 <BlockStack gap="400">
                   <div>Placement options coming soon...</div>
+                  {/* TODO: Add placement form when ready */}
                 </BlockStack>
               </Card>
             )}

@@ -5,15 +5,18 @@ import {
   Button,
   BlockStack,
   InlineStack,
+  Toast,
 } from "@shopify/polaris";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { TrustBadgeBuilder } from "../../components/forms/TrustBadgeBuilder";
+import { DataTable } from "../../components/tables/DataTable";
 
 export default function TrustBadges() {
   const router = useRouter();
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [showBuilder, setShowBuilder] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
 
   const trustBadgeTemplates = [
     
@@ -283,19 +286,67 @@ export default function TrustBadges() {
           </div>
         </Card>
         
+        {/* Existing Trust Badges Table */}
+        <Card>
+          <BlockStack gap="400">
+            <InlineStack align="space-between" blockAlign="center">
+              <Text as="h2" variant="headingMd">Your Trust Badges</Text>
+              <Text as="p" tone="subdued">
+                Manage your existing trust badges
+              </Text>
+            </InlineStack>
+            <DataTable type="TRUST_BADGE" />
+          </BlockStack>
+        </Card>
+        
         {/* Trust Badge Builder Modal */}
         {showBuilder && selectedTemplate && (
           <TrustBadgeBuilder
             selectedTemplate={selectedTemplate}
-            onSave={(data) => {
-              console.log('Trust badge saved:', data);
-              setShowBuilder(false);
-              setSelectedTemplate(null);
+            onSave={async (data) => {
+              console.log("Trust badge saved:", data);
+              try {
+                // Make API call to save the trust badge
+                const response = await fetch('/api/badge/create', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify(data),
+                });
+
+                if (response.ok) {
+                  const result = await response.json();
+                  console.log('Trust badge created successfully:', result);
+                  // Close modal and reset state
+                  setShowBuilder(false);
+                  setSelectedTemplate(null);
+                  // Show success toast
+                  setToastMessage("Trust badge created successfully!");
+                } else {
+                  const error = await response.json();
+                  console.error('Failed to create trust badge:', error);
+                  // Show error toast
+                  setToastMessage(`Failed to create trust badge: ${error.message || 'Unknown error'}`);
+                }
+              } catch (error) {
+                console.error('Error creating trust badge:', error);
+                // Show error toast
+                setToastMessage(`Error creating trust badge: ${error.message || 'Unknown error'}`);
+              }
             }}
             onCancel={() => {
               setShowBuilder(false);
               setSelectedTemplate(null);
             }}
+          />
+        )}
+        
+        {/* Toast for success/error messages */}
+        {toastMessage && (
+          <Toast
+            content={toastMessage}
+            onDismiss={() => setToastMessage("")}
           />
         )}
       </div>
