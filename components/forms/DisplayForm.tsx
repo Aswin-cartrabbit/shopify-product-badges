@@ -20,7 +20,7 @@ import {
 } from "@shopify/polaris";
 import { useCallback, useState, useEffect } from "react";
 import { DatePicker } from '@shopify/polaris';
-import { QuestionCircleIcon, CalendarTimeIcon } from "@shopify/polaris-icons";
+import { QuestionCircleIcon, CalendarTimeIcon, CheckboxIcon } from "@shopify/polaris-icons";
 import { useBadgeStore } from "@/stores/BadgeStore";
 import { useAppBridge } from '@shopify/app-bridge-react';
 
@@ -58,6 +58,8 @@ const DisplayForm = ({ data, onChange, type }: DisplayFormProps) => {
   });
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
+  const [showStartCheckbox, setShowStartCheckbox] = useState(false);
+  const [showEndCheckbox, setShowEndCheckbox] = useState(false);
 
   const handleStartMonthChange = useCallback(
     (month: number, year: number) => setStartDateState({month, year}),
@@ -265,21 +267,32 @@ const DisplayForm = ({ data, onChange, type }: DisplayFormProps) => {
             
             <InlineStack align="space-between" blockAlign="center">
               <Text variant="bodyMd" as="p">Start Date</Text>
-              <Button 
-                variant="plain" 
-                onClick={() => setShowStartDatePicker(!showStartDatePicker)}
-              >
-                {badge.display?.startDateTime ? 
+              <Checkbox 
+                label={badge.display?.startDateTime ? 
                   new Date(badge.display.startDateTime).toLocaleDateString() : 
-                  "Select Start Date"
+                  "Start Date"
                 }
-              </Button>
+                checked={showStartCheckbox}
+
+               
+                onChange={(checked) => {
+                  setShowStartCheckbox(checked);
+                  setShowStartDatePicker(checked);
+                  if (checked) {
+                    updateDisplay("startDateTime", Date.now());
+                  } else {
+                    updateDisplay("startDateTime", undefined);
+                  }
+                }}
+              >
+              </Checkbox>
             </InlineStack>
             
             {showStartDatePicker && (
               <DatePicker
                 month={startDateState.month}
                 year={startDateState.year}
+
                 onChange={(dates) => {
                   setSelectedStartDates(dates);
                   updateDisplay("startDateTime", dates.start.getTime());
@@ -292,15 +305,26 @@ const DisplayForm = ({ data, onChange, type }: DisplayFormProps) => {
 
             <InlineStack align="space-between" blockAlign="center">
               <Text variant="bodyMd" as="p">End Date</Text>
-              <Button 
-                variant="plain" 
-                onClick={() => setShowEndDatePicker(!showEndDatePicker)}
-              >
-                {badge.display?.endDateTime ? 
+              <Checkbox
+                label={badge.display?.endDateTime ? 
                   new Date(badge.display.endDateTime).toLocaleDateString() : 
-                  "Select End Date"
+                  "End Date"
                 }
-              </Button>
+                checked={showEndCheckbox}
+
+               
+                onChange={(checked) => {
+                  setShowEndCheckbox(checked);
+                  setShowEndDatePicker(checked);
+                  if (checked) {
+                    updateDisplay("endDateTime", Date.now());
+                  } else {
+                    updateDisplay("endDateTime", undefined);
+                  }
+                }}
+              >
+               
+              </Checkbox>
             </InlineStack>
             
             {showEndDatePicker && (
