@@ -295,7 +295,9 @@ const DisplayForm = ({ data, onChange, type }: DisplayFormProps) => {
 
                 onChange={(dates) => {
                   setSelectedStartDates(dates);
-                  updateDisplay("startDateTime", dates.start.getTime());
+                  const timestamp = dates.start.getTime();
+                  console.log("Start date selected:", dates.start, "Timestamp:", timestamp);
+                  updateDisplay("startDateTime", timestamp);
                   setShowStartDatePicker(false);
                 }}
                 onMonthChange={handleStartMonthChange}
@@ -333,7 +335,9 @@ const DisplayForm = ({ data, onChange, type }: DisplayFormProps) => {
                 year={endDateState.year}
                 onChange={(dates) => {
                   setSelectedEndDates(dates);
-                  updateDisplay("endDateTime", dates.start.getTime());
+                  const timestamp = dates.start.getTime();
+                  console.log("End date selected:", dates.start, "Timestamp:", timestamp);
+                  updateDisplay("endDateTime", timestamp);
                   setShowEndDatePicker(false);
                 }}
                 onMonthChange={handleEndMonthChange}
