@@ -31,7 +31,7 @@ const TemplateGalleryModal = ({ isOpen, onClose, onSelect, templateType = "image
   // Use the appropriate templates based on type
   const predefinedTemplates = templateType === "text" ? textTemplates : imageTemplates;
 
-  const categories = ["All", "Sales", "New", "Christmas", "Black friday", "Stock", "Shipping", "Popular"];
+  const categories = ["All", "Sales", "Free shipping", "Stock", "Organic", "New", "More"];
 
   const filteredTemplates = predefinedTemplates.filter(template => {
     const searchText = templateType === "text" 
@@ -124,67 +124,71 @@ const TemplateGalleryModal = ({ isOpen, onClose, onSelect, templateType = "image
           </Box>
 
           {/* Template Grid */}
-          <Grid>
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))",
+            gap: "12px",
+            maxHeight: "500px",
+            overflowY: "auto"
+          }}>
             {filteredTemplates.map((template) => (
-              <Grid.Cell key={template.id} columnSpan={{ xs: 6, sm: 3, md: 2, lg: 2, xl: 2 }}>
-                <Card>
-                  <div 
-                    style={{ 
-                      cursor: "pointer",
-                      textAlign: "center",
-                      border: selectedTemplate?.id === template.id ? "1px solid #0454F6" : "1px solid transparent",
+              <div key={template.id}>
+                <div 
+                  style={{ 
+                    cursor: "pointer",
+                    textAlign: "center",
+                    border: selectedTemplate?.id === template.id ? "2px solid #0454F6" : "1px solid #e5e7eb",
+                    borderRadius: "8px",
+                    transition: "all 0.3s ease",
+                    padding: "8px",
+                    backgroundColor: "white",
+                    boxShadow: selectedTemplate?.id === template.id ? "0 4px 12px rgba(4, 84, 246, 0.15)" : "0 1px 3px rgba(0, 0, 0, 0.1)"
+                  }}
+                  onClick={() => handleTemplateSelect(template)}
+                  onMouseEnter={(e) => {
+                    if (selectedTemplate?.id !== template.id) {
+                      e.currentTarget.style.border = "2px solid #0454F6";
+                      e.currentTarget.style.boxShadow = "0 4px 12px rgba(4, 84, 246, 0.15)";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (selectedTemplate?.id !== template.id) {
+                      e.currentTarget.style.border = "1px solid #e5e7eb";
+                      e.currentTarget.style.boxShadow = "0 1px 3px rgba(0, 0, 0, 0.1)";
+                    }
+                  }}
+                >
+                  <div
+                    style={{
+                      width: "100px",
+                      height: "100px",
                       borderRadius: "8px",
-                      transition: "all 0.3s ease",
-                      padding: "4px"
-                    }}
-                    className="template-card-hover"
-                    onClick={() => handleTemplateSelect(template)}
-                    onMouseEnter={(e) => {
-                      if (selectedTemplate?.id !== template.id) {
-                        e.currentTarget.style.border = "1px solid #0454F6";
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (selectedTemplate?.id !== template.id) {
-                        e.currentTarget.style.border = "1px solid transparent";
-                      }
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      overflow: "hidden",
+                      margin: "0 auto"
                     }}
                   >
-                    <Box paddingBlockEnd="200">
-                      <div
-                        style={{
-                          width: "100%",
-                          height: "80px",
-                          backgroundColor: "#f6f6f7",
-                          borderRadius: "8px",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          border: "1px solid #e1e3e5",
-                          overflow: "hidden",
-                        }}
-                      >
                         {templateType === "text" ? (
                           // Render text template with proper styling
                           <div
                             style={{
                               ...(template as any).style,
-                              transform: "scale(0.8)",
+                              transform: "scale(1.2)",
                               transformOrigin: "center",
-                              fontSize: "8px",
+                              fontSize: "12px",
                               fontWeight: "bold",
                               display: "flex",
                               alignItems: "center",
                               justifyContent: "center",
-                              minWidth: "60px",
-                              minHeight: "20px",
-                              maxWidth: "100px",
-                              maxHeight: "35px",
+                              minWidth: "80px",
+                              minHeight: "30px",
+                              maxWidth: "95px",
+                              maxHeight: "50px",
                               whiteSpace: "nowrap",
-                              overflow: "visible", // Allow clip-path to show properly
+                              overflow: "visible",
                               textOverflow: "clip",
-                              // Ensure the text is properly positioned within shaped containers
-                              
                               boxSizing: "border-box"
                             }}
                           >
@@ -194,7 +198,8 @@ const TemplateGalleryModal = ({ isOpen, onClose, onSelect, templateType = "image
                               justifyContent: "center",
                               width: "100%",
                               height: "100%",
-                              textAlign: "center"
+                              textAlign: "center",
+                              lineHeight: "1.1"
                             }}>
                               {(template as any).text}
                             </span>
@@ -238,46 +243,38 @@ const TemplateGalleryModal = ({ isOpen, onClose, onSelect, templateType = "image
                             </div>
                           </>
                         )}
-                      </div>
-                    </Box>
-                    
-                    {/* Selection indicator */}
-                    {selectedTemplate?.id === template.id && (
-                      <Box paddingBlockStart="100">
-                        <div style={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          gap: "4px"
-                        }}>
-                          <div style={{
-                            width: "16px",
-                            height: "16px",
-                            backgroundColor: "#0454F6",
-                            borderRadius: "50%",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            color: "white",
-                            fontSize: "12px",
-                            fontWeight: "bold"
-                          }}>
-                            ✓
-                          </div>
-                          <Badge tone="info">Selected</Badge>
-                        </div>
-                      </Box>
-                    )}
-                    
-                    {/* Template Name */}
-                    {/* <Text variant="bodySm" as="p" alignment="center">
-                      {templateType === "text" ? (template as any).text : (template as any).alt}
-                    </Text> */}
                   </div>
-                </Card>
-              </Grid.Cell>
+                  
+                  {/* Selection indicator */}
+                  {selectedTemplate?.id === template.id && (
+                    <div style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "4px",
+                      marginTop: "8px"
+                    }}>
+                      <div style={{
+                        width: "16px",
+                        height: "16px",
+                        backgroundColor: "#0454F6",
+                        borderRadius: "50%",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: "white",
+                        fontSize: "12px",
+                        fontWeight: "bold"
+                      }}>
+                        ✓
+                      </div>
+                      <Badge tone="info">Selected</Badge>
+                    </div>
+                  )}
+                </div>
+              </div>
             ))}
-          </Grid>
+          </div>
 
           {/* Use template button */}
           <Box paddingBlockStart="400">

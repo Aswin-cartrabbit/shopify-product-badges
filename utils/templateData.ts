@@ -17,6 +17,249 @@ export interface ImageTemplate {
 
 // Text templates that work for both badges and labels
 export const textTemplates: TextTemplate[] = [
+  // Templates from screenshot
+  {
+    id: "sale-off",
+    text: "SALE OFF",
+    category: ["Sales"],
+    style: {
+      width: "90px",
+      height: "35px",
+      background: "#dc2626",
+      color: "white",
+      fontWeight: "bold",
+      fontSize: "14px",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      borderRadius: "4px"
+    }
+  },
+  {
+    id: "new-badge",
+    text: "NEW",
+    category: ["New"],
+    style: {
+      width: "60px",
+      height: "60px",
+      background: "#dc2626",
+      color: "white",
+      fontWeight: "bold",
+      fontSize: "14px",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      borderRadius: "50%"
+    }
+  },
+  {
+    id: "buy-one-get-one",
+    text: "Buy One Get One FREE",
+    category: ["Sales"],
+    style: {
+      width: "90px",
+      height: "90px",
+      background: "#fbbf24",
+      color: "black",
+      fontWeight: "bold",
+      fontSize: "12px",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      borderRadius: "50%",
+      textAlign: "center",
+      lineHeight: "1.2"
+    }
+  },
+  {
+    id: "new-in",
+    text: "NEW IN",
+    category: ["New"],
+    style: {
+      width: "80px",
+      height: "30px",
+      background: "#dc2626",
+      color: "white",
+      fontWeight: "bold",
+      fontSize: "13px",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      borderRadius: "4px"
+    }
+  },
+  {
+    id: "low-stock",
+    text: "Low Stock",
+    category: ["Stock"],
+    style: {
+      width: "80px",
+      height: "30px",
+      background: "#dc2626",
+      color: "white",
+      fontWeight: "bold",
+      fontSize: "11px",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      clipPath: "polygon(0 0, 85% 0, 100% 50%, 85% 100%, 0% 100%)"
+    }
+  },
+  {
+    id: "sold-out",
+    text: "sold out",
+    category: ["Stock"],
+    style: {
+      width: "70px",
+      height: "25px",
+      background: "#000000",
+      color: "white",
+      fontWeight: "bold",
+      fontSize: "11px",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      borderRadius: "4px"
+    }
+  },
+  {
+    id: "organic-fresh",
+    text: "Organic Fresh",
+    category: ["Organic"],
+    style: {
+      width: "80px",
+      height: "30px",
+      background: "#16a34a",
+      color: "white",
+      fontWeight: "bold",
+      fontSize: "10px",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      clipPath: "polygon(0 0, 85% 0, 100% 50%, 85% 100%, 0% 100%)"
+    }
+  },
+  {
+    id: "free-sample",
+    text: "FREE SAMPLE",
+    category: ["Free shipping"],
+    style: {
+      width: "80px",
+      height: "25px",
+      background: "#f3e8ff",
+      color: "#7c3aed",
+      fontWeight: "bold",
+      fontSize: "10px",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      borderRadius: "4px"
+    }
+  },
+  {
+    id: "pre-order",
+    text: "PRE-ORDER",
+    category: ["New"],
+    style: {
+      width: "70px",
+      height: "70px",
+      background: "#ea580c",
+      color: "white",
+      fontWeight: "bold",
+      fontSize: "10px",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      borderRadius: "50%"
+    }
+  },
+  {
+    id: "25-off",
+    text: "25% OFF",
+    category: ["Sales"],
+    style: {
+      width: "70px",
+      height: "25px",
+      background: "#f3e8ff",
+      color: "#7c3aed",
+      fontWeight: "bold",
+      fontSize: "11px",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      borderRadius: "4px"
+    }
+  },
+  {
+    id: "free-ship",
+    text: "FREE SHIP",
+    category: ["Free shipping"],
+    style: {
+      width: "70px",
+      height: "25px",
+      background: "#7c3aed",
+      color: "white",
+      fontWeight: "bold",
+      fontSize: "11px",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      borderRadius: "4px"
+    }
+  },
+  {
+    id: "out-of-stock",
+    text: "OUT OF STOCK",
+    category: ["Stock"],
+    style: {
+      width: "70px",
+      height: "70px",
+      background: "#dc2626",
+      color: "white",
+      fontWeight: "bold",
+      fontSize: "9px",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      borderRadius: "50%",
+      textAlign: "center",
+      lineHeight: "1.1"
+    }
+  },
+  {
+    id: "pre-order-black",
+    text: "pre-order",
+    category: ["New"],
+    style: {
+      width: "70px",
+      height: "25px",
+      background: "#000000",
+      color: "white",
+      fontWeight: "bold",
+      fontSize: "11px",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      borderRadius: "4px"
+    }
+  },
+  {
+    id: "pre-order-green",
+    text: "PRE-ORDER",
+    category: ["New"],
+    style: {
+      width: "70px",
+      height: "70px",
+      background: "#16a34a",
+      color: "white",
+      fontWeight: "bold",
+      fontSize: "10px",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      borderRadius: "50%"
+    }
+  },
   {
     id: "limited-time",
     text: "LIMITED TIME",
