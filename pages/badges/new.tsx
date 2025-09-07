@@ -16,6 +16,8 @@ export default function ChooseBadgeType() {
   const router = useRouter();
   const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
   const [showBuilder, setShowBuilder] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (router.query.template && router.query.templateData) {
@@ -37,6 +39,8 @@ export default function ChooseBadgeType() {
 
   const handleSave = async (badgeData: any) => {
     try {
+      setIsSaving(true);
+      setErrorMessage(null);
       const response = await fetch('/api/badge/create', {
         method: 'POST',
         headers: {
@@ -51,10 +55,21 @@ export default function ChooseBadgeType() {
       if (response.ok) {
         router.push('/badges');
       } else {
-        console.error('Failed to create badge');
+        // Handle error response
+        try {
+          const errorData = await response.json();
+          console.error('Error response:', errorData);
+          setErrorMessage(errorData.message || `Failed to create badge (${response.status})`);
+        } catch (parseError) {
+          // If we can't parse the error response, show a generic error
+          setErrorMessage(`Failed to create badge (${response.status})`);
+        }
       }
     } catch (error) {
       console.error('Error creating badge:', error);
+      setErrorMessage(error.message || "An unexpected error occurred");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -69,6 +84,9 @@ export default function ChooseBadgeType() {
         selectedTemplate={selectedTemplate}
         onSave={handleSave}
         onCancel={handleCancel}
+        isSaving={isSaving}
+        errorMessage={errorMessage}
+        onClearError={() => setErrorMessage(null)}
       />
     );
   }

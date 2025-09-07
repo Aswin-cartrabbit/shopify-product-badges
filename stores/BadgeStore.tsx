@@ -174,8 +174,8 @@ const useBadgeStore = create<BadgeStore>()((set) => ({
     },
     display: {
       isScheduled: false,
-      endDateTime: undefined,
-      startDateTime: undefined,
+      endDateTime: Date.now(),
+      startDateTime: Date.now(),
       visibility: "all",
       resourceIds: [],
       bgColor: "#ffffff",
@@ -288,8 +288,8 @@ const useBadgeStore = create<BadgeStore>()((set) => ({
         },
         display: {
           isScheduled: false,
-          endDateTime: undefined,
-          startDateTime: undefined,
+          endDateTime: Date.now(),
+          startDateTime: Date.now(),
           visibility: "all",
           resourceIds: [],
           bgColor: "#ffffff",
