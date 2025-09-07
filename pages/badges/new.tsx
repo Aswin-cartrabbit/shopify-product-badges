@@ -16,12 +16,43 @@ export default function ChooseBadgeType() {
   const router = useRouter();
   const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
   const [showBuilder, setShowBuilder] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [editDataLoaded, setEditDataLoaded] = useState(false);
 
   useEffect(() => {
-    if (router.query.template) {
+    // Only run when router is ready and we haven't already loaded edit data
+    if (!router.isReady || isLoading || editDataLoaded) return;
+
+    console.log('Router query:', router.query);
+
+    // Check if we're in edit mode
+    if (router.query.edit === 'true' && router.query.id) {
+      console.log('Edit mode detected, fetching component data...');
+      setIsLoading(true);
+      fetchComponentData(router.query.id as string);
+      return;
+    }
+
+    // Legacy: Check if we're in edit mode with data passed directly
+    if (router.query.edit === 'true' && router.query.data) {
+      try {
+        const editData = JSON.parse(router.query.data as string);
+        console.log('Legacy edit data loaded:', editData);
+        setSelectedTemplate(editData);
+        setShowBuilder(true);
+        setEditDataLoaded(true);
+        return;
+      } catch (error) {
+        console.error("Error parsing edit data:", error);
+      }
+    }
+
+    // Only handle template logic if we're not in edit mode
+    if (!router.query.edit && router.query.template) {
       // First, try to get template by ID from centralized data
       const template = getTemplateById(router.query.template as string);
       if (template) {
+        console.log('Template loaded from ID:', template);
         setSelectedTemplate(template);
         setShowBuilder(true);
         return;
@@ -29,6 +60,7 @@ export default function ChooseBadgeType() {
 
       // Handle AI generated template
       if (router.query.template === "ai-generated" && router.query.aiGeneratedSrc) {
+        console.log('AI generated template loaded');
         setSelectedTemplate({
           id: "ai-generated",
           src: router.query.aiGeneratedSrc as string,
@@ -41,6 +73,7 @@ export default function ChooseBadgeType() {
 
       // Handle create from scratch
       if (router.query.template === "create-from-scratch") {
+        console.log('Create from scratch mode');
         setSelectedTemplate(null);
         setShowBuilder(true);
         return;
@@ -50,6 +83,7 @@ export default function ChooseBadgeType() {
       if (router.query.templateData) {
         try {
           const templateData = JSON.parse(router.query.templateData as string);
+          console.log('Template data loaded:', templateData);
           setSelectedTemplate(templateData);
           setShowBuilder(true);
         } catch (error) {
@@ -57,12 +91,64 @@ export default function ChooseBadgeType() {
         }
       }
     }
-  }, [router.query]);
+  }, [router.isReady, router.query.edit, router.query.id, router.query.template, router.query.templateData, router.query.data, router.query.aiGeneratedSrc, isLoading, editDataLoaded]);
+
+  // Fetch component data for editing
+  const fetchComponentData = async (componentId: string) => {
+    try {
+      console.log('Fetching component data for ID:', componentId);
+      
+      const response = await fetch(`/api/badge/${componentId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Fetched component data from DB:', result.data);
+        
+        // Map the database structure to the expected template structure
+        const componentData = {
+          id: result.data.id,
+          name: result.data.name,
+          description: result.data.description,
+          type: result.data.type,
+          design: result.data.templates,    // templates field from DB maps to design
+          display: result.data.rules,       // rules field from DB maps to display
+          settings: result.data.settings,
+          status: result.data.status,
+          createdAt: result.data.createdAt,
+          updatedAt: result.data.updatedAt,
+        };
+
+        console.log('Setting selectedTemplate with edit data:', componentData);
+        setSelectedTemplate(componentData);
+        setShowBuilder(true);
+        setEditDataLoaded(true);
+        setIsLoading(false);
+      } else {
+        const errorData = await response.json();
+        console.error('Failed to fetch component data:', errorData);
+        setIsLoading(false);
+        // Optionally show error to user
+      }
+    } catch (error) {
+      console.error('Error fetching component data:', error);
+      setIsLoading(false);
+      // Optionally show error to user
+    }
+  };
 
   const handleSave = async (badgeData: any) => {
     try {
-      const response = await fetch('/api/badge/create', {
-        method: 'POST',
+      const isEdit = router.query.edit === 'true' && router.query.id;
+      const url = isEdit ? `/api/badge/update?id=${router.query.id}` : '/api/badge/create';
+      const method = isEdit ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method: method,
         headers: {
           'Content-Type': 'application/json',
         },
@@ -75,10 +161,11 @@ export default function ChooseBadgeType() {
       if (response.ok) {
         router.push('/badges');
       } else {
-        console.error('Failed to create badge');
+        const errorData = await response.json();
+        console.error(`Failed to ${isEdit ? 'update' : 'create'} badge:`, errorData);
       }
     } catch (error) {
-      console.error('Error creating badge:', error);
+      console.error(`Error ${router.query.edit === 'true' ? 'updating' : 'creating'} badge:`, error);
     }
   };
 
