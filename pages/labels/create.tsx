@@ -19,537 +19,22 @@ import {
   UploadIcon,
   ImageIcon
 } from "@shopify/polaris-icons";
+import { 
+  textTemplates, 
+  imageTemplates, 
+  getTextTemplatesByCategory, 
+  getImageTemplatesByCategory,
+  textCategories,
+  imageCategories 
+} from '@/utils/templateData';
 
 export default function CreateLabel() {
   const [selectedTab, setSelectedTab] = useState(0);
 
-  const [selectedCategory, setSelectedCategory] = useState("Sales");
+  const [selectedCategory, setSelectedCategory] = useState("All");
   const [aiPrompt, setAiPrompt] = useState("");
   const router = useRouter();
 
-  // Text label templates with the provided styles
-  const textLabels = [
-    {
-      id: "limited-time",
-      text: "LIMITED TIME",
-      style: {
-        width: "120px",
-        height: "30px",
-        background: "#FF1919",
-        color: "white",
-        fontWeight: "bold",
-        fontFamily: "'Alata', sans-serif",
-        fontSize: "16px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        clipPath: "polygon(0 0, 100% 0, 80% 100%, 0% 100%)"
-      }
-    },
-    {
-      id: "in-stock",
-      text: "IN STOCK",
-      style: {
-        width: "120px",
-        height: "30px",
-        background: "#8BC34A",
-        color: "black",
-        fontWeight: "bold",
-        fontFamily: "'Alata', sans-serif",
-        fontSize: "16px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        clipPath: "polygon(0 0, 100% 0, 80% 100%, 0% 100%)"
-      }
-    },
-    {
-      id: "new-arrival",
-      text: "NEW ARRIVAL",
-      style: {
-        width: "120px",
-        height: "30px",
-        background: "#3F51B5",
-        color: "white",
-        fontWeight: "bold",
-        fontFamily: "'Alata', sans-serif",
-        fontSize: "16px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        borderRadius: "15px"
-      }
-    },
-    {
-      id: "hot-item",
-      text: "HOT ITEM",
-      style: {
-        width: "120px",
-        height: "30px",
-        background: "#FF5722",
-        color: "white",
-        fontWeight: "bold",
-        fontFamily: "'Alata', sans-serif",
-        fontSize: "16px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        borderRadius: "15px"
-      }
-    },
-    {
-      id: "sale",
-      text: "SALE",
-      style: {
-        width: "60px",
-        height: "60px",
-        background: "#FFEB3B",
-        color: "black",
-        fontWeight: "bold",
-        fontFamily: "'Alata', sans-serif",
-        fontSize: "14px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        borderRadius: "50%"
-      }
-    },
-    {
-      id: "bestseller",
-      text: "BESTSELLER",
-      style: {
-        width: "120px",
-        height: "30px",
-        background: "#9C27B0",
-        color: "white",
-        fontWeight: "bold",
-        fontFamily: "'Alata', sans-serif",
-        fontSize: "14px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        clipPath: "polygon(0 0, 100% 0, 80% 100%, 0% 100%)"
-      }
-    },
-    {
-      id: "50-off",
-      text: "50% OFF",
-      style: {
-        width: "60px",
-        height: "60px",
-        background: "#E91E63",
-        color: "white",
-        fontWeight: "bold",
-        fontFamily: "'Alata', sans-serif",
-        fontSize: "14px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        borderRadius: "50%"
-      }
-    },
-    {
-      id: "featured",
-      text: "FEATURED",
-      style: {
-        width: "120px",
-        height: "30px",
-        background: "#009688",
-        color: "white",
-        fontWeight: "bold",
-        fontFamily: "'Alata', sans-serif",
-        fontSize: "16px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        borderRadius: "15px"
-      }
-    },
-    {
-      id: "exclusive",
-      text: "EXCLUSIVE",
-      style: {
-        width: "120px",
-        height: "30px",
-        background: "#FFB300",
-        color: "black",
-        fontWeight: "bold",
-        fontFamily: "'Alata', sans-serif",
-        fontSize: "16px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        clipPath: "polygon(0 0, 100% 0, 80% 100%, 0% 100%)"
-      }
-    },
-    {
-      id: "free-ship",
-      text: "FREE SHIP",
-      style: {
-        width: "70px",
-        height: "70px",
-        background: "#4CAF50",
-        color: "white",
-        fontWeight: "bold",
-        fontFamily: "'Alata', sans-serif",
-        fontSize: "12px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        borderRadius: "50%"
-      }
-    },
-    {
-      id: "premium",
-      text: "PREMIUM",
-      style: {
-        width: "120px",
-        height: "30px",
-        background: "#212121",
-        color: "white",
-        fontWeight: "bold",
-        fontFamily: "'Alata', sans-serif",
-        fontSize: "16px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        borderRadius: "15px"
-      }
-    },
-    {
-      id: "trending",
-      text: "TRENDING",
-      style: {
-        width: "120px",
-        height: "30px",
-        background: "#FF9800",
-        color: "white",
-        fontWeight: "bold",
-        fontFamily: "'Alata', sans-serif",
-        fontSize: "16px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        clipPath: "polygon(0 0, 100% 0, 80% 100%, 0% 100%)"
-      }
-    },
-    {
-      id: "deal",
-      text: "DEAL",
-      style: {
-        width: "60px",
-        height: "60px",
-        background: "#F44336",
-        color: "white",
-        fontWeight: "bold",
-        fontFamily: "'Alata', sans-serif",
-        fontSize: "13px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        clipPath: "polygon(30% 0%, 70% 0%, 100% 50%, 70% 100%, 30% 100%, 0% 50%)"
-      }
-    },
-    {
-      id: "top-rated",
-      text: "TOP RATED",
-      style: {
-        width: "120px",
-        height: "30px",
-        background: "#2196F3",
-        color: "white",
-        fontWeight: "bold",
-        fontFamily: "'Alata', sans-serif",
-        fontSize: "14px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        clipPath: "polygon(0 0, 100% 0, 80% 100%, 0% 100%)"
-      }
-    },
-    {
-      id: "limited",
-      text: "LIMITED",
-      style: {
-        width: "60px",
-        height: "60px",
-        background: "#673AB7",
-        color: "white",
-        fontWeight: "bold",
-        fontFamily: "'Alata', sans-serif",
-        fontSize: "14px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        borderRadius: "50%"
-      }
-    },
-    {
-      id: "flash-sale",
-      text: "FLASH SALE",
-      style: {
-        width: "120px",
-        height: "30px",
-        background: "#FFC107",
-        color: "black",
-        fontWeight: "bold",
-        fontFamily: "'Alata', sans-serif",
-        fontSize: "14px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        clipPath: "polygon(0 0, 100% 0, 80% 100%, 0% 100%)"
-      }
-    },
-    {
-      id: "organic",
-      text: "ORGANIC",
-      style: {
-        width: "120px",
-        height: "30px",
-        background: "#689F38",
-        color: "white",
-        fontWeight: "bold",
-        fontFamily: "'Alata', sans-serif",
-        fontSize: "16px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        borderRadius: "15px"
-      }
-    },
-    {
-      id: "luxury",
-      text: "LUXURY",
-      style: {
-        width: "60px",
-        height: "60px",
-        background: "linear-gradient(45deg, #FFD700, #FFA500)",
-        color: "black",
-        fontWeight: "bold",
-        fontFamily: "'Alata', sans-serif",
-        fontSize: "14px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        borderRadius: "50%"
-      }
-    },
-    {
-      id: "clearance",
-      text: "CLEARANCE",
-      style: {
-        width: "120px",
-        height: "30px",
-        background: "#E91E63",
-        color: "white",
-        fontWeight: "bold",
-        fontFamily: "'Alata', sans-serif",
-        fontSize: "14px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        clipPath: "polygon(0 0, 100% 0, 80% 100%, 0% 100%)"
-      }
-    },
-    {
-      id: "wholesale",
-      text: "WHOLESALE",
-      style: {
-        width: "120px",
-        height: "30px",
-        background: "#00BCD4",
-        color: "white",
-        fontWeight: "bold",
-        fontFamily: "'Alata', sans-serif",
-        fontSize: "14px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        borderRadius: "15px"
-      }
-    },
-    {
-      id: "save-money",
-      text: "SAVE $10",
-      style: {
-        width: "80px",
-        height: "80px",
-        background: "#4CAF50",
-        color: "white",
-        fontWeight: "bold",
-        fontFamily: "'Alata', sans-serif",
-        fontSize: "12px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        borderRadius: "50%",
-        border: "3px solid #2E7D32"
-      }
-    },
-    {
-      id: "coming-soon",
-      text: "COMING SOON",
-      style: {
-        width: "130px",
-        height: "25px",
-        background: "#607D8B",
-        color: "white",
-        fontWeight: "bold",
-        fontFamily: "'Alata', sans-serif",
-        fontSize: "11px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        borderRadius: "12px"
-      }
-    },
-    {
-      id: "eco-friendly",
-      text: "ECO",
-      style: {
-        width: "60px",
-        height: "60px",
-        background: "#8BC34A",
-        color: "white",
-        fontWeight: "bold",
-        fontFamily: "'Alata', sans-serif",
-        fontSize: "14px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        borderRadius: "50%"
-      }
-    },
-    {
-      id: "handmade",
-      text: "HANDMADE",
-      style: {
-        width: "120px",
-        height: "30px",
-        background: "#8D6E63",
-        color: "white",
-        fontWeight: "bold",
-        fontFamily: "'Alata', sans-serif",
-        fontSize: "12px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        borderRadius: "15px"
-      }
-    },
-    {
-      id: "bundle-deal",
-      text: "BUNDLE",
-      style: {
-        width: "120px",
-        height: "30px",
-        background: "#FF6F00",
-        color: "white",
-        fontWeight: "bold",
-        fontFamily: "'Alata', sans-serif",
-        fontSize: "14px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        clipPath: "polygon(0 0, 100% 0, 80% 100%, 0% 100%)"
-      }
-    }
-  ];
-
-  // Image labels from the provided JSON data
-  const imageLabels = [
-    {
-      id: "free-shipping-1",
-      src: "https://d3azqz9xba9gwd.cloudfront.net/storage/labels/pl-july-production-demo-store/674ec6d8ee7fe.png",
-      alt: "Free shipping",
-      type: "shipping"
-    },
-    {
-      id: "free-shipping-car",
-      src: "https://d3azqz9xba9gwd.cloudfront.net/storage/labels/pl-july-production-demo-store/67469f6b53270.png",
-      alt: "Free shipping car with arrow",
-      type: "shipping"
-    },
-    {
-      id: "express-delivery-1",
-      src: "https://d3azqz9xba9gwd.cloudfront.net/storage/labels/pl-july-production-demo-store/6746a377c8246.png",
-      alt: "Express delivery guaranteed",
-      type: "express_delivery"
-    },
-    {
-      id: "express-delivery-2",
-      src: "https://d3azqz9xba9gwd.cloudfront.net/storage/labels/pl-july-production-demo-store/6746a3a804c12.png",
-      alt: "Express delivery easy return",
-      type: "express_delivery"
-    },
-    {
-      id: "free-delivery-red",
-      src: "https://d3azqz9xba9gwd.cloudfront.net/storage/labels/pl-july-production-demo-store/6728a3f13ba1a.png",
-      alt: "Free delivery red badge",
-      type: "free_delivery"
-    },
-    {
-      id: "free-100-delivery",
-      src: "https://d3azqz9xba9gwd.cloudfront.net/storage/labels/pl-july-production-demo-store/6728a2a96fb99.png",
-      alt: "Free 100% delivery",
-      type: "free_delivery"
-    },
-    {
-      id: "free-shipping-plane",
-      src: "https://d3azqz9xba9gwd.cloudfront.net/storage/labels/pl-july-production-demo-store/asset-9-28.png",
-      alt: "Free shipping plane",
-      type: "shipping"
-    },
-    {
-      id: "same-day-delivery",
-      src: "https://d3azqz9xba9gwd.cloudfront.net/storage/labels/pl-july-production-demo-store/6728a2eead152.png",
-      alt: "Same day delivery",
-      type: "same_day_delivery"
-    },
-    {
-      id: "free-shipping-animated",
-      src: "https://d3azqz9xba9gwd.cloudfront.net/storage/labels/pl-july-production-demo-store/67289b422e95b.png",
-      alt: "Free shipping animated",
-      type: "shipping"
-    },
-    {
-      id: "free-delivery-truck",
-      src: "https://d3azqz9xba9gwd.cloudfront.net/storage/labels/pl-july-production-demo-store/67289c4850548.png",
-      alt: "Free delivery blue truck",
-      type: "free_delivery"
-    },
-    {
-      id: "express-delivery-stamp",
-      src: "https://d3azqz9xba9gwd.cloudfront.net/storage/labels/pl-july-production-demo-store/67289b0682b22.png",
-      alt: "Express delivery stamp",
-      type: "express_delivery"
-    },
-    {
-      id: "free-shipping-green",
-      src: "https://d3azqz9xba9gwd.cloudfront.net/storage/labels/pl-july-production-demo-store/free-shipping-green.png",
-      alt: "Free shipping round sticker",
-      type: "shipping"
-    },
-    {
-      id: "free-delivery-plane",
-      src: "https://d3azqz9xba9gwd.cloudfront.net/storage/labels/pl-july-production-demo-store/6746d53030846.png",
-      alt: "Free delivery tag plane",
-      type: "free_delivery"
-    },
-    {
-      id: "free-delivery-card",
-      src: "https://d3azqz9xba9gwd.cloudfront.net/storage/labels/pl-july-production-demo-store/6746d5a59566e.png",
-      alt: "Free delivery card",
-      type: "free_delivery"
-    },
-    {
-      id: "free-shipping-2",
-      src: "https://d3azqz9xba9gwd.cloudfront.net/storage/labels/pl-july-production-demo-store/658503fb07d32.png",
-      alt: "Free Shipping",
-      type: "shipping"
-    }
-  ];
 
   const tabs = [
     {
@@ -567,45 +52,18 @@ export default function CreateLabel() {
   ];
 
   const handleLabelSelect = (labelId: string) => {
-    // Find the selected template data
-    const selectedTemplate = [...textLabels, ...imageLabels].find(
-      (template) => template.id === labelId
-    );
-    
-    // Immediately navigate to customization page with selected template
+    // Navigate to customization page with just the template ID
     router.push({
       pathname: "/labels/new",
       query: { 
-        template: labelId,
-        templateData: JSON.stringify(selectedTemplate)
+        template: labelId
       }
     });
   };
 
   const renderTextLabels = () => {
-    // Filter labels based on selected category
-    const filteredLabels = textLabels.filter(label => {
-      if (selectedCategory === "Sales") {
-        return ["sale", "50-off", "flash-sale", "clearance", "deal", "limited-time", "bestseller"].includes(label.id);
-      }
-      if (selectedCategory === "Free shipping") {
-        return ["free-ship"].includes(label.id);
-      }
-      if (selectedCategory === "Stock") {
-        return ["in-stock"].includes(label.id);
-      }
-      if (selectedCategory === "Coming soon") {
-        return ["coming-soon"].includes(label.id);
-      }
-      if (selectedCategory === "Organic") {
-        return ["organic", "eco-friendly"].includes(label.id);
-      }
-      if (selectedCategory === "New") {
-        return ["new-arrival", "hot-item"].includes(label.id);
-      }
-      // Add more category filtering as needed
-      return true;
-    });
+    // Get filtered labels from centralized template data
+    const filteredLabels = getTextTemplatesByCategory(selectedCategory);
     
     return (
       <div 
@@ -706,11 +164,10 @@ export default function CreateLabel() {
           <Button 
             variant="secondary"
             size="medium"
-            onClick={() =>  router.push({
+            onClick={() => router.push({
               pathname: "/labels/new",
               query: { 
-                template: "create-from-scratch",
-                templateData: JSON.stringify({})
+                template: "create-from-scratch"
               }
             })}
           >
@@ -816,26 +273,8 @@ export default function CreateLabel() {
   };
 
   const renderImageLabels = () => {
-    // Filter image labels based on selected category
-    const filteredImageLabels = imageLabels.filter(label => {
-      if (selectedCategory === "Shipping") {
-        return label.type === "shipping";
-      }
-      if (selectedCategory === "Delivery") {
-        return ["free_delivery", "same_day_delivery"].includes(label.type);
-      }
-      if (selectedCategory === "Express") {
-        return label.type === "express_delivery";
-      }
-      if (selectedCategory === "Free shipping") {
-        return label.type === "shipping";
-      }
-      if (selectedCategory === "Same day") {
-        return label.type === "same_day_delivery";
-      }
-      // Add more category filtering as needed
-      return true;
-    });
+    // Get filtered image labels from centralized template data
+    const filteredImageLabels = getImageTemplatesByCategory(selectedCategory);
     
     return (
       <div 
@@ -939,8 +378,7 @@ export default function CreateLabel() {
             onClick={() => router.push({
               pathname: "/labels/new",
               query: { 
-                template: "create-from-scratch",
-                templateData: JSON.stringify({})
+                template: "create-from-scratch"
               }
             })}
           >
@@ -1149,17 +587,7 @@ export default function CreateLabel() {
                           <div style={{ marginBottom: "16px" }}>
                             <Badge tone="success">Most popular</Badge>
                           </div>
-                          {[
-                            "Sales",
-                            "Free shipping", 
-                            "Stock",
-                            "Coming soon",
-                            "Organic",
-                            "New",
-                            "Pre-order",
-                            "Buy 1 get 1",
-                            "AutoText"
-                          ].map((category) => (
+                          {textCategories.map((category) => (
                             <div
                               key={category}
                               style={{
@@ -1225,17 +653,7 @@ export default function CreateLabel() {
                           <div style={{ marginBottom: "16px" }}>
                             <Badge tone="success">Most popular</Badge>
                           </div>
-                          {[
-                            "Shipping",
-                            "Delivery", 
-                            "Guarantee",
-                            "Express",
-                            "Free shipping",
-                            "Same day",
-                            "Returns",
-                            "Security",
-                            "Quality"
-                          ].map((category) => (
+                          {imageCategories.map((category) => (
                             <div
                               key={category}
                               style={{

@@ -18,18 +18,42 @@ export default function ChooseBadgeType() {
   const [showBuilder, setShowBuilder] = useState(false);
 
   useEffect(() => {
-    if (router.query.template && router.query.templateData) {
-      try {
-        const templateData = JSON.parse(router.query.templateData as string);
-        setSelectedTemplate(templateData);
+    if (router.query.template) {
+      // First, try to get template by ID from centralized data
+      const template = getTemplateById(router.query.template as string);
+      if (template) {
+        setSelectedTemplate(template);
         setShowBuilder(true);
-      } catch (error) {
-        console.error("Error parsing template data:", error);
-        // Fallback to template ID lookup
-        const template = getTemplateById(router.query.template as string);
-        if (template) {
-          setSelectedTemplate(template);
+        return;
+      }
+
+      // Handle AI generated template
+      if (router.query.template === "ai-generated" && router.query.aiGeneratedSrc) {
+        setSelectedTemplate({
+          id: "ai-generated",
+          src: router.query.aiGeneratedSrc as string,
+          alt: "AI Generated Badge",
+          type: "ai"
+        });
+        setShowBuilder(true);
+        return;
+      }
+
+      // Handle create from scratch
+      if (router.query.template === "create-from-scratch") {
+        setSelectedTemplate(null);
+        setShowBuilder(true);
+        return;
+      }
+
+      // Fallback: try to parse templateData (for backward compatibility)
+      if (router.query.templateData) {
+        try {
+          const templateData = JSON.parse(router.query.templateData as string);
+          setSelectedTemplate(templateData);
           setShowBuilder(true);
+        } catch (error) {
+          console.error("Error parsing template data:", error);
         }
       }
     }
