@@ -33,11 +33,27 @@ const verifyRequest = async (req, res, next) => {
       rawRequest: req,
       rawResponse: res,
     });
-    req.store = await prisma.stores.findUnique({
-      where: {
-        shop: shop,
-      },
-    });
+    try {
+      req.store = await prisma.stores.findUnique({
+        where: {
+          shop: shop,
+        },
+      });
+    } catch (dbError) {
+      console.error('Database query failed:', dbError.message);
+      // Try to reconnect and retry once
+      try {
+        await prisma.$connect();
+        req.store = await prisma.stores.findUnique({
+          where: {
+            shop: shop,
+          },
+        });
+      } catch (retryError) {
+        console.error('Database retry failed:', retryError.message);
+        throw new Error('Database connection failed');
+      }
+    }
     let session = await sessionHandler.loadSession(sessionId);
     if (!session) {
       session = await getSession({ shop, authHeader, storeId: req.store.id });
@@ -84,9 +100,24 @@ async function getSession({ shop, authHeader, storeId }) {
     const sessionToken = authHeader.split(" ")[1];
 
     // Ensure we have a valid storeId by finding or creating the store
-    let store = await prisma.stores.findUnique({
-      where: { shop: shop }
-    });
+    let store;
+    try {
+      store = await prisma.stores.findUnique({
+        where: { shop: shop }
+      });
+    } catch (dbError) {
+      console.error('Database query failed in getSession:', dbError.message);
+      // Try to reconnect and retry once
+      try {
+        await prisma.$connect();
+        store = await prisma.stores.findUnique({
+          where: { shop: shop }
+        });
+      } catch (retryError) {
+        console.error('Database retry failed in getSession:', retryError.message);
+        throw new Error('Database connection failed in getSession');
+      }
+    }
     
     // If no store exists, create one
     if (!store) {
