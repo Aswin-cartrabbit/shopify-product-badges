@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Button,
   ButtonGroup,
@@ -7,6 +7,7 @@ import {
 } from "@shopify/polaris";
 import { TabletIcon, MobileIcon } from "@shopify/polaris-icons";
 import TemplatePreview from "./TemplatePreview";
+import { useBadgeStore } from "@/stores/BadgeStore";
 
 interface HtmlPreviewerProps {
   selectedTemplate?: any;
@@ -15,6 +16,13 @@ interface HtmlPreviewerProps {
 
 export default function HtmlPreviewer({ selectedTemplate, type = "BADGE" }: HtmlPreviewerProps) {
   const [device, setDevice] = useState("desktop");
+  const { badge } = useBadgeStore();
+  const [forceUpdate, setForceUpdate] = useState(0);
+
+  // Force re-render when badge store changes
+  useEffect(() => {
+    setForceUpdate(prev => prev + 1);
+  }, [badge.design.fontSize, badge.design.width, badge.design.height, badge.design.color, badge.content.textColor, badge.content.text, badge.design.size, selectedTemplate?.id]);
 
   return (
     <div>
@@ -112,7 +120,7 @@ export default function HtmlPreviewer({ selectedTemplate, type = "BADGE" }: Html
             overflow: "hidden"
           }}>
             <TemplatePreview 
-              key={`preview-${selectedTemplate?.id || 'default'}`}
+              key={`preview-${selectedTemplate?.id || 'default'}-${forceUpdate}`}
               selectedTemplate={selectedTemplate}
               device={device}
               type={type}

@@ -56,14 +56,14 @@ const ContentForm = ({ data, onChange, type = "BADGE", badgeName, setBadgeName }
 
   // AutoText options
   const autoTextOptions = [
-    { content: 'Discount %', value: '{{discount_percentage}}' },
-    { content: 'Discount amount', value: '{{discount_amount}}' },
-    { content: 'Price', value: '{{price}}' },
-    { content: 'Day release', value: '{{day_release}}' },
-    { content: 'Remaining stock', value: '{{remaining_stock}}' },
-    { content: 'Number of reviews', value: '{{review_count}}' },
-    { content: 'Average rating', value: '{{average_rating}}' },
-    { content: 'Product metafields', value: '{{product_metafields}}' },
+    { content: 'Discount %', value: 'SAVE {discount}' },
+    { content: 'Discount amount', value: 'SAVE {discount_amount}' },
+    { content: 'Price', value: 'ONLY {price}' },
+    { content: 'Day release', value: 'NEW IN {day_release} DAYS' },
+    { content: 'Remaining stock', value: 'ONLY {stocks} LEFT' },
+    { content: 'Number of reviews', value: '{reviews} reviews' },
+    { content: 'Average rating', value: '{average_rating} stars' },
+    { content: 'Product metafields', value: '{metafields}' },
   ];
 
   // Initialize local state from props/data and auto-detect content type
@@ -139,9 +139,8 @@ const ContentForm = ({ data, onChange, type = "BADGE", badgeName, setBadgeName }
          // Function to insert AutoText placeholders
          const insertAutoText = useCallback((placeholder: string) => {
            console.log("insertAutoText called with:", placeholder);
-           const autoTextPattern = /\{\{[^}]+\}\}/g;
-           const textWithoutAutoText = localText.replace(autoTextPattern, '').trim();
-           const newText = textWithoutAutoText ? `${textWithoutAutoText} ${placeholder}` : placeholder;
+           // Clear existing content and insert new auto text
+           const newText = placeholder;
            console.log("New text after AutoText insertion:", newText);
            setLocalText(newText);
            updateContent("text", newText);
@@ -149,7 +148,7 @@ const ContentForm = ({ data, onChange, type = "BADGE", badgeName, setBadgeName }
              console.log("Calling onChange with AutoText:", newText);
              onChange({ text: newText });
            }
-         }, [localText, updateContent, onChange]);
+         }, [updateContent, onChange]);
 
          // Function to insert emojis
          const insertEmoji = useCallback((emoji: string) => {
@@ -419,11 +418,11 @@ const ContentForm = ({ data, onChange, type = "BADGE", badgeName, setBadgeName }
                     padding: "4px 8px",
                     borderRadius: badge.design.cornerRadius !== undefined && badge.design.cornerRadius !== 8 ? `${badge.design.cornerRadius}px` : (selectedTemplate?.style?.borderRadius || data?.style?.borderRadius || "4px"),
                     display: "inline-block",
-                    fontSize: "10px",
+                    fontSize: `${badge.design.fontSize || 12}px`,
                     fontWeight: 600,
                     marginBottom: "8px",
-                    width: "120px",
-                    height: "40px",
+                    width: `${badge.design.width || 120}px`,
+                    height: `${badge.design.height || 40}px`,
                     overflow: "hidden",
                     textAlign: "center",
                     lineHeight: "1.2",
@@ -461,6 +460,11 @@ const ContentForm = ({ data, onChange, type = "BADGE", badgeName, setBadgeName }
               <Text as="p" variant="bodyMd">
                 Label content
               </Text>
+
+              {/* Color Controls */}
+             
+
+             
 
               {/* Formatting Tools */}
               <div style={{ 
@@ -560,14 +564,7 @@ const ContentForm = ({ data, onChange, type = "BADGE", badgeName, setBadgeName }
                             {option.content}
                           </div>
                           <div style={{ fontSize: '11px', color: '#6b7280' }}>
-                            {option.content === 'Discount %' ? 'SAVE 50%' : 
-                             option.content === 'Discount amount' ? 'SAVE $50' :
-                             option.content === 'Price' ? 'ONLY $50' :
-                             option.content === 'Day release' ? 'NEW IN 3 DAYS' :
-                             option.content === 'Remaining stock' ? 'ONLY 5 LEFT' :
-                             option.content === 'Number of reviews' ? '45 reviews' :
-                             option.content === 'Average rating' ? '5 stars' :
-                             '100% cotton'}
+                            {option.value}
                           </div>
                         </button>
                       ))}
@@ -576,57 +573,7 @@ const ContentForm = ({ data, onChange, type = "BADGE", badgeName, setBadgeName }
                 </div>
               )}
 
-              {/* Emoji Popover */}
-              {emojiPopoverActive && (
-                <div style={{
-                  position: 'relative',
-                  zIndex: 999999
-                }}>
-                  <div style={{
-                    position: 'absolute',
-                    top: '100%',
-                    left: 0,
-                    backgroundColor: 'white',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '8px',
-                    padding: '8px',
-                    zIndex: 999999
-                  }}>
-                    <div style={{
-                      display: 'grid',
-                      gridTemplateColumns: 'repeat(8, 1fr)',
-                      gap: '4px'
-                    }}>
-                      {['😊', '🎉', '🔥', '⭐', '💯', '🚀', '✨', '💎', '🏆', '🎯', '💪', '🌟', '💫', '🎊', '🎁', '💖'].map((emoji, index) => (
-                        <button
-                          key={index}
-                          onClick={() => {
-                            insertEmoji(emoji);
-                            setEmojiPopoverActive(false);
-                          }}
-                          style={{
-                            padding: '6px',
-                            border: 'none',
-                            backgroundColor: 'transparent',
-                            cursor: 'pointer',
-                            fontSize: '16px',
-                            borderRadius: '4px',
-                            transition: 'all 0.2s ease'
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = '#f3f4f6';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = 'transparent';
-                          }}
-                        >
-                          {emoji}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
+             
 
               <TextField
                 label=""
@@ -636,6 +583,33 @@ const ContentForm = ({ data, onChange, type = "BADGE", badgeName, setBadgeName }
                 multiline={3}
                 placeholder="Buy One<br>Get One<br>FREE"
               />
+               <BlockStack gap="300">
+                <Text as="p" variant="bodyMd">
+                  Colors
+                </Text>
+                
+                <InlineStack gap="400" align="start">
+                  <BlockStack gap="200">
+                    <Text as="p" variant="bodySm">
+                      Background Color
+                    </Text>
+                    <ColorPickerInput
+                      value={badge.design.color || "#7700ffff"}
+                      onChange={(color) => updateDesign("color", color)}
+                    />
+                  </BlockStack>
+                  
+                  <BlockStack gap="200">
+                    <Text as="p" variant="bodySm">
+                      Text Color
+                    </Text>
+                    <ColorPickerInput
+                      value={badge.content.textColor || "#ffffff"}
+                      onChange={(color) => updateContent("textColor", color)}
+                    />
+                  </BlockStack>
+                </InlineStack>
+              </BlockStack>
             </BlockStack>
 
           </BlockStack>
