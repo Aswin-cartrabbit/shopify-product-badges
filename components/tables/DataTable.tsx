@@ -20,7 +20,7 @@ import {
   useSetIndexFiltersMode,
 } from "@shopify/polaris";
 
-import { DeleteIcon, EditIcon } from "@shopify/polaris-icons";
+import { DeleteIcon } from "@shopify/polaris-icons";
 import { useRouter } from "next/router";
 
 import { useCallback, useEffect, useState } from "react";
@@ -316,6 +316,9 @@ export function DataTable({
         params.append("search", queryValue);
       }
 
+      // Add cache-busting parameter to ensure fresh data
+      params.append('_t', Date.now().toString());
+      
       const response = await fetch(`/api/badge?${params}&type=${type}`, getGetOptions());
 
       const data = await response.json();
@@ -561,6 +564,7 @@ export function DataTable({
     }
   };
 
+
   // Helper function to render trust badge preview
   const renderTrustBadgePreview = (component) => {
     if (type !== "TRUST_BADGE") {
@@ -722,23 +726,13 @@ export function DataTable({
               alignItems: "center",
               padding: "15px 0"
             }}>
-              <ButtonGroup>
-                <Button
-                  variant="plain"
-                  icon={EditIcon}
-                  onClick={() => {
-                    // TODO: Implement edit functionality
-                    console.log("Edit component:", component.id);
-                  }}
-                />
-                <Button
-                  variant="plain"
-                  icon={DeleteIcon}
-                  onClick={() => handleDelete(component.id, component.name)}
-                  loading={deletingId === component.id}
-                  disabled={deletingId === component.id}
-                />
-              </ButtonGroup>
+              <Button
+                variant="plain"
+                icon={DeleteIcon}
+                onClick={() => handleDelete(component.id, component.name)}
+                loading={deletingId === component.id}
+                disabled={deletingId === component.id}
+              />
             </div>
           </IndexTable.Cell>
         </>
@@ -765,23 +759,13 @@ export function DataTable({
             </Text>
           </IndexTable.Cell>
           <IndexTable.Cell>
-            <ButtonGroup>
-              <Button
-                variant="plain"
-                icon={EditIcon}
-                onClick={() => {
-                  // TODO: Implement edit functionality
-                  console.log("Edit component:", component.id);
-                }}
-              />
-              <Button
-                variant="plain"
-                icon={DeleteIcon}
-                onClick={() => handleDelete(component.id, component.name)}
-                loading={deletingId === component.id}
-                disabled={deletingId === component.id}
-              />
-            </ButtonGroup>
+            <Button
+              variant="plain"
+              icon={DeleteIcon}
+              onClick={() => handleDelete(component.id, component.name)}
+              loading={deletingId === component.id}
+              disabled={deletingId === component.id}
+            />
           </IndexTable.Cell>
         </>
       )}
@@ -795,7 +779,7 @@ export function DataTable({
         <div style={{ padding: "40px", textAlign: "center" }}>
           <Spinner accessibilityLabel="Loading components" size="large" />
           <Text variant="bodyMd" tone="subdued" as="p">
-            Loading visual components...
+            Loading ...
           </Text>
         </div>
       </LegacyCard>
@@ -1056,6 +1040,7 @@ export function DataTable({
           onDismiss={() => setToast(null)}
         />
       )}
+
     </Frame>
   );
 }

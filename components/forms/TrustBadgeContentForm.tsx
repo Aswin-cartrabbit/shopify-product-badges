@@ -86,9 +86,21 @@ const TrustBadgeContentForm = ({
 
   const handleRemoveIcon = useCallback(
     (iconId: string) => {
+      console.log("=== REMOVE ICON DEBUG ===");
       console.log("TrustBadgeContentForm: handleRemoveIcon called with:", iconId);
+      console.log("Current data:", JSON.stringify(data, null, 2));
+      console.log("Current icons before removal:", JSON.stringify(data.icons, null, 2));
+      console.log("Current icons length before removal:", data.icons?.length);
+      
       const updatedIcons = data.icons.filter((icon: any) => icon.id !== iconId);
-      onChange({ ...data, icons: updatedIcons });
+      console.log("Updated icons after removal:", JSON.stringify(updatedIcons, null, 2));
+      console.log("Updated icons length after removal:", updatedIcons.length);
+      
+      const newData = { ...data, icons: updatedIcons };
+      console.log("New data being passed to onChange:", JSON.stringify(newData, null, 2));
+      console.log("==========================");
+      
+      onChange(newData);
     },
     [data, onChange]
   );

@@ -24,10 +24,10 @@ import { useBadgeStore, GridPosition } from "@/stores/BadgeStore";
 import { BadgeHorizontalPosition, BadgeAlignment } from "@/components/BadgeHorizontalPosition";
 import HtmlPreviewer from "../HtmlPreviewer";
 import ContentForm from "./ContentForm";
-import DesignForm from "./DesignForm";
+import { DesignForm } from "./DesignForm";
 import ProductsForm from "./ProductsForm";
 import DisplayForm from "./DisplayForm";
-import {Modal, TitleBar, useAppBridge} from '@shopify/app-bridge-react';
+import { Modal, TitleBar, useAppBridge } from "@shopify/app-bridge-react";
 import { EditIcon, ProductAddIcon, ContentIcon } from "@shopify/polaris-icons";
 
 interface BadgeBuilderProps {
@@ -498,12 +498,12 @@ export const BadgeBuilder = ({
                 />
                 <DesignForm
                   data={formData}
-                  onChange={(designData) => {
+                  onChange={(key, value) => {
                     setFormData(prev => ({
                       ...prev, 
                       design: { 
                         ...prev.design, 
-                        ...designData 
+                        [key]: value
                       }
                     }));
                   }}

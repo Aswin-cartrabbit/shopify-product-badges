@@ -1,123 +1,130 @@
+import React, { useState, useCallback } from "react";
 import {
-  Bleed,
-  BlockStack,
   Card,
+  BlockStack,
+  Text,
+  RangeSlider,
+  Checkbox,
+  ButtonGroup,
+  Button,
+  Bleed,
   Divider,
   InlineStack,
-  RadioButton,
-  RangeSlider,
-  Select,
-  TextField,
-  Text,
-  Checkbox,
   Tooltip,
   Icon,
+  Select,
 } from "@shopify/polaris";
-import { ImageIcon, QuestionCircleIcon } from "@shopify/polaris-icons";
-import ColorPickerInput from "../pickers/ColourPicker";
-import { useBadgeStore, GridPosition } from "@/stores/BadgeStore";
+import { QuestionCircleIcon } from "@shopify/polaris-icons";
 import LabelGrid from "../LabelGrid";
-import PositionGrid from "../PositionGrid";
-import { useState, useCallback } from "react";
 
 interface DesignFormProps {
-  data?: any;
-  onChange?: (data: any) => void;
+  data: any;
+  onChange: (key: string, value: any) => void;
   selectedTemplate?: any;
   type?: string;
 }
 
-export default function DesignForm({ data, onChange, selectedTemplate, type }: DesignFormProps) {
-  const {
-    badge,
-    updateContent,
-    updateDesign,
-    updatePlacement,
-    updateDisplay,
-    updateSpacing,
-  } = useBadgeStore();
-
+export const DesignForm: React.FC<DesignFormProps> = ({
+  data,
+  onChange,
+  selectedTemplate,
+  type,
+}) => {
   const [showImageControls, setShowImageControls] = useState(false);
   const [showOpacityControl, setShowOpacityControl] = useState(false);
-  const [showRotationControl, setShowRotationControl] = useState(false);
+  const [showIconSizeControl, setShowIconSizeControl] = useState(true);
+  const [showIconSpacingControl, setShowIconSpacingControl] = useState(true);
+
+  const handleDesignChange = useCallback(
+    (key: string, value: any) => {
+      onChange(key, value);
+    },
+    [onChange]
+  );
+
+  const updateContent = useCallback(
+    (key: string, value: any) => {
+      onChange(`content.${key}`, value);
+    },
+    [onChange]
+  );
 
   const handleShowImageControlsChange = useCallback(
-    (newChecked: boolean) => setShowImageControls(newChecked),
-    [],
+    (checked: boolean) => {
+      setShowImageControls(checked);
+    },
+    []
   );
 
   const handleShowOpacityControlChange = useCallback(
-    (newChecked: boolean) => setShowOpacityControl(newChecked),
-    [],
+    (checked: boolean) => {
+      setShowOpacityControl(checked);
+    },
+    []
   );
 
-  const handleShowRotationControlChange = useCallback(
-    (newChecked: boolean) => setShowRotationControl(newChecked),
-    [],
+  const handleShowIconSizeControlChange = useCallback(
+    (checked: boolean) => {
+      setShowIconSizeControl(checked);
+    },
+    []
   );
 
-  // Enhanced updateDesign with onChange notification
-  const handleDesignChange = (key: any, value: any) => {
-    updateDesign(key, value);
-    if (onChange) {
-      // Pass the complete updated design object
-      const updatedDesign = { ...badge.design, [key]: value };
-      onChange(updatedDesign);
-    }
+  const handleShowIconSpacingControlChange = useCallback(
+    (checked: boolean) => {
+      setShowIconSpacingControl(checked);
+    },
+    []
+  );
+
+  const badge = {
+    content: data.content || {},
+    design: data.design || {},
   };
-
-  const templateOptions = [
-    {
-      label: "Black and Yellow (High contrast, great for sales)",
-      value: "Black and Yellow",
-    },
-    {
-      label: "Blue and White (Professional, trustworthy look)",
-      value: "Blue and White",
-    },
-    { label: "Custom (Create your own unique design)", value: "Custom" },
-  ];
-
-  const rowOptions = [
-    { label: "Auto (Recommended)", value: "auto" },
-    { label: "1", value: "1" },
-    { label: "2", value: "2" },
-    { label: "3", value: "3" },
-    { label: "4", value: "4" },
-  ];
 
   const fontOptions = [
     {
-      label: "Use your theme fonts (Matches your store design)",
-      value: "own_theme",
-    },
-    {
-      label: "Helvetica (Clean and modern)",
-      value: "helvetica",
-    },
-    {
-      label: "Arial (Classic and readable)",
+      label: "Arial (Default)",
       value: "arial",
     },
     {
-      label: "Tahoma (Bold and clear)",
-      value: "tahoma",
+      label: "Helvetica (Clean)",
+      value: "helvetica",
     },
     {
-      label: "Trebuchet MS (Friendly and approachable)",
-      value: "trebuchet_ms",
+      label: "Times New Roman (Serif)",
+      value: "times_new_roman",
     },
     {
-      label: "Georgia (Elegant serif)",
+      label: "Georgia (Serif)",
       value: "georgia",
     },
     {
-      label: "Garamond (Sophisticated serif)",
-      value: "garamond",
+      label: "Verdana (Sans-serif)",
+      value: "verdana",
     },
     {
       label: "Courier New (Typewriter style)",
       value: "courier_new",
+    },
+  ];
+
+  const fontWeightOptions = [
+    {
+      label: "Normal",
+      value: "normal",
+    },
+    {
+      label: "Bold",
+      value: "bold",
+    },
+    {
+      label: "Lighter",
+      value: "lighter",
+    },
+    {
+      label: "Bolder",
+      value: "bolder",
     },
   ];
 
@@ -131,252 +138,407 @@ export default function DesignForm({ data, onChange, selectedTemplate, type }: D
   return (
     <Card>
       <BlockStack gap="400">
-        {/* Show template/background controls only for text badges */}
-        {badge.content.contentType === "text" && (
-          <>
-            {/* Template */}
-            <BlockStack gap="200">
-              <LabelGrid />
-            </BlockStack>
-
-            <Bleed marginInline="400">
-              <Divider />
-            </Bleed>
-
-            {/* Size Controls */}
-            <BlockStack gap="400">
-              <InlineStack gap="100" align="start">
-                <Text as="p" variant="bodyMd">
-                  Badge Dimensions
-                </Text>
-                <TooltipIcon content="Adjust the size and dimensions of your badge" />
-              </InlineStack>
+        {/* Trust Badge Design Controls */}
+        {type === "TRUST_BADGE" ? (
+          <BlockStack gap="400">
+            {/* Layout Options */}
+            <BlockStack gap="300">
+              <Text as="h3" variant="headingSm">Layout</Text>
               
-              {/* Text Size */}
-              <BlockStack gap="200">
-                <RangeSlider
-                  label="Text Size"
-                  min={8}
-                  max={48}
-                  value={badge.design.fontSize || 14}
-                  onChange={(value) => {
-                    if (typeof value === "number") {
-                      handleDesignChange("fontSize", value);
-                    }
-                  }}
-                  output
-                  suffix="px"
-                />
-              </BlockStack>
+              <ButtonGroup variant="segmented">
+                <Button
+                  pressed={badge.content.layout === "horizontal"}
+                  onClick={() => updateContent("layout", "horizontal")}
+                  size="slim"
+                >
+                  Horizontal
+                </Button>
+                <Button
+                  pressed={badge.content.layout === "vertical"}
+                  onClick={() => updateContent("layout", "vertical")}
+                  size="slim"
+                >
+                  Vertical
+                </Button>
+              </ButtonGroup>
+            </BlockStack>
 
-              {/* Badge Width */}
-              <BlockStack gap="200">
-                <RangeSlider
-                  label="Badge Width"
-                  min={0}
-                  max={300}
-                  value={badge.design.width || 120}
-                  onChange={(value) => {
-                    if (typeof value === "number") {
-                      handleDesignChange("width", value);
-                    }
-                  }}
-                  output
-                  suffix="px"
-                />
-              </BlockStack>
+            <Bleed marginInline="400">
+              <Divider />
+            </Bleed>
 
-              {/* Badge Height */}
-              <BlockStack gap="200">
+            {/* Icon Size Control */}
+            <BlockStack gap="400">
+              <Checkbox
+                label="Icon Size"
+                checked={showIconSizeControl}
+                onChange={handleShowIconSizeControlChange}
+              />
+              
+              {showIconSizeControl && (
                 <RangeSlider
-                  label="Badge Height"
-                  min={0}
+                  label=""
+                  min={20}
                   max={100}
-                  value={badge.design.height || 40}
+                  value={badge.content.iconSize || 40}
                   onChange={(value) => {
                     if (typeof value === "number") {
-                      handleDesignChange("height", value);
+                      updateContent("iconSize", value);
                     }
                   }}
                   output
                   suffix="px"
                 />
-              </BlockStack>
+              )}
             </BlockStack>
 
-            <Bleed marginInline="400">
-              <Divider />
-            </Bleed>
-
-            <InlineStack gap="100" align="start">
-              <Text variant="headingSm" as="h2">
-                Badge Background
-              </Text>
-              <TooltipIcon content="Configure how your badge background appears - solid colors work well for minimal designs, gradients add visual appeal." />
-            </InlineStack>
-
-            {badge.content.contentType === "text" && (
-              <BlockStack gap="200">
-                <InlineStack gap="100" align="start">
-                  <Text as="p" variant="bodyMd">
-                    Text Color
-                  </Text>
-                  <TooltipIcon content="Choose the color of your text for better readability" />
-                </InlineStack>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <input
-                    type="color"
-                    value={badge.content.textColor || "#ffffff"}
-                    onChange={(e) => updateContent("textColor", e.target.value)}
-                    style={{
-                      width: '40px',
-                      height: '40px',
-                      border: '1px solid #ccc',
-                      borderRadius: '50%',
-                      cursor: 'pointer'
-                    }}
-                  />
-                  <Text variant="bodySm" tone="subdued" as="span">
-                    {badge.content.textColor || "#ffffff"}
-                  </Text>
-                </div>
-              </BlockStack>
-            )}
-
-            {/* Background type */}
-            <BlockStack gap="200">
-              <InlineStack gap="100" align="start">
-                <Text as="p" variant="bodyMd" tone="subdued">
-                  Background Color
-                </Text>
-                <TooltipIcon content="Choose the background color for your badge" />
-              </InlineStack>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <input
-                  type="color"
-                  value={badge.design.color || "#7700ffff"}
-                  onChange={(e) => handleDesignChange("color", e.target.value)}
-                  style={{
-                    width: '40px',
-                    height: '40px',
-                    border: '1px solid #ccc',
-                    borderRadius: '50%',
-                    cursor: 'pointer'
+            {/* Icon Spacing Control */}
+            <BlockStack gap="400">
+              <Checkbox
+                label="Icon Spacing"
+                checked={showIconSpacingControl}
+                onChange={handleShowIconSpacingControlChange}
+              />
+              
+              {showIconSpacingControl && (
+                <RangeSlider
+                  label=""
+                  min={0}
+                  max={50}
+                  value={badge.content.spacing || 8}
+                  onChange={(value) => {
+                    if (typeof value === "number") {
+                      updateContent("spacing", value);
+                    }
                   }}
+                  output
+                  suffix="px"
                 />
-                <Text variant="bodySm" tone="subdued" as="span">
-                  {badge.design.color || "#7700ffff"}
-                </Text>
-              </div>
+              )}
+            </BlockStack>
+          </BlockStack>
+        ) : (
+          <>
+            {/* Show template/background controls only for text badges */}
+            {badge.content.contentType === "text" && (
+              <>
+                {/* Template */}
+                <BlockStack gap="200">
+                  <LabelGrid />
+                </BlockStack>
+
+                <Bleed marginInline="400">
+                  <Divider />
+                </Bleed>
+
+                {/* Size Controls */}
+                <BlockStack gap="400">
+                  <InlineStack gap="100" align="start">
+                    <Text as="p" variant="bodyMd">
+                      Badge Dimensions
+                    </Text>
+                    <TooltipIcon content="Adjust the size and dimensions of your badge" />
+                  </InlineStack>
+                  
+                  {/* Text Size */}
+                  <BlockStack gap="200">
+                    <RangeSlider
+                      label="Text Size"
+                      min={8}
+                      max={48}
+                      value={badge.design.fontSize || 14}
+                      onChange={(value) => {
+                        if (typeof value === "number") {
+                          handleDesignChange("fontSize", value);
+                        }
+                      }}
+                      output
+                      suffix="px"
+                    />
+                  </BlockStack>
+
+                  {/* Badge Width */}
+                  <BlockStack gap="200">
+                    <RangeSlider
+                      label="Badge Width"
+                      min={0}
+                      max={300}
+                      value={badge.design.width || 200}
+                      onChange={(value) => {
+                        if (typeof value === "number") {
+                          handleDesignChange("width", value);
+                        }
+                      }}
+                      output
+                      suffix="px"
+                    />
+                  </BlockStack>
+
+                  {/* Badge Height */}
+                  <BlockStack gap="200">
+                    <RangeSlider
+                      label="Badge Height"
+                      min={0}
+                      max={200}
+                      value={badge.design.height || 60}
+                      onChange={(value) => {
+                        if (typeof value === "number") {
+                          handleDesignChange("height", value);
+                        }
+                      }}
+                      output
+                      suffix="px"
+                    />
+                  </BlockStack>
+                </BlockStack>
+
+                <Bleed marginInline="400">
+                  <Divider />
+                </Bleed>
+
+                {/* Background Controls */}
+                <BlockStack gap="400">
+                  <InlineStack gap="100" align="start">
+                    <Text as="p" variant="bodyMd">
+                      Background
+                    </Text>
+                    <TooltipIcon content="Customize the background appearance of your badge" />
+                  </InlineStack>
+                  
+                  <BlockStack gap="200">
+                    <RangeSlider
+                      label="Background Opacity"
+                      min={0}
+                      max={100}
+                      value={badge.design.backgroundOpacity || 100}
+                      onChange={(value) => {
+                        if (typeof value === "number") {
+                          handleDesignChange("backgroundOpacity", value);
+                        }
+                      }}
+                      output
+                      suffix="%"
+                    />
+                  </BlockStack>
+
+                  <BlockStack gap="200">
+                    <RangeSlider
+                      label="Border Radius"
+                      min={0}
+                      max={50}
+                      value={badge.design.borderRadius || 0}
+                      onChange={(value) => {
+                        if (typeof value === "number") {
+                          handleDesignChange("borderRadius", value);
+                        }
+                      }}
+                      output
+                      suffix="px"
+                    />
+                  </BlockStack>
+
+                  <BlockStack gap="200">
+                    <RangeSlider
+                      label="Padding"
+                      min={0}
+                      max={50}
+                      value={badge.design.padding || 16}
+                      onChange={(value) => {
+                        if (typeof value === "number") {
+                          handleDesignChange("padding", value);
+                        }
+                      }}
+                      output
+                      suffix="px"
+                    />
+                  </BlockStack>
+                </BlockStack>
+
+                <Bleed marginInline="400">
+                  <Divider />
+                </Bleed>
+
+                {/* Color Controls */}
+                <BlockStack gap="400">
+                  <InlineStack gap="100" align="start">
+                    <Text as="p" variant="bodyMd">
+                      Colors
+                    </Text>
+                    <TooltipIcon content="Customize the colors of your badge" />
+                  </InlineStack>
+                  
+                  <BlockStack gap="200">
+                    <InlineStack gap="200" align="start">
+                      <Text as="p" variant="bodyMd">
+                        Background Color
+                      </Text>
+                      <div
+                        style={{
+                          width: "24px",
+                          height: "24px",
+                          backgroundColor: badge.design.background || "#7700ffff",
+                          border: "1px solid #e1e3e5",
+                          borderRadius: "4px",
+                          cursor: "pointer",
+                        }}
+                        onClick={() => {
+                          const color = prompt("Enter background color (hex):", badge.design.background || "#7700ffff");
+                          if (color) {
+                            handleDesignChange("background", color);
+                          }
+                        }}
+                      />
+                    </InlineStack>
+                  </BlockStack>
+
+                  <BlockStack gap="200">
+                    <InlineStack gap="200" align="start">
+                      <Text as="p" variant="bodyMd">
+                        Text Color
+                      </Text>
+                      <div
+                        style={{
+                          width: "24px",
+                          height: "24px",
+                          backgroundColor: badge.design.color || "#7700ffff",
+                          border: "1px solid #e1e3e5",
+                          borderRadius: "4px",
+                          cursor: "pointer",
+                        }}
+                        onClick={() => {
+                          const color = prompt("Enter text color (hex):", badge.design.color || "#7700ffff");
+                          if (color) {
+                            handleDesignChange("color", color);
+                          }
+                        }}
+                      />
+                    </InlineStack>
+                  </BlockStack>
+                </BlockStack>
+
+                <Bleed marginInline="400">
+                  <Divider />
+                </Bleed>
+
+                {/* Font Controls */}
+                <BlockStack gap="400">
+                  <InlineStack gap="100" align="start">
+                    <Text as="p" variant="bodyMd">
+                      Font
+                    </Text>
+                    <TooltipIcon content="Customize the font family and weight of your badge" />
+                  </InlineStack>
+                  
+                  <BlockStack gap="200">
+                    <Select
+                      label="Font Family"
+                      options={fontOptions}
+                      value={badge.design.fontFamily || "arial"}
+                      onChange={(value) => handleDesignChange("fontFamily", value)}
+                    />
+                  </BlockStack>
+
+                  <BlockStack gap="200">
+                    <Select
+                      label="Font Weight"
+                      options={fontWeightOptions}
+                      value={badge.design.fontWeight || "normal"}
+                      onChange={(value) => handleDesignChange("fontWeight", value)}
+                    />
+                  </BlockStack>
+                </BlockStack>
+
+                <Bleed marginInline="400">
+                  <Divider />
+                </Bleed>
+
+                {/* Color Preview */}
+                <BlockStack gap="200">
+                  <Text as="p" variant="bodyMd">
+                    Color Preview
+                  </Text>
+                  <div
+                    style={{
+                      width: "100%",
+                      height: "60px",
+                      backgroundColor: badge.design.background || "#7700ffff",
+                      borderRadius: `${badge.design.borderRadius || 0}px`,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: badge.design.color || "#7700ffff",
+                      fontFamily: badge.design.fontFamily || "arial",
+                      fontWeight: badge.design.fontWeight || "normal",
+                      fontSize: `${badge.design.fontSize || 14}px`,
+                      padding: `${badge.design.padding || 16}px`,
+                    }}
+                  >
+                     <Text as="p" variant="bodyMd">
+                       {badge.design.color || "#7700ffff"}
+                     </Text>
+                  </div>
+                </BlockStack>
+
+                <Bleed marginInline="400">
+                  <Divider />
+                </Bleed>
+              </>
+            )}
+
+            {/* Image Size Controls - For both badges and labels */}
+            <BlockStack gap="400">
+              <Checkbox
+                label="Image Size"
+                checked={showImageControls}
+                onChange={handleShowImageControlsChange}
+              />
+              
+              {showImageControls && (
+                <RangeSlider
+                  label=""
+                  min={20}
+                  max={200}
+                  value={badge.design.size || 36}
+                  onChange={(value) => {
+                    if (typeof value === "number") {
+                      handleDesignChange("size", value);
+                    }
+                  }}
+                  output
+                  suffix="px"
+                />
+              )}
             </BlockStack>
 
-            <Bleed marginInline="400">
-              <Divider />
-            </Bleed>
+            {/* Conditional sections based on content type */}
+            {badge.content.contentType === "image" && (
+              <BlockStack gap="400">
+                <Checkbox
+                  label="Opacity"
+                  checked={showOpacityControl}
+                  onChange={handleShowOpacityControlChange}
+                />
+                
+                {showOpacityControl && (
+                  <RangeSlider
+                    label=""
+                    min={0}
+                    max={100}
+                    value={badge.design.opacity || 100}
+                    onChange={(value) => {
+                      if (typeof value === "number") {
+                        handleDesignChange("opacity", value);
+                      }
+                    }}
+                    output
+                    suffix="%"
+                  />
+                )}
+              </BlockStack>
+            )}
           </>
-        )}
-
-        {/* Image Size Controls - For both badges and labels */}
-        <BlockStack gap="400">
-          <Checkbox
-            label="Image Size"
-            checked={showImageControls}
-            onChange={handleShowImageControlsChange}
-          />
-          
-          {showImageControls && (
-            <RangeSlider
-              label=""
-              min={20}
-              max={200}
-              value={badge.design.size || 36}
-              onChange={(value) => {
-                if (typeof value === "number") {
-                  handleDesignChange("size", value);
-                }
-              }}
-              output
-              suffix="px"
-            />
-          )}
-        </BlockStack>
-
-        {/* Conditional sections based on content type */}
-        {badge.content.contentType === "image" && (
-          <BlockStack gap="400">
-            <Checkbox
-              label="Opacity"
-              checked={showOpacityControl}
-              onChange={handleShowOpacityControlChange}
-            />
-            
-            {showOpacityControl && (
-              <RangeSlider
-                label=""
-                min={0}
-                max={100}
-                value={badge.design.opacity || 100}
-                onChange={(value) => {
-                  if (typeof value === "number") {
-                    handleDesignChange("opacity", value);
-                  }
-                }}
-                output
-                suffix="%"
-              />
-            )}
-
-            <Checkbox
-              label="Rotation"
-              checked={showRotationControl}
-              onChange={handleShowRotationControlChange}
-            />
-            
-            {showRotationControl && (
-              <RangeSlider
-                label=""
-                min={-180}
-                max={180}
-                value={badge.design.rotation || 0}
-                onChange={(value) => {
-                  if (typeof value === "number") {
-                    handleDesignChange("rotation", value);
-                  }
-                }}
-                output
-                suffix="°"
-              />
-            )}
-
-            {/* <Bleed marginInline="400">
-              <Divider />
-            </Bleed> */}
-          </BlockStack>
-        )}
-
-        {badge.content.contentType === "text" && (
-          <BlockStack gap="400">
-            <InlineStack gap="100" align="start">
-              <Text variant="headingMd" as="h3">
-                Text Styling
-              </Text>
-              <TooltipIcon content="Choose fonts that match your brand and are easy to read on all devices" />
-            </InlineStack>
-
-            <Select
-              label="Font Family"
-              options={fontOptions}
-              value={badge.content.font}
-              onChange={(value) => updateContent("font", value)}
-              helpText="Theme fonts will match your store's design perfectly but won't show in preview mode - publish to see the final result in your store."
-            />
-
-            {/* <Bleed marginInline="400">
-              <Divider />
-            </Bleed> */}
-          </BlockStack>
         )}
       </BlockStack>
     </Card>
   );
-}
+};

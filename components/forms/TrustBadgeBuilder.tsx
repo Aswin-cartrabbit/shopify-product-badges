@@ -13,7 +13,8 @@ import { useCallback, useState, useEffect } from "react";
 import {Modal, TitleBar} from '@shopify/app-bridge-react';
 import { EditIcon, ProductAddIcon, ContentIcon } from "@shopify/polaris-icons";
 import TrustBadgeContentForm from "./TrustBadgeContentForm";
-import TrustBadgePreview from "../TrustBadgePreview"; 
+import TrustBadgePreview from "../TrustBadgePreview";
+import { DesignForm } from "./DesignForm"; 
 
 interface TrustBadgeBuilderProps {
   selectedTemplate?: any;
@@ -66,13 +67,34 @@ export const TrustBadgeBuilder = ({
   // Update formData when selectedTemplate changes
   useEffect(() => {
     if (selectedTemplate) {
+      console.log("Updating formData with selectedTemplate:", selectedTemplate);
+
       setFormData(prev => ({
         ...prev,
-        name: selectedTemplate.title || "Trust Badge",
+        name: selectedTemplate.title || selectedTemplate.name || "Trust Badge",
         content: {
           ...prev.content,
-          icons: selectedTemplate.icons || selectedTemplate.images || [],
-          title: selectedTemplate.title || (selectedTemplate.type === "payment-group" ? "Secure payment with" : selectedTemplate.title)
+          icons: selectedTemplate.icons || selectedTemplate.images || selectedTemplate.content?.icons || [],
+          layout: selectedTemplate.content?.layout || "horizontal",
+          iconSize: selectedTemplate.content?.iconSize || 40,
+          spacing: selectedTemplate.content?.spacing || 8,
+          showTitle: selectedTemplate.content?.showTitle !== undefined ? selectedTemplate.content.showTitle : true,
+          title: selectedTemplate.content?.title || selectedTemplate.title || "Secure payment with"
+        },
+        design: {
+          ...prev.design,
+          ...selectedTemplate.design,
+          background: selectedTemplate.design?.background || "transparent",
+          borderRadius: selectedTemplate.design?.borderRadius || 0,
+          padding: selectedTemplate.design?.padding || 16
+        },
+        placement: {
+          ...prev.placement,
+          ...selectedTemplate.display
+        },
+        settings: {
+          ...prev.settings,
+          ...selectedTemplate.settings
         }
       }));
     }
@@ -91,15 +113,22 @@ export const TrustBadgeBuilder = ({
     setErrorMessage("");
     
     try {
-      console.log("Current formData before save:", formData);
+      console.log("=== HANDLE SAVE DEBUG ===");
+      console.log("Current formData before save:", JSON.stringify(formData, null, 2));
+      console.log("formData.content:", JSON.stringify(formData.content, null, 2));
+      console.log("formData.content.icons:", JSON.stringify(formData.content?.icons, null, 2));
+      console.log("formData.content.icons length:", formData.content?.icons?.length);
       
       // Structure the payload to match the API expectations
-      const payload = {
+      const payload: any = {
         name: formData.name || name,
         type: "TRUST_BADGE", // Using uppercase as defined in ComponentType enum
         design: {
           // Map content to design structure for templates field
-          content: formData.content,
+          content: {
+            ...formData.content,
+            icons: formData.content?.icons || [] // Ensure icons array is explicitly set
+          },
           ...formData.design
         },
         display: {
@@ -111,11 +140,19 @@ export const TrustBadgeBuilder = ({
         status: currentStatus
       };
 
-      console.log("Saving trust badge payload:", payload);
+      // Always use POST for new badges (no edit functionality for now)
 
+      console.log("Final payload:", JSON.stringify(payload, null, 2));
+      console.log("Payload design.content.icons:", JSON.stringify(payload.design.content?.icons, null, 2));
+      console.log("Payload design.content.icons length:", payload.design.content?.icons?.length);
+      console.log("=========================");
+
+      // Always use POST for new badges
+      const method = 'POST';
+      
       // Always make the API call first
       const response = await fetch('/api/badge/create', {
-        method: 'POST',
+        method: method,
         headers: {
           'Content-Type': 'application/json',
         },
@@ -157,13 +194,21 @@ export const TrustBadgeBuilder = ({
   };
 
   const handleContentChange = (newContent: any) => {
-    console.log("handleContentChange called with:", newContent);
+    console.log("=== HANDLE CONTENT CHANGE DEBUG ===");
+    console.log("handleContentChange called with:", JSON.stringify(newContent, null, 2));
+    console.log("Previous formData.content:", JSON.stringify(formData.content, null, 2));
+    console.log("Previous formData.content.icons:", JSON.stringify(formData.content?.icons, null, 2));
+    console.log("Previous formData.content.icons length:", formData.content?.icons?.length);
+    
     setFormData(prev => {
       const updated = {
         ...prev,
         content: { ...prev.content, ...newContent }
       };
-      console.log("Updated formData:", updated);
+      console.log("Updated formData:", JSON.stringify(updated, null, 2));
+      console.log("Updated formData.content.icons:", JSON.stringify(updated.content.icons, null, 2));
+      console.log("Updated formData.content.icons length:", updated.content.icons?.length);
+      console.log("=====================================");
       return updated;
     });
   };
@@ -209,13 +254,65 @@ export const TrustBadgeBuilder = ({
         }}
         secondaryActions={[
           {
-            content: "Duplicate",
-            accessibilityLabel: "Secondary action label",
-            onAction: () => alert("Duplicate action"),
-          },
-          {
-            content: "View on your store",
-            onAction: () => alert("View on your store action"),
+            content: "Save as Draft",
+            onAction: async () => {
+              setIsLoading(true);
+              setErrorMessage("");
+              
+              try {
+                const payload: any = {
+                  name: formData.name || name,
+                  type: "TRUST_BADGE",
+                  design: {
+                    content: formData.content,
+                    ...formData.design
+                  },
+                  display: {
+                    placement: formData.placement,
+                    ...formData.settings
+                  },
+                  settings: formData.settings || {},
+                  status: "DRAFT"
+                };
+
+                // Add update fields if editing existing badge
+                if (selectedTemplate?.id) {
+                  payload.id = selectedTemplate.id;
+                  payload.isUpdate = true;
+                }
+
+                // Use PUT for updates, POST for new badges
+                const method = selectedTemplate?.id ? 'PUT' : 'POST';
+
+                const response = await fetch('/api/badge/create', {
+                  method: method,
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify(payload),
+                });
+
+                if (response.ok) {
+                  const result = await response.json();
+                  console.log('Trust badge saved as draft:', result);
+                  
+                  if (onSave) {
+                    await onSave(payload);
+                  }
+                  
+                  setIsModalOpen(false);
+                } else {
+                  const error = await response.json();
+                  console.error('Failed to save draft:', error);
+                  setErrorMessage(error.message || 'Failed to save draft');
+                }
+              } catch (error) {
+                console.error('Error saving draft:', error);
+                setErrorMessage('An unexpected error occurred while saving draft');
+              } finally {
+                setIsLoading(false);
+              }
+            },
           },
           {
             content: "Close",
@@ -386,18 +483,18 @@ export const TrustBadgeBuilder = ({
               />
             </div>
             {/* Design tab */}
-            <div
-              style={{
-                display: selectedTab === 1 ? "block" : "none",
-              }}
-            >
-              <Card>
-                <BlockStack gap="400">
-                  <div>Design options coming soon...</div>
-                  {/* TODO: Add design form when ready */}
-                </BlockStack>
-              </Card>
-            </div>
+              <div
+                style={{
+                  display: selectedTab === 1 ? "block" : "none",
+                }}
+              >
+                <DesignForm
+                  data={formData.design}
+                  onChange={handleDesignChange}
+                  selectedTemplate={selectedTemplate}
+                  type="TRUST_BADGE"
+                />
+              </div>
             {/* Placement tab */}
             <div
               style={{
