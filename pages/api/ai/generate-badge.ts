@@ -16,7 +16,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     // Make the API call to Freepik from the backend
-    const response = await fetch('https://api.freepik.com/v1/ai/gemini-2-5-flash-image-preview', {
+    const response = await fetch('https://api.freepik.com/v1/ai/text-to-icon', {
       method: 'POST',
       headers: {
         'x-freepik-api-key': process.env.FREEPIK_API_KEY || '',

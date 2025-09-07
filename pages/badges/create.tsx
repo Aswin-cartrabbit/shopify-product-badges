@@ -220,6 +220,37 @@ export default function CreateBadge() {
           <Button 
             variant="secondary"
             size="medium"
+            onClick={() => router.push({
+              pathname: "/badges/new",
+              query: { 
+                template: "create-from-scratch",
+                templateData: JSON.stringify({
+                  id: "create-from-scratch",
+                  type: "text",
+                  text: "SAVE XX%",
+                  style: {
+                    width: "30%",
+                    height: "10%",
+                    backgroundColor: "rgb(185, 185, 185)",
+                    color: "rgb(94, 88, 115)",
+                    fontSize: "12.4px",
+                    fontWeight: "normal",
+                    letterSpacing: "0px",
+                    textDecoration: "none",
+                    wordBreak: "break-word",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    borderRadius: "0px",
+                    border: "0px none rgb(0, 0, 0)",
+                    margin: "0px",
+                    opacity: 1,
+                    top: "0px",
+                    left: "0px"
+                  }
+                })
+              }
+            })}
           >
             Create from Scratch
           </Button>
@@ -425,6 +456,18 @@ export default function CreateBadge() {
           <Button 
             variant="secondary"
             size="medium"
+            onClick={() => router.push({
+              pathname: "/badges/new",
+              query: { 
+                template: "create-from-scratch",
+                templateData: JSON.stringify({
+                  id: "create-from-scratch",
+                  type: "image",
+                  src: "https://d3azqz9xba9gwd.cloudfront.net/storage/labels/pl-july-production-demo-store/8-4.png",
+                  alt: "Custom badge"
+                })
+              }
+            })}
           >
             Create from Scratch
           </Button>

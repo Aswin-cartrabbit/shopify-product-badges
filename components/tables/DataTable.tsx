@@ -20,7 +20,7 @@ import {
   useSetIndexFiltersMode,
 } from "@shopify/polaris";
 
-import { DeleteIcon, EditIcon } from "@shopify/polaris-icons";
+import { DeleteIcon } from "@shopify/polaris-icons";
 import { useRouter } from "next/router";
 
 import { useCallback, useEffect, useState } from "react";
@@ -60,6 +60,7 @@ export function DataTable({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [toast, setToast] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -71,12 +72,9 @@ export function DataTable({
 
   // Filter tabs state
   const [itemStrings, setItemStrings] = useState([
-    "All Components",
+    "All",
     "Active",
-    "Published",
-    "Draft",
-    "Badges",
-    "Banners",
+    "Inactive",
   ]);
   const [selected, setSelected] = useState(0);
 
@@ -302,10 +300,7 @@ export function DataTable({
 
       // Add filters based on current tab and applied filters
       if (selected === 1) params.append("status", "ACTIVE"); // Active tab
-      // if (selected === 2) params.append("isPublished", "true"); // Published tab
-      // if (selected === 3) params.append("isPublished", "false"); // Draft tab
-      if (selected === 4) params.append("type", "BADGE"); // Badges tab
-      if (selected === 5) params.append("type", "BANNER"); // Banners tab
+      if (selected === 2) params.append("status", "INACTIVE"); // Inactive tab
 
       // Add applied filters
       if (componentType && !isEmpty(componentType)) {
@@ -321,6 +316,9 @@ export function DataTable({
         params.append("search", queryValue);
       }
 
+      // Add cache-busting parameter to ensure fresh data
+      params.append('_t', Date.now().toString());
+      
       const response = await fetch(`/api/badge?${params}&type=${type}`, getGetOptions());
 
       const data = await response.json();
@@ -521,6 +519,154 @@ export function DataTable({
     return <Badge tone={typeColors[type] || "info"}>{type}</Badge>;
   };
 
+  // Delete function
+  const handleDelete = async (componentId, componentName) => {
+    if (!confirm(`Are you sure you want to delete "${componentName}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    setDeletingId(componentId);
+    try {
+      const response = await fetch(`/api/badge/delete?id=${componentId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Component deleted successfully:', result);
+        
+        // Remove from local state
+        setComponents(prev => prev.filter(comp => comp.id !== componentId));
+        
+        // Show success toast
+        setToast({
+          content: `"${componentName}" has been deleted successfully`,
+          duration: 5000,
+        });
+      } else {
+        const error = await response.json();
+        console.error('Failed to delete component:', error);
+        setToast({
+          content: `Failed to delete "${componentName}": ${error.message || 'Unknown error'}`,
+          duration: 5000,
+          error: true,
+        });
+      }
+    } catch (error) {
+      console.error('Error deleting component:', error);
+      setToast({
+        content: `Error deleting "${componentName}": ${error.message || 'Unknown error'}`,
+        duration: 5000,
+        error: true,
+      });
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+
+  // Helper function to render trust badge preview
+  const renderTrustBadgePreview = (component) => {
+    if (type !== "TRUST_BADGE") {
+      return (
+        <Text variant="bodyMd" fontWeight="semibold" as="span">
+          {component.name}
+        </Text>
+      );
+    }
+
+    // For trust badges, show the actual content/icons from the component
+    // The icons are stored in templates.content.icons based on the API response
+    const content = component.templates?.content || component.design?.content || component.content || {};
+    const icons = content.icons || [];
+    const firstIcon = icons[0];
+
+    console.log("Component data:", component);
+    console.log("Content:", content);
+    console.log("Icons:", icons);
+    console.log("First icon:", firstIcon);
+
+    // If no icons, show a default placeholder
+    if (!firstIcon || !firstIcon.src) {
+      console.log("No icon found, showing placeholder");
+      return (
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <div style={{
+            width: "80px",
+            height: "80px",
+            borderRadius: "50%",
+           
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexShrink: 0
+          }}>
+            <Text as="p" variant="bodySm" tone="subdued">?</Text>
+          </div>
+        </div>
+      );
+    }
+
+    console.log("Showing icon:", firstIcon.src);
+    return (
+      <div style={{ 
+        display: "flex", 
+        alignItems: "center", 
+        gap: "8px",
+        height: "70px", // Match the exact row height from screenshot
+        padding: "15px 0" // Add vertical padding to center content
+      }}>
+        {/* Show first 4 icons horizontally */}
+        {icons.slice(0, 4).map((icon, index) => (
+          <div key={icon.id || index} style={{
+            width: "67px",
+            height: "50px",
+            borderRadius: "8px",
+           
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexShrink: 0,
+            padding: "4px"
+          }}>
+            <img 
+              src={icon.src} 
+              alt={icon.name || "Trust badge icon"}
+              style={{
+                maxWidth: "100%",
+                maxHeight: "100%",
+                objectFit: "contain"
+              }}
+              onError={(e) => {
+                console.log("Image failed to load:", icon.src);
+              }}
+            />
+          </div>
+        ))}
+        
+        {/* Show +X indicator if more than 4 icons */}
+        {icons.length > 4 && (
+          <div style={{
+            width: "76px",
+            height: "50px",
+            borderRadius: "8px",
+            backgroundColor: "#f6f6f7",
+            border: "1px solid #e1e3e5",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexShrink: 0,
+            fontSize: "12px",
+            fontWeight: "600",
+            color: "#6b7280"
+          }}>
+            +{icons.length - 4}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   // Table rows
   const rowMarkup = components.map((component, index) => (
     <IndexTable.Row
@@ -530,45 +676,99 @@ export function DataTable({
       position={index}
     >
       <IndexTable.Cell>
-        <Text variant="bodyMd" fontWeight="semibold" as="span">
-          {component.name}
-        </Text>
-        {component.description && (
-          <Text variant="bodySm" tone="subdued" as="p">
-            {component.description}
-          </Text>
-        )}
+        {renderTrustBadgePreview(component)}
       </IndexTable.Cell>
-      <IndexTable.Cell>{getTypeBadge(component.type)}</IndexTable.Cell>
-      <IndexTable.Cell>{getStatusBadge(component.status)}</IndexTable.Cell>
-      {/* <IndexTable.Cell>
-        {getPublishedBadge(component.isPublished)}
-      </IndexTable.Cell> */}
-      <IndexTable.Cell>
-        <Text as="span" alignment="center" numeric>
-          {component.impressions?.toLocaleString() || 0}
-        </Text>
-      </IndexTable.Cell>
-      <IndexTable.Cell>
-        <Text as="span" alignment="center" numeric>
-          {component.clicks?.toLocaleString() || 0}
-        </Text>
-      </IndexTable.Cell>
-      <IndexTable.Cell>
-        <Text variant="bodySm" tone="subdued" as="p">
-          {new Date(component.createdAt).toLocaleDateString()}
-        </Text>
-      </IndexTable.Cell>
-      <IndexTable.Cell>
-        <ButtonGroup>
-          <div>
-            <Icon source={EditIcon} tone="base" />
-          </div>
-          <div>
-            <Icon source={DeleteIcon} tone="base" />
-          </div>
-        </ButtonGroup>
-      </IndexTable.Cell>
+      {type === "TRUST_BADGE" ? (
+        <>
+          <IndexTable.Cell>
+            <div style={{ 
+              height: "70px", 
+              display: "flex", 
+              alignItems: "center",
+              padding: "15px 0"
+            }}>
+              <Text variant="bodyMd" fontWeight="semibold" as="span">
+                {component.name}
+              </Text>
+              {component.description && (
+                <Text variant="bodySm" tone="subdued" as="p">
+                  {component.description}
+                </Text>
+              )}
+            </div>
+          </IndexTable.Cell>
+          <IndexTable.Cell>
+            <div style={{ 
+              height: "70px", 
+              display: "flex", 
+              alignItems: "center",
+              padding: "15px 0"
+            }}>
+              {getStatusBadge(component.status)}
+            </div>
+          </IndexTable.Cell>
+          <IndexTable.Cell>
+            <div style={{ 
+              height: "70px", 
+              display: "flex", 
+              alignItems: "center",
+              padding: "15px 0"
+            }}>
+              <Text as="span" variant="bodySm">
+                Auto
+              </Text>
+            </div>
+          </IndexTable.Cell>
+          <IndexTable.Cell>
+            <div style={{ 
+              height: "70px", 
+              display: "flex", 
+              alignItems: "center",
+              padding: "15px 0"
+            }}>
+              <Button
+                variant="plain"
+                icon={DeleteIcon}
+                onClick={() => handleDelete(component.id, component.name)}
+                loading={deletingId === component.id}
+                disabled={deletingId === component.id}
+              />
+            </div>
+          </IndexTable.Cell>
+        </>
+      ) : (
+        <>
+          <IndexTable.Cell>{getTypeBadge(component.type)}</IndexTable.Cell>
+          <IndexTable.Cell>{getStatusBadge(component.status)}</IndexTable.Cell>
+          {/* <IndexTable.Cell>
+            {getPublishedBadge(component.isPublished)}
+          </IndexTable.Cell> */}
+          <IndexTable.Cell>
+            <Text as="span" alignment="center" numeric>
+              {component.impressions?.toLocaleString() || 0}
+            </Text>
+          </IndexTable.Cell>
+          <IndexTable.Cell>
+            <Text as="span" alignment="center" numeric>
+              {component.clicks?.toLocaleString() || 0}
+            </Text>
+          </IndexTable.Cell>
+          <IndexTable.Cell>
+            <Text variant="bodySm" tone="subdued" as="p">
+              {new Date(component.createdAt).toLocaleDateString()}
+            </Text>
+          </IndexTable.Cell>
+          <IndexTable.Cell>
+            <Button
+              variant="plain"
+              icon={DeleteIcon}
+              onClick={() => handleDelete(component.id, component.name)}
+              loading={deletingId === component.id}
+              disabled={deletingId === component.id}
+            />
+          </IndexTable.Cell>
+        </>
+      )}
     </IndexTable.Row>
   ));
 
@@ -579,7 +779,7 @@ export function DataTable({
         <div style={{ padding: "40px", textAlign: "center" }}>
           <Spinner accessibilityLabel="Loading components" size="large" />
           <Text variant="bodyMd" tone="subdued" as="p">
-            Loading visual components...
+            Loading ...
           </Text>
         </div>
       </LegacyCard>
@@ -698,7 +898,13 @@ export function DataTable({
           }
           onSelectionChange={handleSelectionChange}
           loading={loading}
-          headings={[
+          headings={type === "TRUST_BADGE" ? [
+            { title: "Preview" },
+            { title: "Name" },
+            { title: "Status" },
+            { title: "Position type" },
+            { title: "Action" },
+          ] : [
             { title: "Name" },
             { title: "Type" },
             { title: "Status" },
@@ -735,8 +941,62 @@ export function DataTable({
             },
             {
               content: "Delete",
-              onAction: () => console.log("Delete selected"),
-              // destructive: true,
+              onAction: async () => {
+                if (!confirm(`Are you sure you want to delete ${selectedResources.length} component(s)? This action cannot be undone.`)) {
+                  return;
+                }
+
+                const deletePromises = selectedResources.map(async (componentId) => {
+                  const component = components.find(comp => comp.id === componentId);
+                  if (!component) return;
+
+                  try {
+                    const response = await fetch(`/api/badge/delete?id=${componentId}`, {
+                      method: 'DELETE',
+                    });
+
+                    if (response.ok) {
+                      return { success: true, id: componentId, name: component.name };
+                    } else {
+                      const error = await response.json();
+                      return { success: false, id: componentId, name: component.name, error: error.message };
+                    }
+                  } catch (error) {
+                    return { success: false, id: componentId, name: component.name, error: error.message };
+                  }
+                });
+
+                const results = await Promise.all(deletePromises);
+                const successful = results.filter(r => r.success);
+                const failed = results.filter(r => !r.success);
+
+                // Remove successful deletions from local state
+                if (successful.length > 0) {
+                  setComponents(prev => prev.filter(comp => !successful.some(s => s.id === comp.id)));
+                }
+
+                // Show toast with results
+                if (successful.length > 0 && failed.length === 0) {
+                  setToast({
+                    content: `Successfully deleted ${successful.length} component(s)`,
+                    duration: 5000,
+                  });
+                } else if (successful.length > 0 && failed.length > 0) {
+                  setToast({
+                    content: `Deleted ${successful.length} component(s), failed to delete ${failed.length} component(s)`,
+                    duration: 5000,
+                    error: true,
+                  });
+                } else if (failed.length > 0) {
+                  setToast({
+                    content: `Failed to delete ${failed.length} component(s)`,
+                    duration: 5000,
+                    error: true,
+                  });
+                }
+
+                // Clear selection - no need to call handleSelectionChange, just remove from local state
+              },
             },
           ]}
         >
@@ -770,6 +1030,17 @@ export function DataTable({
           </div>
         )}
       </LegacyCard>
+
+      {/* Toast for delete messages */}
+      {toast && (
+        <Toast
+          content={toast.content}
+          duration={toast.duration}
+          error={toast.error}
+          onDismiss={() => setToast(null)}
+        />
+      )}
+
     </Frame>
   );
 }

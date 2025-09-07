@@ -16,10 +16,11 @@ import {
   ChoiceList,
   Select,
   Checkbox,
+  Popover,
 } from "@shopify/polaris";
 import { useCallback, useState, useEffect } from "react";
-import { DateTimePicker } from "../pickers/DateTimePicker";
-import { QuestionCircleIcon, CalendarTimeIcon } from "@shopify/polaris-icons";
+import { DatePicker } from '@shopify/polaris';
+import { QuestionCircleIcon, CalendarTimeIcon, CheckboxIcon } from "@shopify/polaris-icons";
 import { useBadgeStore } from "@/stores/BadgeStore";
 import { useAppBridge } from '@shopify/app-bridge-react';
 
@@ -37,6 +38,38 @@ const DisplayForm = ({ data, onChange, type }: DisplayFormProps) => {
   const [selectedConditions, setSelectedConditions] = useState([]);
   const [priceRange, setPriceRange] = useState({ min: "", max: "" });
   const [newLink, setNewLink] = useState<string>("");
+
+  // DatePicker state
+  const [startDateState, setStartDateState] = useState({
+    month: badge.display?.startDateTime ? new Date(badge.display.startDateTime).getMonth() + 1 : new Date().getMonth() + 1,
+    year: badge.display?.startDateTime ? new Date(badge.display.startDateTime).getFullYear() : new Date().getFullYear()
+  });
+  const [endDateState, setEndDateState] = useState({
+    month: badge.display?.endDateTime ? new Date(badge.display.endDateTime).getMonth() + 1 : new Date().getMonth() + 1,
+    year: badge.display?.endDateTime ? new Date(badge.display.endDateTime).getFullYear() : new Date().getFullYear()
+  });
+  const [selectedStartDates, setSelectedStartDates] = useState({
+    start: badge.display?.startDateTime ? new Date(badge.display.startDateTime) : new Date(),
+    end: badge.display?.startDateTime ? new Date(badge.display.startDateTime) : new Date(),
+  });
+  const [selectedEndDates, setSelectedEndDates] = useState({
+    start: badge.display?.endDateTime ? new Date(badge.display.endDateTime) : new Date(),
+    end: badge.display?.endDateTime ? new Date(badge.display.endDateTime) : new Date(),
+  });
+  const [showStartDatePicker, setShowStartDatePicker] = useState(false);
+  const [showEndDatePicker, setShowEndDatePicker] = useState(false);
+  const [showStartCheckbox, setShowStartCheckbox] = useState(false);
+  const [showEndCheckbox, setShowEndCheckbox] = useState(false);
+
+  const handleStartMonthChange = useCallback(
+    (month: number, year: number) => setStartDateState({month, year}),
+    [],
+  );
+
+  const handleEndMonthChange = useCallback(
+    (month: number, year: number) => setEndDateState({month, year}),
+    [],
+  );
 
   const handleScheduleToggle = () => {
     updateDisplay("isScheduled", !badge.display.isScheduled);
@@ -226,14 +259,94 @@ const DisplayForm = ({ data, onChange, type }: DisplayFormProps) => {
           </BlockStack>
         </Card> */}
 
-        {/* Priority (new) */}
+        {/* Scheduled Display */}
+        {/* Scheduled Display */}
         <Card>
           <BlockStack gap="200">
-            <Text variant="headingSm" as="h3">Priority</Text>
-            <TextField label="" type="number" value={(badge.display?.priority ?? 0).toString()} onChange={(val) => updateDisplay("priority", parseInt(val || "0", 10) as any)} helpText="0 is for the highest priority, and 100 is for the lowest." autoComplete="off" />
-            <Checkbox label="Hide if products has higher priority labels/badges." checked={Boolean(badge.display?.respectProductPriority ?? true)} onChange={(v) => updateDisplay("respectProductPriority", v as any)} />
+            <Text variant="headingSm" as="h3">Scheduled Display</Text>
+            
+            <InlineStack align="space-between" blockAlign="center">
+              <Text variant="bodyMd" as="p">Start Date</Text>
+              <Checkbox 
+                label={badge.display?.startDateTime ? 
+                  new Date(badge.display.startDateTime).toLocaleDateString() : 
+                  "Start Date"
+                }
+                checked={showStartCheckbox}
+
+               
+                onChange={(checked) => {
+                  setShowStartCheckbox(checked);
+                  setShowStartDatePicker(checked);
+                  if (checked) {
+                    updateDisplay("startDateTime", Date.now());
+                  } else {
+                    updateDisplay("startDateTime", undefined);
+                  }
+                }}
+              >
+              </Checkbox>
+            </InlineStack>
+            
+            {showStartDatePicker && (
+              <DatePicker
+                month={startDateState.month}
+                year={startDateState.year}
+
+                onChange={(dates) => {
+                  setSelectedStartDates(dates);
+                  const timestamp = dates.start.getTime();
+                  console.log("Start date selected:", dates.start, "Timestamp:", timestamp);
+                  updateDisplay("startDateTime", timestamp);
+                  setShowStartDatePicker(false);
+                }}
+                onMonthChange={handleStartMonthChange}
+                selected={selectedStartDates}
+              />
+            )}
+
+            <InlineStack align="space-between" blockAlign="center">
+              <Text variant="bodyMd" as="p">End Date</Text>
+              <Checkbox
+                label={badge.display?.endDateTime ? 
+                  new Date(badge.display.endDateTime).toLocaleDateString() : 
+                  "End Date"
+                }
+                checked={showEndCheckbox}
+
+               
+                onChange={(checked) => {
+                  setShowEndCheckbox(checked);
+                  setShowEndDatePicker(checked);
+                  if (checked) {
+                    updateDisplay("endDateTime", Date.now());
+                  } else {
+                    updateDisplay("endDateTime", undefined);
+                  }
+                }}
+              >
+               
+              </Checkbox>
+            </InlineStack>
+            
+            {showEndDatePicker && (
+              <DatePicker
+                month={endDateState.month}
+                year={endDateState.year}
+                onChange={(dates) => {
+                  setSelectedEndDates(dates);
+                  const timestamp = dates.start.getTime();
+                  console.log("End date selected:", dates.start, "Timestamp:", timestamp);
+                  updateDisplay("endDateTime", timestamp);
+                  setShowEndDatePicker(false);
+                }}
+                onMonthChange={handleEndMonthChange}
+                selected={selectedEndDates}
+              />
+            )}
           </BlockStack>
         </Card>
+       
 
         {/* Display Rules (new) */}
         {/* <Card>

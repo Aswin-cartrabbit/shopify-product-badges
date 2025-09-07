@@ -32,15 +32,21 @@ const TrustBadgeContentForm = ({
 }: TrustBadgeContentFormProps) => {
   const [showIconLibrary, setShowIconLibrary] = useState(false);
   
+  console.log("TrustBadgeContentForm render - data:", data);
+  console.log("TrustBadgeContentForm render - badgeName:", badgeName);
   console.log("TrustBadgeContentForm render - showIconLibrary:", showIconLibrary);
   
   const handleNameChange = useCallback(
-    (value: string) => setBadgeName(value),
+    (value: string) => {
+      console.log("TrustBadgeContentForm: handleNameChange called with:", value);
+      setBadgeName(value);
+    },
     [setBadgeName]
   );
 
   const handleLayoutChange = useCallback(
     (layout: string) => {
+      console.log("TrustBadgeContentForm: handleLayoutChange called with:", layout);
       onChange({ ...data, layout });
     },
     [data, onChange]
@@ -48,6 +54,7 @@ const TrustBadgeContentForm = ({
 
   const handleIconSizeChange = useCallback(
     (size: number) => {
+      console.log("TrustBadgeContentForm: handleIconSizeChange called with:", size);
       onChange({ ...data, iconSize: size });
     },
     [data, onChange]
@@ -55,6 +62,7 @@ const TrustBadgeContentForm = ({
 
   const handleSpacingChange = useCallback(
     (spacing: number) => {
+      console.log("TrustBadgeContentForm: handleSpacingChange called with:", spacing);
       onChange({ ...data, spacing });
     },
     [data, onChange]
@@ -62,6 +70,7 @@ const TrustBadgeContentForm = ({
 
   const handleTitleChange = useCallback(
     (title: string) => {
+      console.log("TrustBadgeContentForm: handleTitleChange called with:", title);
       onChange({ ...data, title });
     },
     [data, onChange]
@@ -69,6 +78,7 @@ const TrustBadgeContentForm = ({
 
   const handleShowTitleChange = useCallback(
     (showTitle: boolean) => {
+      console.log("TrustBadgeContentForm: handleShowTitleChange called with:", showTitle);
       onChange({ ...data, showTitle });
     },
     [data, onChange]
@@ -76,14 +86,28 @@ const TrustBadgeContentForm = ({
 
   const handleRemoveIcon = useCallback(
     (iconId: string) => {
+      console.log("=== REMOVE ICON DEBUG ===");
+      console.log("TrustBadgeContentForm: handleRemoveIcon called with:", iconId);
+      console.log("Current data:", JSON.stringify(data, null, 2));
+      console.log("Current icons before removal:", JSON.stringify(data.icons, null, 2));
+      console.log("Current icons length before removal:", data.icons?.length);
+      
       const updatedIcons = data.icons.filter((icon: any) => icon.id !== iconId);
-      onChange({ ...data, icons: updatedIcons });
+      console.log("Updated icons after removal:", JSON.stringify(updatedIcons, null, 2));
+      console.log("Updated icons length after removal:", updatedIcons.length);
+      
+      const newData = { ...data, icons: updatedIcons };
+      console.log("New data being passed to onChange:", JSON.stringify(newData, null, 2));
+      console.log("==========================");
+      
+      onChange(newData);
     },
     [data, onChange]
   );
 
   const handleAddIcon = useCallback(
     (newIcon: any) => {
+      console.log("TrustBadgeContentForm: handleAddIcon called with:", newIcon);
       const updatedIcons = [...(data.icons || []), newIcon];
       onChange({ ...data, icons: updatedIcons });
       setShowIconLibrary(false);
@@ -243,8 +267,8 @@ const TrustBadgeContentForm = ({
             <RangeSlider
               label={`Size: ${data.iconSize || 40}px`}
               value={data.iconSize || 40}
-              min={20}
-              max={80}
+              min={0}
+              max={100}
               onChange={handleIconSizeChange}
             />
           </BlockStack>
@@ -260,7 +284,7 @@ const TrustBadgeContentForm = ({
               label={`Spacing: ${data.spacing || 8}px`}
               value={data.spacing || 8}
               min={0}
-              max={40}
+              max={100}
               onChange={handleSpacingChange}
             />
           </BlockStack>

@@ -24,10 +24,10 @@ import { useBadgeStore, GridPosition } from "@/stores/BadgeStore";
 import { BadgeHorizontalPosition, BadgeAlignment } from "@/components/BadgeHorizontalPosition";
 import HtmlPreviewer from "../HtmlPreviewer";
 import ContentForm from "./ContentForm";
-import DesignForm from "./DesignForm";
+import { DesignForm } from "./DesignForm";
 import ProductsForm from "./ProductsForm";
 import DisplayForm from "./DisplayForm";
-import {Modal, TitleBar, useAppBridge} from '@shopify/app-bridge-react';
+import { Modal, TitleBar, useAppBridge } from "@shopify/app-bridge-react";
 import { EditIcon, ProductAddIcon, ContentIcon } from "@shopify/polaris-icons";
 
 interface BadgeBuilderProps {
@@ -50,7 +50,7 @@ export const BadgeBuilder = ({
   onClearError
 }: BadgeBuilderProps) => {
 
-  console.log('errorMessage ------->', errorMessage);
+
   const [isModalOpen, setIsModalOpen] = useState<boolean>(true);
   const [hasInitializedTemplate, setHasInitializedTemplate] = useState(false);
   
@@ -78,6 +78,7 @@ export const BadgeBuilder = ({
   const [currentStatus, setCurrentStatus] = useState<"DRAFT" | "ACTIVE">("ACTIVE");
 
   const [selectedTab, setSelectedTab] = useState<number>(0);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [formData, setFormData] = useState<any>({
     name: selectedTemplate?.text || selectedTemplate?.alt || name,
     type: componentType,
@@ -126,8 +127,8 @@ export const BadgeBuilder = ({
         
         if (selectedTemplate.style) {
           // Convert template styles to badge store format
-          if (selectedTemplate.style.background) {
-            updateDesign("color", selectedTemplate.style.background);
+          if (selectedTemplate.style.background || selectedTemplate.style.backgroundColor) {
+            updateDesign("color", selectedTemplate.style.backgroundColor || selectedTemplate.style.background);
             updateDesign("background", "solid");
           }
           
@@ -163,19 +164,18 @@ export const BadgeBuilder = ({
 
   const handleTabChange = useCallback(
     (selectedTabIndex: any) => {
-      console.log("Tab changed to:", selectedTabIndex);
       setSelectedTab(selectedTabIndex);
     },
     []
   );
 
   const handleSave = async () => {
+    setIsLoading(true);
     try {
       // Get the latest badge store state right before creating payload
       const { badge } = useBadgeStore.getState();
       
-      console.log("Form data before save:", formData);
-      console.log("Badge store content before save:", badge.content);
+
       
       const payload = {
         name: formData.name || name,
@@ -186,10 +186,58 @@ export const BadgeBuilder = ({
             type: selectedTemplate.src ? "image" : "text",
             data: selectedTemplate
           } : null,
-          ...badge.design
+          ...badge.design,
+          // Merge formData.design to capture latest changes from form
+          ...formData.design,
+          // Ensure all design properties are included with proper fallbacks
+          // Priority: badge.design (most current) > formData.design > defaults
+          background: badge.design.background || formData.design?.background || "solid",
+          color: badge.design.color || formData.design?.color || "#7700ffff",
+          width: badge.design.width || formData.design?.width || 120,
+          height: badge.design.height || formData.design?.height || 40,
+          fontSize: badge.design.fontSize || formData.design?.fontSize || 14,
+          cornerRadius: badge.design.cornerRadius || formData.design?.cornerRadius || 8,
+          borderSize: badge.design.borderSize || formData.design?.borderSize || 0,
+          borderColor: badge.design.borderColor || formData.design?.borderColor || "#c5c8d1",
+          opacity: badge.design.opacity || formData.design?.opacity || 100,
+          rotation: badge.design.rotation || formData.design?.rotation || 0,
+          size: badge.design.size || formData.design?.size || 36,
+          positionX: badge.design.positionX || formData.design?.positionX || 0,
+          positionY: badge.design.positionY || formData.design?.positionY || 0,
+          gridPosition: badge.design.gridPosition || formData.design?.gridPosition,
+          horizontalPosition: badge.design.horizontalPosition || formData.design?.horizontalPosition,
+          textAlignment: badge.design.textAlignment || formData.design?.textAlignment,
+          isBold: badge.design.isBold || formData.design?.isBold || false,
+          isItalic: badge.design.isItalic || formData.design?.isItalic || false,
+          isUnderline: badge.design.isUnderline || formData.design?.isUnderline || false,
+          spacing: badge.design.spacing || formData.design?.spacing || {
+            insideTop: "16",
+            insideBottom: "16",
+            outsideTop: "20",
+            outsideBottom: "20"
+          }
         },
         display: {
-          rules: badge.display,
+          // Include all display/rules properties (bgColor moved to settings)
+          isScheduled: badge.display.isScheduled || false,
+          startDateTime: badge.display.startDateTime || Date.now(),
+          endDateTime: badge.display.endDateTime || Date.now(),
+          visibility: badge.display.visibility || "all",
+          resourceIds: badge.display.resourceIds || [],
+          pageDisplay: badge.display.pageDisplay || { 
+            product: true, 
+            collection: true, 
+            home: true, 
+            search: true, 
+            cart: false 
+          },
+          specificLinks: badge.display.specificLinks || [],
+          languagesMode: badge.display.languagesMode || "all",
+          customLanguages: badge.display.customLanguages || [],
+          customerCondition: badge.display.customerCondition || "all",
+          customerTags: badge.display.customerTags || [],
+          priority: badge.display.priority || 0,
+          respectProductPriority: badge.display.respectProductPriority !== undefined ? badge.display.respectProductPriority : true,
           ...formData.display
         },
         settings: {
@@ -200,16 +248,31 @@ export const BadgeBuilder = ({
             contentType: badge.content.contentType || "text",
             icon: badge.content.icon || "",
             iconUploaded: badge.content.iconUploaded || false,
-            textColor: badge.content.textColor || "#ffffff"
+            textColor: badge.content.textColor || "#ffffff",
+            font: badge.content.font || "own_theme",
+            callToAction: badge.content.callToAction || "noCta",
+            subheading: badge.content.subheading || "",
+            src: badge.content.src || "",
+            alt: badge.content.alt || ""
           },
-          placement: badge.placement,
+          placement: {
+            position: badge.placement.position || badge.design.gridPosition,
+            // Include positioning based on type
+            ...(type === "LABEL" ? {
+              gridPosition: badge.design.gridPosition
+            } : {
+              horizontalPosition: badge.design.horizontalPosition,
+              textAlignment: badge.design.textAlignment
+            })
+          },
+          // Move bgColor to settings
+          bgColor: badge.display.bgColor || "#ffffff",
           ...formData.settings
         },
         status: currentStatus
       };
 
-      console.log("Final payload:", payload);
-      console.log("Payload content text:", payload.settings.content.text);
+
 
       if (onSave) {
         onSave(payload);
@@ -224,14 +287,13 @@ export const BadgeBuilder = ({
         });
 
         if (response.ok) {
-          console.log(`${componentType} created successfully`);
           setIsModalOpen(false);
-        } else {
-          console.error(`Failed to create ${componentType}`);
         }
       }
     } catch (error) {
       console.error(`Error creating ${componentType}:`, error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -244,6 +306,7 @@ export const BadgeBuilder = ({
 
   return (
     <>
+    <div style={{zIndex: 99}}>
       <Modal variant="max" open={isModalOpen} onHide={handleCancel}>
         <TitleBar title={`${componentType} Editor`} />
         <Page
@@ -256,10 +319,10 @@ export const BadgeBuilder = ({
           titleMetadata={getBadges(currentStatus)}
           subtitle={`${componentType.charAt(0) + componentType.slice(1).toLowerCase()} Editor`}
           primaryAction={{
-            content: isSaving ? "Saving..." : "Save",
-            disabled: isSaving,
+            content: (isSaving || isLoading) ? "Saving..." : "Save",
+            disabled: isSaving || isLoading,
             onAction: handleSave,
-            loading: isSaving,
+            loading: isSaving || isLoading,
           }}
           secondaryActions={[
             {
@@ -426,37 +489,55 @@ export const BadgeBuilder = ({
               >
                 <ContentForm
                   data={selectedTemplate}
-                  onChange={(data) => setFormData({ ...formData, ...data })}
+                  onChange={(data) => {
+                    setFormData(prev => ({ ...prev, ...data }));
+                  }}
                   type={componentType}
                   badgeName={formData.name}
-                  setBadgeName={(name) => setFormData({ ...formData, name })}
+                  setBadgeName={(name) => setFormData(prev => ({ ...prev, name }))}
                 />
                 <DesignForm
                   data={formData}
-                  onChange={(data) =>
-                    setFormData({ ...formData, design: data })
-                  }
+                  onChange={(key, value) => {
+                    setFormData(prev => ({
+                      ...prev, 
+                      design: { 
+                        ...prev.design, 
+                        [key]: value
+                      }
+                    }));
+                  }}
                   selectedTemplate={selectedTemplate}
                   type={componentType}
                 />
               </div>
               {/* Products */}
-              <div style={{ display: selectedTab === 1 ? "block" : "none" }}>
+              <div style={{zIndex: 9999999999999999999}}>
+              <div style={{ display: selectedTab === 1 ? "block" : "none" , zIndex: 999999999 }}>
                 <ProductsForm
                   data={formData}
-                  onChange={(data) =>
-                    setFormData({ ...formData, products: data })
-                  }
+                  onChange={(data) => {
+                    setFormData(prev => ({ 
+                      ...prev, 
+                      products: data,
+                      // Merge any display-related updates from products form
+                      display: { ...prev.display, ...data }
+                    }));
+                  }}
                   type={componentType}
                 />
               </div>
+              </div>
               {/* Display */}
-              <div style={{ display: selectedTab === 2 ? "block" : "none" }}>
+              <div style={{ display: selectedTab === 2 ? "block" : "none", zIndex: 10}}>
                 <DisplayForm
                   data={formData}
-                  onChange={(data) =>
-                    setFormData({ ...formData, display: data })
-                  }
+                  onChange={(data) => {
+                    setFormData(prev => ({ 
+                      ...prev, 
+                      display: { ...prev.display, ...data }
+                    }));
+                  }}
                   type={componentType}
                 />
               </div>
@@ -536,6 +617,7 @@ export const BadgeBuilder = ({
         </div>
       </Page>
     </Modal>
+    </div>
   </>
   );
 };

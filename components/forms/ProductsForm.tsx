@@ -11,7 +11,7 @@ import {
   Tooltip,
   Icon,
   Link,
-  Modal,
+  Modal as PolarisModal,
   Grid,
   Box,
   TextField,
@@ -20,9 +20,9 @@ import {
   Checkbox,
   Badge,
 } from "@shopify/polaris";
-import { QuestionCircleIcon, ChevronDownIcon, ChevronUpIcon } from "@shopify/polaris-icons";
-import { useBadgeStore } from "@/stores/BadgeStore";
-import { useAppBridge } from '@shopify/app-bridge-react';
+import { QuestionCircleIcon, ChevronDownIcon, ChevronUpIcon, DeleteIcon } from "@shopify/polaris-icons";
+import { useBadgeStore, BadgeDisplay } from "@/stores/BadgeStore";
+import { useAppBridge, Modal, TitleBar } from '@shopify/app-bridge-react'; 
 import { useState, useCallback } from 'react';
 import { imageTemplates, textTemplates } from "@/utils/templateData";
 import {
@@ -68,6 +68,12 @@ const ProductsForm = ({ data, onChange, type = "BADGE" }: ProductsFormProps) => 
 
   // Metafield states
   const [selectedMetafields, setSelectedMetafields] = useState<any[]>([]);
+  const [isMetafieldModalOpen, setIsMetafieldModalOpen] = useState(false);
+  const [metafieldDefinitionTypes, setMetafieldDefinitionTypes] = useState<any[]>([]);
+  const [isLoadingMetafields, setIsLoadingMetafields] = useState(false);
+  
+  // Metafield condition states
+  const [metafieldConditions, setMetafieldConditions] = useState<any[]>([]);
 
   const togglePopoverActive = useCallback(
     () => setPopoverActive((popoverActive) => !popoverActive),
@@ -188,9 +194,8 @@ const ProductsForm = ({ data, onChange, type = "BADGE" }: ProductsFormProps) => 
     }
   }
 
-  async function fetchMetafieldDefinitions() {
-    console.log('Fetching metafield definitions');
-    
+  const fetchAllProductMetafields = useCallback(async () => {
+    setIsLoadingMetafields(true);
     try {
       const response = await fetch('/api/graphql', {
         method: 'POST',
@@ -199,10 +204,11 @@ const ProductsForm = ({ data, onChange, type = "BADGE" }: ProductsFormProps) => 
         },
         body: JSON.stringify({
           query: `
-            query {
-              metafieldDefinitions(first: 100) {
+            query AllProductMetafields {
+              metafieldDefinitions(first: 50, ownerType: PRODUCT) {
                 edges {
                   node {
+                    id
                     namespace
                     key
                     name
@@ -219,78 +225,100 @@ const ProductsForm = ({ data, onChange, type = "BADGE" }: ProductsFormProps) => 
       });
 
       const data = await response.json();
-      console.log('Metafield definitions response:', data);
+      console.log('All product metafields response:', data);
 
-      // Handle unauthorized error - show mock data for now
-      if (data.error === 'Unauthorized call' || !data.data?.metafieldDefinitions?.edges) {
-        console.log('Using mock metafield data due to authorization issue');
-        
-        // Mock metafield data for testing
-        const mockMetafields = [
-          {
-            namespace: 'custom',
-            key: 'product_type',
-            name: 'Product Type',
-            description: 'Custom product type classification',
-            type: { name: 'single_line_text_field' }
-          },
-          {
-            namespace: 'custom',
-            key: 'brand',
-            name: 'Brand',
-            description: 'Product brand information',
-            type: { name: 'single_line_text_field' }
-          },
-          {
-            namespace: 'custom',
-            key: 'rating',
-            name: 'Rating',
-            description: 'Product rating value',
-            type: { name: 'number_integer' }
-          },
-          {
-            namespace: 'custom',
-            key: 'featured',
-            name: 'Featured Product',
-            description: 'Whether product is featured',
-            type: { name: 'boolean' }
-          }
-        ];
-        
-        setSelectedMetafields(mockMetafields);
-        return;
+      if (data.data?.metafieldDefinitions?.edges) {
+        const metafieldDefinitions = data.data.metafieldDefinitions.edges.map((edge: any) => ({
+          id: edge.node.id,
+          namespace: edge.node.namespace,
+          key: edge.node.key,
+          name: edge.node.name,
+          description: edge.node.description,
+          type: edge.node.type.name
+        }));
+        setMetafieldDefinitionTypes(metafieldDefinitions);
+      } else {
+        console.error('Error fetching metafield definitions:', data);
+        setMetafieldDefinitionTypes([]);
       }
-
-      const metafields = data.data.metafieldDefinitions.edges.map((edge: any) => edge.node);
-      console.log('Available metafields:', metafields);
-      setSelectedMetafields(metafields.slice(0, 3));
-      
     } catch (error) {
       console.error('Error fetching metafield definitions:', error);
-      
-      // Show mock data on error as well
-      const mockMetafields = [
-        {
-          namespace: 'custom',
-          key: 'product_type',
-          name: 'Product Type',
-          description: 'Custom product type classification',
-          type: { name: 'single_line_text_field' }
-        },
-        {
-          namespace: 'custom',
-          key: 'brand',
-          name: 'Brand',
-          description: 'Product brand information',
-          type: { name: 'single_line_text_field' }
-        }
-      ];
-      
-      setSelectedMetafields(mockMetafields);
+      setMetafieldDefinitionTypes([]);
+    } finally {
+      setIsLoadingMetafields(false);
     }
-  }
+  }, []);
 
- 
+  const openMetafieldPicker = useCallback(() => {
+    console.log('Opening metafield modal');
+    fetchAllProductMetafields();
+    setIsMetafieldModalOpen(true);
+  }, [fetchAllProductMetafields]);
+
+  const handleMetafieldSelect = useCallback((metafield: any) => {
+    const mappedMetafield = {
+      namespace: metafield.namespace,
+      key: metafield.key,
+      name: metafield.name,
+      description: metafield.description,
+      type: { name: metafield.type?.name || 'single_line_text_field' }
+    };
+    
+    const updatedMetafields = [...selectedMetafields, mappedMetafield];
+    setSelectedMetafields(updatedMetafields);
+    
+    // Create a condition entry for this metafield
+    const newCondition = {
+      id: `${metafield.namespace}.${metafield.key}`,
+      metafield: mappedMetafield,
+      operator: 'equal_to',
+      value: ''
+    };
+    
+    const updatedConditions = [...metafieldConditions, newCondition];
+    setMetafieldConditions(updatedConditions);
+    
+    updateDisplay("metafields" as keyof BadgeDisplay, updatedMetafields);
+    updateDisplay("metafieldConditions" as keyof BadgeDisplay, updatedConditions);
+    
+    if (onChange) {
+      onChange({ metafields: updatedMetafields, metafieldConditions: updatedConditions });
+    }
+    
+    setIsMetafieldModalOpen(false);
+  }, [selectedMetafields, metafieldConditions, updateDisplay, onChange]);
+
+  const handleMetafieldRemove = useCallback((index: number) => {
+    const metafieldToRemove = selectedMetafields[index];
+    const updatedMetafields = selectedMetafields.filter((_, i) => i !== index);
+    const updatedConditions = metafieldConditions.filter(condition => 
+      condition.id !== `${metafieldToRemove.namespace}.${metafieldToRemove.key}`
+    );
+    
+    setSelectedMetafields(updatedMetafields);
+    setMetafieldConditions(updatedConditions);
+    updateDisplay("metafields" as keyof BadgeDisplay, updatedMetafields);
+    updateDisplay("metafieldConditions" as keyof BadgeDisplay, updatedConditions);
+    
+    if (onChange) {
+      onChange({ metafields: updatedMetafields, metafieldConditions: updatedConditions });
+    }
+  }, [selectedMetafields, metafieldConditions, updateDisplay, onChange]);
+
+  const handleMetafieldConditionUpdate = useCallback((conditionId: string, field: 'operator' | 'value', newValue: string) => {
+    const updatedConditions = metafieldConditions.map(condition => 
+      condition.id === conditionId 
+        ? { ...condition, [field]: newValue }
+        : condition
+    );
+    
+    setMetafieldConditions(updatedConditions);
+    updateDisplay("metafieldConditions" as keyof BadgeDisplay, updatedConditions);
+    
+    if (onChange) {
+      onChange({ metafieldConditions: updatedConditions });
+    }
+  }, [metafieldConditions, updateDisplay, onChange]);
 
   const TooltipIcon = ({ content }) => (
     <Tooltip content={content}>
@@ -508,6 +536,7 @@ const ProductsForm = ({ data, onChange, type = "BADGE" }: ProductsFormProps) => 
               </BlockStack>
             </Box>
           )}
+          
         </BlockStack>
 
         {(badge.display.visibility === "specific" || badge.display.visibility === "collections") && (
@@ -585,49 +614,80 @@ const ProductsForm = ({ data, onChange, type = "BADGE" }: ProductsFormProps) => 
     <Card>
       <BlockStack gap="400">
         <InlineStack gap="200" align="start">
-        
           <Text variant="headingMd" as="h2">
             Metafield
           </Text>
-          
         </InlineStack>
 
         <BlockStack gap="300">
           <InlineStack gap="200" align="space-between" blockAlign="center">
             <Text variant="bodyMd" as="p" fontWeight="medium">
-              Product metafield
+              Product metafield conditions
             </Text>
             <Button 
-              
+              variant="secondary"
+              onClick={openMetafieldPicker}
             >
               Add metafield
             </Button>
           </InlineStack>
 
-          {selectedMetafields && selectedMetafields.length > 0 && (
-            <Card background="bg-surface-secondary">
-              <BlockStack gap="200">
-                <Text variant="bodyMd" as="p" fontWeight="medium">
-                  Selected metafields ({selectedMetafields.length}):
-                </Text>
-                <BlockStack gap="100">
-                  {selectedMetafields.map((metafield, index) => (
-                    <InlineStack key={index} gap="200" blockAlign="center">
-                      <Text as="p">
-                        • {metafield.namespace}.{metafield.key} ({metafield.type.name})
+          {metafieldConditions && metafieldConditions.length > 0 && (
+            <BlockStack gap="300">
+              {metafieldConditions.map((condition, index) => (
+                <Card key={condition.id} background="bg-surface-secondary">
+                  <BlockStack gap="300">
+                    <InlineStack gap="200" align="space-between" blockAlign="center">
+                      <Text variant="bodyMd" as="p" fontWeight="medium">
+                        Condition {index + 1}
                       </Text>
+                      <Button 
+                        variant="plain" 
+                        size="micro"
+                        onClick={() => handleMetafieldRemove(index)}
+                        accessibilityLabel="Remove metafield condition"
+                        icon={DeleteIcon}
+                      />
                     </InlineStack>
-                  ))}
-                </BlockStack>
-                <Button
-                  variant="plain"
-                  onClick={() => {}}
-                >
-                  Edit selection
-                </Button>
-              </BlockStack>
-            </Card>
+                    
+                    {/* Metafield Name */}
+                    <TextField
+                      label="Metafield"
+                      value={condition.metafield.name || `${condition.metafield.namespace}.${condition.metafield.key}`}
+                      onChange={() => {}} // Read-only for now
+                      placeholder="Metafield name"
+                      autoComplete="off"
+                      readOnly
+                    />
+                    
+                    {/* Operator Dropdown */}
+                    <Select
+                      label="Condition"
+                      options={[
+                        { label: "Equal to", value: "equal_to" },
+                        { label: "Exists", value: "exists" },
+                      
+                      ]}
+                      value={condition.operator}
+                      onChange={(value) => handleMetafieldConditionUpdate(condition.id, 'operator', value)}
+                      placeholder="Choose condition"
+                    />
+                    
+                    {/* Value Input */}
+                    <TextField
+                      label="Value"
+                      value={condition.value}
+                      onChange={(value) => handleMetafieldConditionUpdate(condition.id, 'value', value)}
+                      placeholder="Enter value"
+                      autoComplete="off"
+                    />
+                  </BlockStack>
+                </Card>
+              ))}
+            </BlockStack>
           )}
+          
+          
         </BlockStack>
       </BlockStack>
     </Card>
@@ -779,7 +839,7 @@ const ProductsForm = ({ data, onChange, type = "BADGE" }: ProductsFormProps) => 
 </Card>
     
     {/* Template Gallery Modal - Polaris Modal */}
-    <Modal
+    <PolarisModal
       open={isTemplateModalOpen}
       onClose={() => {
         setIsTemplateModalOpen(false);
@@ -792,7 +852,7 @@ const ProductsForm = ({ data, onChange, type = "BADGE" }: ProductsFormProps) => 
       }}
       size="large"
     >
-      <Modal.Section>
+      <PolarisModal.Section>
         <BlockStack gap="400">
           {/* Search */}
           <TextField
@@ -926,8 +986,84 @@ const ProductsForm = ({ data, onChange, type = "BADGE" }: ProductsFormProps) => 
             return null;
           })()}
         </BlockStack>
-      </Modal.Section>
-    </Modal>
+      </PolarisModal.Section>
+    </PolarisModal>
+
+    {/* Metafield Selection Modal - App Bridge Modal with Extra Close Button */}
+    <div style={{zIndex: 100000000}}>
+      <Modal open={isMetafieldModalOpen}>
+        <TitleBar title="Select Metafields" />
+        <div style={{ padding: "20px" }}>
+          <BlockStack gap="400">
+            <InlineStack gap="200" align="space-between" blockAlign="center">
+              <Text variant="headingMd" as="h2">
+                Choose Product Metafields
+              </Text>
+              <Button 
+                variant="plain"
+                onClick={() => setIsMetafieldModalOpen(false)}
+                accessibilityLabel="Close modal"
+              >
+                ✕
+              </Button>
+            </InlineStack>
+            
+            <Text variant="bodyMd" as="p" tone="subdued">
+              Select metafield definitions available for all products. These metafield types can be used for display conditions across your entire store.
+            </Text>
+
+            {/* All product metafield definitions */}
+            <BlockStack gap="200">
+              {isLoadingMetafields ? (
+                <Text variant="bodyMd" as="p" alignment="center">
+                  Loading metafield definitions...
+                </Text>
+              ) : metafieldDefinitionTypes.length > 0 ? (
+                metafieldDefinitionTypes.map((metafield, index) => (
+                  <Card key={index}>
+                    <InlineStack gap="200" align="space-between" blockAlign="center">
+                      <BlockStack gap="100">
+                        <Text variant="bodyMd" as="p" fontWeight="medium">
+                          {metafield.name || `${metafield.namespace}.${metafield.key}`}
+                        </Text>
+                        
+                        
+                      </BlockStack>
+                      <Button 
+                        variant="primary" 
+                        size="slim"
+                        onClick={() => handleMetafieldSelect({
+                          namespace: metafield.namespace,
+                          key: metafield.key,
+                          name: metafield.name || `${metafield.namespace}.${metafield.key}`,
+                          description: metafield.description || `Metafield: ${metafield.namespace}.${metafield.key}`,
+                          type: { name: metafield.type }
+                        })}
+                      >
+                        Select
+                      </Button>
+                    </InlineStack>
+                  </Card>
+                ))
+              ) : (
+                <Text variant="bodyMd" as="p" alignment="center" tone="subdued">
+                  No metafield definitions found
+                </Text>
+              )}
+            </BlockStack>
+
+            <InlineStack gap="200" align="end">
+              <Button 
+                variant="plain"
+                onClick={() => setIsMetafieldModalOpen(false)}
+              >
+                Cancel
+              </Button>
+            </InlineStack>
+          </BlockStack>
+        </div>
+      </Modal>
+    </div>
     </BlockStack>
 
   

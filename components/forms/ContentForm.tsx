@@ -416,12 +416,17 @@ const ContentForm = ({ data, onChange, type = "BADGE", badgeName, setBadgeName }
                     // Use badge store design values first, then fall back to template
                     background: badge.design.color && badge.design.color !== "#7700ffff" ? badge.design.color : (selectedTemplate?.style?.background || data?.style?.background || "#7700ffff"),
                     color: badge.content.textColor || (selectedTemplate?.style?.color || data?.style?.color || "#ffffff"),
-                    padding: "8px 12px",
+                    padding: "4px 8px",
                     borderRadius: badge.design.cornerRadius !== undefined && badge.design.cornerRadius !== 8 ? `${badge.design.cornerRadius}px` : (selectedTemplate?.style?.borderRadius || data?.style?.borderRadius || "4px"),
                     display: "inline-block",
-                    fontSize: "0.875rem",
+                    fontSize: "10px",
                     fontWeight: 600,
                     marginBottom: "8px",
+                    width: "120px",
+                    height: "40px",
+                    overflow: "hidden",
+                    textAlign: "center",
+                    lineHeight: "1.2",
                     // Apply clip-path if exists
                     ...(badge.design.shape && badge.design.shape.includes("clip-path") ? {
                       clipPath: badge.design.shape.match(/clip-path:\s*([^;]+)/)?.[1]

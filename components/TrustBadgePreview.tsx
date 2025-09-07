@@ -24,14 +24,15 @@ const TrustBadgePreview = ({ data }: TrustBadgePreviewProps) => {
 
   const containerStyle: React.CSSProperties = {
     display: "flex",
-    flexDirection: layout === "horizontal" ? "column" : "column",
+    flexDirection: "column",
     alignItems: "center",
-    gap: showTitle ? "12px" : "0",
-    padding: "20px",
-    background: "#f9f9f9",
-    borderRadius: "8px",
+    gap: "16px",
+    padding: "24px",
+    background: "#ffffff",
+    borderRadius: "12px",
     minHeight: "200px",
-    justifyContent: "center"
+    justifyContent: "center",
+    boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)"
   };
 
   const iconsContainerStyle: React.CSSProperties = {
@@ -40,23 +41,27 @@ const TrustBadgePreview = ({ data }: TrustBadgePreviewProps) => {
     alignItems: "center",
     gap: `${spacing}px`,
     flexWrap: layout === "horizontal" ? "wrap" : "nowrap",
-    justifyContent: "center"
+    justifyContent: "center",
+    maxWidth: "100%"
   };
 
   const iconStyle: React.CSSProperties = {
-    width: `${iconSize}px`,
+    width: `${iconSize * 2}px`,
     height: "auto",
     objectFit: "contain",
-    maxHeight: `${iconSize}px`
+    borderRadius: "6px",
+    padding: `${Math.max(2, spacing / 4)}px`,
+    backgroundColor: "#ffffff",
+    transition: "all 0.2s ease"
   };
 
   return (
-    <BlockStack gap="400">
+    <BlockStack  gap="400">
       <Text as="h2" variant="headingMd">Preview</Text>
       
       <div style={containerStyle}>
         {showTitle && title && (
-          <Text as="p" variant="bodyMd" alignment="center">
+          <Text as="h3" variant="headingMd" alignment="center" fontWeight="semibold">
             {title}
           </Text>
         )}
