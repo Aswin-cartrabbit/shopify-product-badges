@@ -26,7 +26,6 @@ interface TemplateGalleryModalProps {
 const TemplateGalleryModal = ({ isOpen, onClose, onSelect, templateType = "image" }: TemplateGalleryModalProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
-  const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
 
   // Use the appropriate templates based on type
   const predefinedTemplates = templateType === "text" ? textTemplates : imageTemplates;
@@ -43,20 +42,13 @@ const TemplateGalleryModal = ({ isOpen, onClose, onSelect, templateType = "image
   });
 
   const handleTemplateSelect = (template: any) => {
-    setSelectedTemplate(template);
-  };
-
-  const handleUseTemplate = () => {
-    if (selectedTemplate) {
-      onSelect(selectedTemplate);
-      onClose();
-      setSelectedTemplate(null);
-    }
+    // Insert template directly when clicked
+    onSelect(template);
+    onClose();
   };
 
   const handleCancel = () => {
     onClose();
-    setSelectedTemplate(null);
   };
 
   if (!isOpen) return null;
@@ -137,25 +129,21 @@ const TemplateGalleryModal = ({ isOpen, onClose, onSelect, templateType = "image
                   style={{ 
                     cursor: "pointer",
                     textAlign: "center",
-                    border: selectedTemplate?.id === template.id ? "2px solid #0454F6" : "1px solid #e5e7eb",
+                    border: "1px solid #e5e7eb",
                     borderRadius: "8px",
                     transition: "all 0.3s ease",
                     padding: "8px",
                     backgroundColor: "white",
-                    boxShadow: selectedTemplate?.id === template.id ? "0 4px 12px rgba(4, 84, 246, 0.15)" : "0 1px 3px rgba(0, 0, 0, 0.1)"
+                    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)"
                   }}
                   onClick={() => handleTemplateSelect(template)}
                   onMouseEnter={(e) => {
-                    if (selectedTemplate?.id !== template.id) {
-                      e.currentTarget.style.border = "2px solid #0454F6";
-                      e.currentTarget.style.boxShadow = "0 4px 12px rgba(4, 84, 246, 0.15)";
-                    }
+                    e.currentTarget.style.border = "2px solid #0454F6";
+                    e.currentTarget.style.boxShadow = "0 4px 12px rgba(4, 84, 246, 0.15)";
                   }}
                   onMouseLeave={(e) => {
-                    if (selectedTemplate?.id !== template.id) {
-                      e.currentTarget.style.border = "1px solid #e5e7eb";
-                      e.currentTarget.style.boxShadow = "0 1px 3px rgba(0, 0, 0, 0.1)";
-                    }
+                    e.currentTarget.style.border = "1px solid #e5e7eb";
+                    e.currentTarget.style.boxShadow = "0 1px 3px rgba(0, 0, 0, 0.1)";
                   }}
                 >
                   <div
@@ -244,49 +232,11 @@ const TemplateGalleryModal = ({ isOpen, onClose, onSelect, templateType = "image
                           </>
                         )}
                   </div>
-                  
-                  {/* Selection indicator */}
-                  {selectedTemplate?.id === template.id && (
-                    <div style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: "4px",
-                      marginTop: "8px"
-                    }}>
-                      <div style={{
-                        width: "16px",
-                        height: "16px",
-                        backgroundColor: "#0454F6",
-                        borderRadius: "50%",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        color: "white",
-                        fontSize: "12px",
-                        fontWeight: "bold"
-                      }}>
-                        ✓
-                      </div>
-                      <Badge tone="info">Selected</Badge>
-                    </div>
-                  )}
                 </div>
               </div>
             ))}
           </div>
 
-          {/* Use template button */}
-          <Box paddingBlockStart="400">
-            <Button 
-              fullWidth 
-              variant="primary" 
-              disabled={!selectedTemplate}
-              onClick={handleUseTemplate}
-            >
-              Use template
-            </Button>
-          </Box>
         </BlockStack>
       </div>
     </div>
