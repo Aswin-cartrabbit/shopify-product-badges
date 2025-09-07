@@ -49,12 +49,12 @@ const DisplayForm = ({ data, onChange, type }: DisplayFormProps) => {
     year: badge.display?.endDateTime ? new Date(badge.display.endDateTime).getFullYear() : new Date().getFullYear()
   });
   const [selectedStartDates, setSelectedStartDates] = useState({
-    start: badge.display?.startDateTime ? new Date(badge.display.startDateTime) : new Date(),
-    end: badge.display?.startDateTime ? new Date(badge.display.startDateTime) : new Date(),
+    start: badge.display?.startDateTime ? new Date(badge.display.startDateTime) : undefined,
+    end: badge.display?.startDateTime ? new Date(badge.display.startDateTime) : undefined,
   });
   const [selectedEndDates, setSelectedEndDates] = useState({
-    start: badge.display?.endDateTime ? new Date(badge.display.endDateTime) : new Date(),
-    end: badge.display?.endDateTime ? new Date(badge.display.endDateTime) : new Date(),
+    start: badge.display?.endDateTime ? new Date(badge.display.endDateTime) : undefined,
+    end: badge.display?.endDateTime ? new Date(badge.display.endDateTime) : undefined,
   });
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
@@ -74,8 +74,13 @@ const DisplayForm = ({ data, onChange, type }: DisplayFormProps) => {
   const handleScheduleToggle = () => {
     updateDisplay("isScheduled", !badge.display.isScheduled);
     if (!badge.display.isScheduled) {
-      updateDisplay("startDateTime", Date.now());
-      updateDisplay("endDateTime", Date.now());
+      // Only set dates if user explicitly enables schedule
+      updateDisplay("startDateTime", undefined);
+      updateDisplay("endDateTime", undefined);
+    } else {
+      // Clear dates when disabling schedule
+      updateDisplay("startDateTime", undefined);
+      updateDisplay("endDateTime", undefined);
     }
   };
 
