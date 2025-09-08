@@ -8,13 +8,16 @@ import {
   Card,
   Page,
   Icon,
+  Text,
+  Select,
 } from "@shopify/polaris";
 import { useCallback, useState, useEffect } from "react";
 import {Modal, TitleBar} from '@shopify/app-bridge-react';
 import { EditIcon, ProductAddIcon, ContentIcon } from "@shopify/polaris-icons";
 import TrustBadgeContentForm from "./TrustBadgeContentForm";
 import TrustBadgePreview from "../TrustBadgePreview";
-import { DesignForm } from "./DesignForm"; 
+import TrustBadgeProductsForm from "./TrustBadgeProductsForm";
+import TrustBadgeDisplayForm from "./TrustBadgeDisplayForm"; 
 
 interface TrustBadgeBuilderProps {
   selectedTemplate?: any;
@@ -55,13 +58,28 @@ export const TrustBadgeBuilder = ({
       showTitle: true,
       title: selectedTemplate?.title || "Secure payment with"
     },
-    design: {
-      background: "transparent",
-      borderRadius: 0,
-      padding: 16
+    placement: {
+      position: "below_buy_button", // Default position
+      zIndex: 10,
+      pageDisplay: {
+        product: true,
+        collection: true,
+        home: true,
+        search: true,
+        cart: false
+      }
     },
-    placement: {},
-    settings: {}
+    settings: {
+      visibility: "all",
+      resourceIds: [],
+      customerCondition: "all",
+      customerTags: [],
+      languagesMode: "all",
+      customLanguages: [],
+      isScheduled: false,
+      startDateTime: undefined,
+      endDateTime: undefined
+    }
   });
 
   // Update formData when selectedTemplate changes
@@ -81,16 +99,11 @@ export const TrustBadgeBuilder = ({
           showTitle: selectedTemplate.content?.showTitle !== undefined ? selectedTemplate.content.showTitle : true,
           title: selectedTemplate.content?.title || selectedTemplate.title || "Secure payment with"
         },
-        design: {
-          ...prev.design,
-          ...selectedTemplate.design,
-          background: selectedTemplate.design?.background || "transparent",
-          borderRadius: selectedTemplate.design?.borderRadius || 0,
-          padding: selectedTemplate.design?.padding || 16
-        },
         placement: {
           ...prev.placement,
-          ...selectedTemplate.display
+          ...selectedTemplate.display,
+          position: selectedTemplate.display?.position || "below_buy_button",
+          zIndex: selectedTemplate.display?.zIndex || 10
         },
         settings: {
           ...prev.settings,
@@ -128,8 +141,7 @@ export const TrustBadgeBuilder = ({
           content: {
             ...formData.content,
             icons: formData.content?.icons || [] // Ensure icons array is explicitly set
-          },
-          ...formData.design
+          }
         },
         display: {
           // Map placement and settings to display structure for rules field
@@ -213,24 +225,24 @@ export const TrustBadgeBuilder = ({
     });
   };
 
-  const handleDesignChange = (newDesign: any) => {
-    console.log("handleDesignChange called with:", newDesign);
-    setFormData(prev => {
-      const updated = {
-        ...prev,
-        design: { ...prev.design, ...newDesign }
-      };
-      console.log("Updated formData:", updated);
-      return updated;
-    });
-  };
-
   const handlePlacementChange = (newPlacement: any) => {
     console.log("handlePlacementChange called with:", newPlacement);
     setFormData(prev => {
       const updated = {
         ...prev,
         placement: { ...prev.placement, ...newPlacement }
+      };
+      console.log("Updated formData:", updated);
+      return updated;
+    });
+  };
+
+  const handleSettingsChange = (newSettings: any) => {
+    console.log("handleSettingsChange called with:", newSettings);
+    setFormData(prev => {
+      const updated = {
+        ...prev,
+        settings: { ...prev.settings, ...newSettings }
       };
       console.log("Updated formData:", updated);
       return updated;
@@ -264,8 +276,7 @@ export const TrustBadgeBuilder = ({
                   name: formData.name || name,
                   type: "TRUST_BADGE",
                   design: {
-                    content: formData.content,
-                    ...formData.design
+                    content: formData.content
                   },
                   display: {
                     placement: formData.placement,
@@ -379,7 +390,7 @@ export const TrustBadgeBuilder = ({
               <Icon source={EditIcon} tone="base" />
               Content
             </button>
-            {/* Design (index 1) */}
+            {/* Placement (index 1) */}
             <button
               style={{
                 padding: "10px 16px",
@@ -409,43 +420,6 @@ export const TrustBadgeBuilder = ({
               }}
               onMouseLeave={(e) => {
                 if (selectedTab !== 1) {
-                  e.currentTarget.style.backgroundColor = "transparent";
-                }
-              }}
-            >
-              <Icon source={ProductAddIcon} tone="base" />
-              Design
-            </button>
-            {/* Placement (index 2) */}
-            <button
-              style={{
-                padding: "10px 16px",
-                borderRadius: "8px",
-                border: "none",
-                backgroundColor:
-                  selectedTab === 2 ? "#ffffff" : "transparent",
-                color: selectedTab === 2 ? "#1a1a1a" : "#6b7280",
-                fontWeight: selectedTab === 2 ? "600" : "500",
-                fontSize: "14px",
-                cursor: "pointer",
-                transition: "all 0.2s ease",
-                boxShadow:
-                  selectedTab === 2
-                    ? "0 1px 3px rgba(0, 0, 0, 0.1)"
-                    : "none",
-                minWidth: "auto",
-                display: "flex",
-                alignItems: "center",
-                gap: "6px",
-              }}
-              onClick={() => handleTabChange(2)}
-              onMouseEnter={(e) => {
-                if (selectedTab !== 2) {
-                  e.currentTarget.style.backgroundColor = "#eeeeee";
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (selectedTab !== 2) {
                   e.currentTarget.style.backgroundColor = "transparent";
                 }
               }}
@@ -482,31 +456,40 @@ export const TrustBadgeBuilder = ({
                 }}
               />
             </div>
-            {/* Design tab */}
-              <div
-                style={{
-                  display: selectedTab === 1 ? "block" : "none",
-                }}
-              >
-                <DesignForm
-                  data={formData.design}
-                  onChange={handleDesignChange}
-                  selectedTemplate={selectedTemplate}
-                  type="TRUST_BADGE"
-                />
-              </div>
             {/* Placement tab */}
             <div
               style={{
-                display: selectedTab === 2 ? "block" : "none",
+                display: selectedTab === 1 ? "block" : "none",
               }}
             >
-              <Card>
-                <BlockStack gap="400">
-                  <div>Placement options coming soon...</div>
-                  {/* TODO: Add placement form when ready */}
-                </BlockStack>
-              </Card>
+              <BlockStack gap="400">
+                {/* Default Position Text */}
+                <Card>
+                  <BlockStack gap="200">
+                    <Text variant="bodyMd" as="p" fontWeight="medium">
+                      Default position
+                    </Text>
+                    <Text variant="bodySm" as="h1" tone="subdued">
+                      Automatically show under "Buy" button
+                    </Text>
+                  </BlockStack>
+                </Card>
+
+                {/* Products Selection */}
+                <TrustBadgeProductsForm
+                  data={formData.settings}
+                  onChange={handleSettingsChange}
+                />
+
+                {/* Display Settings */}
+                <TrustBadgeDisplayForm
+                  data={formData.settings}
+                  onChange={handleSettingsChange}
+                />
+
+                {/* Z-Index Settings */}
+               
+              </BlockStack>
             </div>
           </div>
           <div
