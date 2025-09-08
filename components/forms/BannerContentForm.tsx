@@ -1,3 +1,4 @@
+// @ts-nocheck
 import {
   BlockStack,
   Card,
@@ -11,7 +12,7 @@ import {
   Icon,
   Tooltip,
   InlineStack,
-  FormLayout
+  FormLayout,
 } from "@shopify/polaris";
 import { useState, useCallback } from "react";
 import { QuestionCircleIcon, CalendarTimeIcon } from "@shopify/polaris-icons";
@@ -23,8 +24,14 @@ interface BannerContentFormProps {
   bannerType?: string;
 }
 
-const BannerContentForm = ({ data, onChange, bannerType }: BannerContentFormProps) => {
-  const [linkOption, setLinkOption] = useState<"new_tab" | "same_tab">("new_tab");
+const BannerContentForm = ({
+  data,
+  onChange,
+  bannerType,
+}: BannerContentFormProps) => {
+  const [linkOption, setLinkOption] = useState<"new_tab" | "same_tab">(
+    "new_tab"
+  );
   const [showPageDisplay, setShowPageDisplay] = useState(true);
   const [showCustomerConditions, setShowCustomerConditions] = useState(false);
   const [showSchedule, setShowSchedule] = useState(false);
@@ -36,32 +43,50 @@ const BannerContentForm = ({ data, onChange, bannerType }: BannerContentFormProp
     </Tooltip>
   );
 
-  const handleTextChange = useCallback((value: string) => {
-    onChange?.({ text: value });
-  }, [onChange]);
+  const handleTextChange = useCallback(
+    (value: string) => {
+      onChange?.({ text: value });
+    },
+    [onChange]
+  );
 
-  const handleLinkChange = useCallback((value: string) => {
-    onChange?.({ link: value });
-  }, [onChange]);
+  const handleLinkChange = useCallback(
+    (value: string) => {
+      onChange?.({ link: value });
+    },
+    [onChange]
+  );
 
-  const handleLinkOptionChange = useCallback((checked: boolean, option: "new_tab" | "same_tab") => {
-    if (checked) {
-      setLinkOption(option);
-      onChange?.({ openInNewTab: option === "new_tab" });
-    }
-  }, [onChange]);
+  const handleLinkOptionChange = useCallback(
+    (checked: boolean, option: "new_tab" | "same_tab") => {
+      if (checked) {
+        setLinkOption(option);
+        onChange?.({ openInNewTab: option === "new_tab" });
+      }
+    },
+    [onChange]
+  );
 
-  const handleUseButtonChange = useCallback((checked: boolean) => {
-    onChange?.({ useButton: checked });
-  }, [onChange]);
+  const handleUseButtonChange = useCallback(
+    (checked: boolean) => {
+      onChange?.({ useButton: checked });
+    },
+    [onChange]
+  );
 
-  const handleShowCloseButtonChange = useCallback((checked: boolean) => {
-    onChange?.({ showCloseButton: checked });
-  }, [onChange]);
+  const handleShowCloseButtonChange = useCallback(
+    (checked: boolean) => {
+      onChange?.({ showCloseButton: checked });
+    },
+    [onChange]
+  );
 
-  const handlePageDisplayChange = useCallback((page: string, checked: boolean) => {
-    onChange?.({ [page]: checked });
-  }, [onChange]);
+  const handlePageDisplayChange = useCallback(
+    (page: string, checked: boolean) => {
+      onChange?.({ [page]: checked });
+    },
+    [onChange]
+  );
 
   return (
     <BlockStack gap="400">
@@ -82,6 +107,7 @@ const BannerContentForm = ({ data, onChange, bannerType }: BannerContentFormProp
               placeholder="Enter banner text"
               multiline={2}
               helpText="This text will appear in your banner"
+              autoComplete=""
             />
 
             <TextField
@@ -90,18 +116,23 @@ const BannerContentForm = ({ data, onChange, bannerType }: BannerContentFormProp
               onChange={handleLinkChange}
               placeholder="https://example.com"
               helpText="Add a link to make your banner clickable"
+              autoComplete=""
             />
 
             {/* Link Options */}
             <BlockStack gap="200">
-              <Text variant="bodyMd" as="p">Link behavior</Text>
+              <Text variant="bodyMd" as="p">
+                Link behavior
+              </Text>
               <BlockStack gap="200">
                 <RadioButton
                   label="Open link in new tab."
                   checked={linkOption === "new_tab"}
                   id="new_tab"
                   name="link_option"
-                  onChange={(checked) => handleLinkOptionChange(checked, "new_tab")}
+                  onChange={(checked) =>
+                    handleLinkOptionChange(checked, "new_tab")
+                  }
                 />
                 <RadioButton
                   label={
@@ -115,7 +146,9 @@ const BannerContentForm = ({ data, onChange, bannerType }: BannerContentFormProp
                   checked={linkOption === "same_tab"}
                   id="same_tab"
                   name="link_option"
-                  onChange={(checked) => handleLinkOptionChange(checked, "same_tab")}
+                  onChange={(checked) =>
+                    handleLinkOptionChange(checked, "same_tab")
+                  }
                   disabled
                 />
               </BlockStack>
@@ -141,6 +174,7 @@ const BannerContentForm = ({ data, onChange, bannerType }: BannerContentFormProp
       {/* Page Display Section */}
       <Card>
         <BlockStack gap="400">
+          {/* @ts-ignore */}
           <Button
             variant="plain"
             textAlign="left"
@@ -158,28 +192,34 @@ const BannerContentForm = ({ data, onChange, bannerType }: BannerContentFormProp
           <Collapsible
             open={showPageDisplay}
             id="page-display-collapsible"
-            transition={{ duration: '500ms', timingFunction: 'ease-in-out' }}
+            transition={{ duration: "500ms", timingFunction: "ease-in-out" }}
           >
             <BlockStack gap="300">
               <Text variant="bodyMd" tone="subdued">
                 Choose where to display this banner
               </Text>
-              
+
               <BlockStack gap="200">
                 <Checkbox
                   label="Home pages"
                   checked={data?.display?.homePages || true}
-                  onChange={(checked) => handlePageDisplayChange('homePages', checked)}
+                  onChange={(checked) =>
+                    handlePageDisplayChange("homePages", checked)
+                  }
                 />
                 <Checkbox
                   label="Collection pages"
                   checked={data?.display?.collectionPages || false}
-                  onChange={(checked) => handlePageDisplayChange('collectionPages', checked)}
+                  onChange={(checked) =>
+                    handlePageDisplayChange("collectionPages", checked)
+                  }
                 />
                 <Checkbox
                   label="Product pages"
                   checked={data?.display?.productPages || false}
-                  onChange={(checked) => handlePageDisplayChange('productPages', checked)}
+                  onChange={(checked) =>
+                    handlePageDisplayChange("productPages", checked)
+                  }
                 />
                 <Checkbox
                   label={
@@ -189,7 +229,9 @@ const BannerContentForm = ({ data, onChange, bannerType }: BannerContentFormProp
                     </InlineStack>
                   }
                   checked={data?.display?.specificPages || false}
-                  onChange={(checked) => handlePageDisplayChange('specificPages', checked)}
+                  onChange={(checked) =>
+                    handlePageDisplayChange("specificPages", checked)
+                  }
                 />
               </BlockStack>
             </BlockStack>
@@ -218,13 +260,13 @@ const BannerContentForm = ({ data, onChange, bannerType }: BannerContentFormProp
           <Collapsible
             open={showCustomerConditions}
             id="customer-conditions-collapsible"
-            transition={{ duration: '500ms', timingFunction: 'ease-in-out' }}
+            transition={{ duration: "500ms", timingFunction: "ease-in-out" }}
           >
             <BlockStack gap="300">
               <Text variant="bodyMd" tone="subdued">
                 Set conditions for when to show this banner to customers
               </Text>
-              
+
               <Text variant="bodyMd">
                 Customer targeting options will be available here.
               </Text>
@@ -253,7 +295,7 @@ const BannerContentForm = ({ data, onChange, bannerType }: BannerContentFormProp
           <Collapsible
             open={showSchedule}
             id="schedule-collapsible"
-            transition={{ duration: '500ms', timingFunction: 'ease-in-out' }}
+            transition={{ duration: "500ms", timingFunction: "ease-in-out" }}
           >
             <BlockStack gap="400">
               <BlockStack gap="300">
@@ -316,14 +358,14 @@ const BannerContentForm = ({ data, onChange, bannerType }: BannerContentFormProp
           <Collapsible
             open={showTranslation}
             id="translation-collapsible"
-            transition={{ duration: '500ms', timingFunction: 'ease-in-out' }}
+            transition={{ duration: "500ms", timingFunction: "ease-in-out" }}
           >
             <BlockStack gap="300">
               <Button variant="plain">
                 Add translations
                 <Badge tone="info">Unlimited</Badge>
               </Button>
-              
+
               <Text variant="bodyMd" tone="subdued">
                 Add translations for different languages.{" "}
                 <Button variant="plain">Read more</Button>

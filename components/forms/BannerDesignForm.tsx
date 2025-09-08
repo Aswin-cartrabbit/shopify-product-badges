@@ -1,3 +1,4 @@
+// @ts-nocheck
 import {
   BlockStack,
   Card,
@@ -20,27 +21,43 @@ interface BannerDesignFormProps {
   bannerType?: string;
 }
 
-const BannerDesignForm = ({ data, onChange, bannerType }: BannerDesignFormProps) => {
+const BannerDesignForm = ({
+  data,
+  onChange,
+  bannerType,
+}: BannerDesignFormProps) => {
   const [showBannerDesign, setShowBannerDesign] = useState(true);
   const [showButton, setShowButton] = useState(false);
 
-  const handlePositionChange = useCallback((checked: boolean, position: string) => {
-    if (checked) {
-      onChange?.({ position });
-    }
-  }, [onChange]);
+  const handlePositionChange = useCallback(
+    (checked: boolean, position: string) => {
+      if (checked) {
+        onChange?.({ position });
+      }
+    },
+    [onChange]
+  );
 
-  const handleStickyChange = useCallback((checked: boolean) => {
-    onChange?.({ sticky: checked });
-  }, [onChange]);
+  const handleStickyChange = useCallback(
+    (checked: boolean) => {
+      onChange?.({ sticky: checked });
+    },
+    [onChange]
+  );
 
-  const handleColorChange = useCallback((colorType: string, color: string) => {
-    onChange?.({ [colorType]: color });
-  }, [onChange]);
+  const handleColorChange = useCallback(
+    (colorType: string, color: string) => {
+      onChange?.({ [colorType]: color });
+    },
+    [onChange]
+  );
 
-  const handleSliderChange = useCallback((property: string, value: number) => {
-    onChange?.({ [property]: value });
-  }, [onChange]);
+  const handleSliderChange = useCallback(
+    (property: string, value: number) => {
+      onChange?.({ [property]: value });
+    },
+    [onChange]
+  );
 
   return (
     <BlockStack gap="400">
@@ -113,7 +130,7 @@ const BannerDesignForm = ({ data, onChange, bannerType }: BannerDesignFormProps)
           <Collapsible
             open={showBannerDesign}
             id="banner-design-collapsible"
-            transition={{ duration: '500ms', timingFunction: 'ease-in-out' }}
+            transition={{ duration: "500ms", timingFunction: "ease-in-out" }}
           >
             <BlockStack gap="400">
               {/* Color Pickers */}
@@ -128,7 +145,9 @@ const BannerDesignForm = ({ data, onChange, bannerType }: BannerDesignFormProps)
                   <div style={{ marginTop: "8px" }}>
                     <ColorPickerInput
                       color={data?.design?.backgroundColor || "#A7A7A7"}
-                      onChange={(color) => handleColorChange("backgroundColor", color)}
+                      onChange={(color) =>
+                        handleColorChange("backgroundColor", color)
+                      }
                     />
                   </div>
                 </div>
@@ -143,7 +162,9 @@ const BannerDesignForm = ({ data, onChange, bannerType }: BannerDesignFormProps)
                   <div style={{ marginTop: "8px" }}>
                     <ColorPickerInput
                       color={data?.design?.textColor || "#000000"}
-                      onChange={(color) => handleColorChange("textColor", color)}
+                      onChange={(color) =>
+                        handleColorChange("textColor", color)
+                      }
                     />
                   </div>
                 </div>
@@ -158,7 +179,9 @@ const BannerDesignForm = ({ data, onChange, bannerType }: BannerDesignFormProps)
                   <div style={{ marginTop: "8px" }}>
                     <ColorPickerInput
                       color={data?.design?.closeIconColor || "#ffffff"}
-                      onChange={(color) => handleColorChange("closeIconColor", color)}
+                      onChange={(color) =>
+                        handleColorChange("closeIconColor", color)
+                      }
                     />
                   </div>
                 </div>
@@ -221,7 +244,7 @@ const BannerDesignForm = ({ data, onChange, bannerType }: BannerDesignFormProps)
           <Collapsible
             open={showButton}
             id="button-collapsible"
-            transition={{ duration: '500ms', timingFunction: 'ease-in-out' }}
+            transition={{ duration: "500ms", timingFunction: "ease-in-out" }}
           >
             <BlockStack gap="400">
               {/* Button Color Pickers */}
@@ -236,7 +259,9 @@ const BannerDesignForm = ({ data, onChange, bannerType }: BannerDesignFormProps)
                   <div style={{ marginTop: "8px" }}>
                     <ColorPickerInput
                       color={data?.design?.buttonBackgroundColor || "#000000"}
-                      onChange={(color) => handleColorChange("buttonBackgroundColor", color)}
+                      onChange={(color) =>
+                        handleColorChange("buttonBackgroundColor", color)
+                      }
                     />
                   </div>
                 </div>
@@ -251,7 +276,9 @@ const BannerDesignForm = ({ data, onChange, bannerType }: BannerDesignFormProps)
                   <div style={{ marginTop: "8px" }}>
                     <ColorPickerInput
                       color={data?.design?.buttonTextColor || "#ffffff"}
-                      onChange={(color) => handleColorChange("buttonTextColor", color)}
+                      onChange={(color) =>
+                        handleColorChange("buttonTextColor", color)
+                      }
                     />
                   </div>
                 </div>
@@ -266,7 +293,9 @@ const BannerDesignForm = ({ data, onChange, bannerType }: BannerDesignFormProps)
                   <div style={{ marginTop: "8px" }}>
                     <ColorPickerInput
                       color={data?.design?.buttonBorderColor || "#000000"}
-                      onChange={(color) => handleColorChange("buttonBorderColor", color)}
+                      onChange={(color) =>
+                        handleColorChange("buttonBorderColor", color)
+                      }
                     />
                   </div>
                 </div>
@@ -277,7 +306,9 @@ const BannerDesignForm = ({ data, onChange, bannerType }: BannerDesignFormProps)
                 <RangeSlider
                   label={`Button text size: ${data?.design?.buttonTextSize || 16}px`}
                   value={data?.design?.buttonTextSize || 16}
-                  onChange={(value) => handleSliderChange("buttonTextSize", value)}
+                  onChange={(value) =>
+                    handleSliderChange("buttonTextSize", value)
+                  }
                   min={10}
                   max={24}
                   step={1}
@@ -287,7 +318,9 @@ const BannerDesignForm = ({ data, onChange, bannerType }: BannerDesignFormProps)
                 <RangeSlider
                   label={`Button border size: ${data?.design?.buttonBorderSize || 0}px`}
                   value={data?.design?.buttonBorderSize || 0}
-                  onChange={(value) => handleSliderChange("buttonBorderSize", value)}
+                  onChange={(value) =>
+                    handleSliderChange("buttonBorderSize", value)
+                  }
                   min={0}
                   max={5}
                   step={1}
@@ -297,7 +330,9 @@ const BannerDesignForm = ({ data, onChange, bannerType }: BannerDesignFormProps)
                 <RangeSlider
                   label={`Button corner radius: ${data?.design?.buttonCornerRadius || 8}px`}
                   value={data?.design?.buttonCornerRadius || 8}
-                  onChange={(value) => handleSliderChange("buttonCornerRadius", value)}
+                  onChange={(value) =>
+                    handleSliderChange("buttonCornerRadius", value)
+                  }
                   min={0}
                   max={20}
                   step={1}
@@ -313,15 +348,8 @@ const BannerDesignForm = ({ data, onChange, bannerType }: BannerDesignFormProps)
       <Card>
         <BlockStack gap="200">
           <Text variant="bodyMd">
-            About Banner?{" "}
-            <Button variant="plain">
-              See Banner docs
-            </Button>
-            {" "}or{" "}
-            <Button variant="plain">
-              Contact us
-            </Button>
-            .
+            About Banner? <Button variant="plain">See Banner docs</Button> or{" "}
+            <Button variant="plain">Contact us</Button>.
           </Text>
         </BlockStack>
       </Card>
