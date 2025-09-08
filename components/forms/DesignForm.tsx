@@ -16,6 +16,7 @@ import {
 } from "@shopify/polaris";
 import { QuestionCircleIcon } from "@shopify/polaris-icons";
 import LabelGrid from "../LabelGrid";
+import { useBadgeStore } from "@/stores/BadgeStore";
 
 interface DesignFormProps {
   data: any;
@@ -30,6 +31,8 @@ export const DesignForm: React.FC<DesignFormProps> = ({
   selectedTemplate,
   type,
 }) => {
+  const { badge: badgeStore, updateDesign } = useBadgeStore();
+  
   const [showImageControls, setShowImageControls] = useState(false);
   const [showOpacityControl, setShowOpacityControl] = useState(false);
   const [showIconSizeControl, setShowIconSizeControl] = useState(true);
@@ -37,9 +40,12 @@ export const DesignForm: React.FC<DesignFormProps> = ({
 
   const handleDesignChange = useCallback(
     (key: string, value: any) => {
+      // Update parent component's formData
       onChange(key, value);
+      // Also update badge store directly for real-time preview
+      updateDesign(key as keyof import('@/stores/BadgeStore').BadgeDesign, value);
     },
-    [onChange]
+    [onChange, updateDesign]
   );
 
   const updateContent = useCallback(
@@ -220,7 +226,7 @@ export const DesignForm: React.FC<DesignFormProps> = ({
         ) : (
           <>
             {/* Show template/background controls only for text badges */}
-            {badge.content.contentType === "text" && (
+            {badgeStore.content.contentType === "text" && (
               <>
                 {/* Template */}
                 <BlockStack gap="200">
@@ -263,7 +269,7 @@ export const DesignForm: React.FC<DesignFormProps> = ({
                       label="Badge Width"
                       min={0}
                       max={300}
-                      value={badge.design.width || 200}
+                      value={badgeStore.design.width || 200}
                       onChange={(value) => {
                         if (typeof value === "number") {
                           handleDesignChange("width", value);
@@ -296,192 +302,8 @@ export const DesignForm: React.FC<DesignFormProps> = ({
                   <Divider />
                 </Bleed>
 
-                {/* Background Controls */}
-                <BlockStack gap="400">
-                  <InlineStack gap="100" align="start">
-                    <Text as="p" variant="bodyMd">
-                      Background
-                    </Text>
-                    <TooltipIcon content="Customize the background appearance of your badge" />
-                  </InlineStack>
-                  
-                  <BlockStack gap="200">
-                    <RangeSlider
-                      label="Background Opacity"
-                      min={0}
-                      max={100}
-                      value={badge.design.backgroundOpacity || 100}
-                      onChange={(value) => {
-                        if (typeof value === "number") {
-                          handleDesignChange("backgroundOpacity", value);
-                        }
-                      }}
-                      output
-                      suffix="%"
-                    />
-                  </BlockStack>
 
-                  <BlockStack gap="200">
-                    <RangeSlider
-                      label="Border Radius"
-                      min={0}
-                      max={50}
-                      value={badge.design.borderRadius || 0}
-                      onChange={(value) => {
-                        if (typeof value === "number") {
-                          handleDesignChange("borderRadius", value);
-                        }
-                      }}
-                      output
-                      suffix="px"
-                    />
-                  </BlockStack>
-
-                  <BlockStack gap="200">
-                    <RangeSlider
-                      label="Padding"
-                      min={0}
-                      max={50}
-                      value={badge.design.padding || 16}
-                      onChange={(value) => {
-                        if (typeof value === "number") {
-                          handleDesignChange("padding", value);
-                        }
-                      }}
-                      output
-                      suffix="px"
-                    />
-                  </BlockStack>
-                </BlockStack>
-
-                <Bleed marginInline="400">
-                  <Divider />
-                </Bleed>
-
-                {/* Color Controls */}
-                <BlockStack gap="400">
-                  <InlineStack gap="100" align="start">
-                    <Text as="p" variant="bodyMd">
-                      Colors
-                    </Text>
-                    <TooltipIcon content="Customize the colors of your badge" />
-                  </InlineStack>
-                  
-                  <BlockStack gap="200">
-                    <InlineStack gap="200" align="start">
-                      <Text as="p" variant="bodyMd">
-                        Background Color
-                      </Text>
-                      <div
-                        style={{
-                          width: "24px",
-                          height: "24px",
-                          backgroundColor: badge.design.background || "#7700ffff",
-                          border: "1px solid #e1e3e5",
-                          borderRadius: "4px",
-                          cursor: "pointer",
-                        }}
-                        onClick={() => {
-                          const color = prompt("Enter background color (hex):", badge.design.background || "#7700ffff");
-                          if (color) {
-                            handleDesignChange("background", color);
-                          }
-                        }}
-                      />
-                    </InlineStack>
-                  </BlockStack>
-
-                  <BlockStack gap="200">
-                    <InlineStack gap="200" align="start">
-                      <Text as="p" variant="bodyMd">
-                        Text Color
-                      </Text>
-                      <div
-                        style={{
-                          width: "24px",
-                          height: "24px",
-                          backgroundColor: badge.design.color || "#7700ffff",
-                          border: "1px solid #e1e3e5",
-                          borderRadius: "4px",
-                          cursor: "pointer",
-                        }}
-                        onClick={() => {
-                          const color = prompt("Enter text color (hex):", badge.design.color || "#7700ffff");
-                          if (color) {
-                            handleDesignChange("color", color);
-                          }
-                        }}
-                      />
-                    </InlineStack>
-                  </BlockStack>
-                </BlockStack>
-
-                <Bleed marginInline="400">
-                  <Divider />
-                </Bleed>
-
-                {/* Font Controls */}
-                <BlockStack gap="400">
-                  <InlineStack gap="100" align="start">
-                    <Text as="p" variant="bodyMd">
-                      Font
-                    </Text>
-                    <TooltipIcon content="Customize the font family and weight of your badge" />
-                  </InlineStack>
-                  
-                  <BlockStack gap="200">
-                    <Select
-                      label="Font Family"
-                      options={fontOptions}
-                      value={badge.design.fontFamily || "arial"}
-                      onChange={(value) => handleDesignChange("fontFamily", value)}
-                    />
-                  </BlockStack>
-
-                  <BlockStack gap="200">
-                    <Select
-                      label="Font Weight"
-                      options={fontWeightOptions}
-                      value={badge.design.fontWeight || "normal"}
-                      onChange={(value) => handleDesignChange("fontWeight", value)}
-                    />
-                  </BlockStack>
-                </BlockStack>
-
-                <Bleed marginInline="400">
-                  <Divider />
-                </Bleed>
-
-                {/* Color Preview */}
-                <BlockStack gap="200">
-                  <Text as="p" variant="bodyMd">
-                    Color Preview
-                  </Text>
-                  <div
-                    style={{
-                      width: "100%",
-                      height: "60px",
-                      backgroundColor: badge.design.background || "#7700ffff",
-                      borderRadius: `${badge.design.borderRadius || 0}px`,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: badge.design.color || "#7700ffff",
-                      fontFamily: badge.design.fontFamily || "arial",
-                      fontWeight: badge.design.fontWeight || "normal",
-                      fontSize: `${badge.design.fontSize || 14}px`,
-                      padding: `${badge.design.padding || 16}px`,
-                    }}
-                  >
-                     <Text as="p" variant="bodyMd">
-                       {badge.design.color || "#7700ffff"}
-                     </Text>
-                  </div>
-                </BlockStack>
-
-                <Bleed marginInline="400">
-                  <Divider />
-                </Bleed>
+               
               </>
             )}
 
@@ -498,7 +320,7 @@ export const DesignForm: React.FC<DesignFormProps> = ({
                   label=""
                   min={20}
                   max={200}
-                  value={badge.design.size || 36}
+                  value={badgeStore.design.size || 36}
                   onChange={(value) => {
                     if (typeof value === "number") {
                       handleDesignChange("size", value);
@@ -511,7 +333,7 @@ export const DesignForm: React.FC<DesignFormProps> = ({
             </BlockStack>
 
             {/* Conditional sections based on content type */}
-            {badge.content.contentType === "image" && (
+            {badgeStore.content.contentType === "image" && (
               <BlockStack gap="400">
                 <Checkbox
                   label="Opacity"
@@ -524,7 +346,7 @@ export const DesignForm: React.FC<DesignFormProps> = ({
                     label=""
                     min={0}
                     max={100}
-                    value={badge.design.opacity || 100}
+                    value={badgeStore.design.opacity || 100}
                     onChange={(value) => {
                       if (typeof value === "number") {
                         handleDesignChange("opacity", value);

@@ -276,7 +276,7 @@ const BannerContentForm = ({ data, onChange, bannerType }: BannerContentFormProp
                       dateLabel="Start Date"
                       timeLabel="Start Time"
                       onChange={(value) => onChange?.({ startDateTime: value })}
-                      initialValue={data?.schedule?.startDateTime || Date.now()}
+                      initialValue={data?.schedule?.startDateTime || undefined}
                     />
                   </div>
                 )}
@@ -294,7 +294,7 @@ const BannerContentForm = ({ data, onChange, bannerType }: BannerContentFormProp
                       dateLabel="End Date"
                       timeLabel="End Time"
                       onChange={(value) => onChange?.({ endDateTime: value })}
-                      initialValue={data?.schedule?.endDateTime || Date.now()}
+                      initialValue={data?.schedule?.endDateTime || undefined}
                     />
                   </div>
                 )}

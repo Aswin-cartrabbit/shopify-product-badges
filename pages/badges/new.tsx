@@ -18,6 +18,8 @@ export default function ChooseBadgeType() {
   const [showBuilder, setShowBuilder] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [editDataLoaded, setEditDataLoaded] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     // Only run when router is ready and we haven't already loaded edit data
@@ -143,6 +145,8 @@ export default function ChooseBadgeType() {
 
   const handleSave = async (badgeData: any) => {
     try {
+      setIsSaving(true);
+      setErrorMessage(null);
       const isEdit = router.query.edit === 'true' && router.query.id;
       const url = isEdit ? `/api/badge/update?id=${router.query.id}` : '/api/badge/create';
       const method = isEdit ? 'PUT' : 'POST';
@@ -166,6 +170,9 @@ export default function ChooseBadgeType() {
       }
     } catch (error) {
       console.error(`Error ${router.query.edit === 'true' ? 'updating' : 'creating'} badge:`, error);
+      setErrorMessage(error.message || "An unexpected error occurred");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -180,6 +187,9 @@ export default function ChooseBadgeType() {
         selectedTemplate={selectedTemplate}
         onSave={handleSave}
         onCancel={handleCancel}
+        isSaving={isSaving}
+        errorMessage={errorMessage}
+        onClearError={() => setErrorMessage(null)}
       />
     );
   }

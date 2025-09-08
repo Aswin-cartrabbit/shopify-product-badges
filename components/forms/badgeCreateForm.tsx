@@ -297,8 +297,8 @@ export const BadgeBuilder = ({
         display: {
           // Include all display/rules properties (bgColor moved to settings)
           isScheduled: badge.display.isScheduled || false,
-          startDateTime: badge.display.startDateTime || Date.now(),
-          endDateTime: badge.display.endDateTime || Date.now(),
+          startDateTime: badge.display.startDateTime || undefined,
+          endDateTime: badge.display.endDateTime || undefined,
           visibility: badge.display.visibility || "all",
           resourceIds: badge.display.resourceIds || [],
           pageDisplay: badge.display.pageDisplay || { 
