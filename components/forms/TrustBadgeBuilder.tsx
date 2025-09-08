@@ -139,16 +139,16 @@ export const TrustBadgeBuilder = ({
       const payload: any = {
         name: formData.name || name,
         type: "TRUST_BADGE", // Using uppercase as defined in ComponentType enum
-        templates: {
-          // Map content to templates structure for database
+        design: {
+          // Map content to design.templates structure for database
           content: {
             ...formData.content,
             icons: formData.content?.icons || [] // Ensure icons array is explicitly set
           },
           ...formData.design
         },
-        rules: {
-          // Map placement and settings to rules structure for database
+        display: {
+          // Map placement and settings to display structure for database
           placement: formData.placement,
           ...formData.settings
         },
@@ -157,8 +157,8 @@ export const TrustBadgeBuilder = ({
       };
 
       console.log("Final payload:", JSON.stringify(payload, null, 2));
-      console.log("Payload templates.content.icons:", JSON.stringify(payload.templates.content?.icons, null, 2));
-      console.log("Payload templates.content.icons length:", payload.templates.content?.icons?.length);
+      console.log("Payload design.content.icons:", JSON.stringify(payload.design.content?.icons, null, 2));
+      console.log("Payload design.content.icons length:", payload.design.content?.icons?.length);
       console.log("=========================");
 
       // Call parent's onSave handler if provided (handles API call and navigation)

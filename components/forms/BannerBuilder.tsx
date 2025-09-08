@@ -10,6 +10,7 @@ import {
   InlineStack,
   Select,
   ButtonGroup,
+  Toast,
 } from "@shopify/polaris";
 import { useCallback, useState, useEffect } from "react";
 import { useRouter } from "next/router";
@@ -24,6 +25,9 @@ interface BannerBuilderProps {
   selectedTemplate?: any;
   onSave?: (data: any) => void;
   onCancel?: () => void;
+  isSaving?: boolean;
+  errorMessage?: string | null;
+  onClearError?: () => void;
 }
 
 export const BannerBuilder = ({
@@ -31,6 +35,9 @@ export const BannerBuilder = ({
   selectedTemplate,
   onSave,
   onCancel,
+  isSaving = false,
+  errorMessage: externalErrorMessage = null,
+  onClearError
 }: BannerBuilderProps) => {
   const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState<boolean>(true);
@@ -141,6 +148,10 @@ export const BannerBuilder = ({
   }, []);
 
   const handleSave = async () => {
+    if (onClearError) {
+      onClearError();
+    }
+    
     try {
       // Transform banner data to match the existing badge API structure
       const payload = {
@@ -295,8 +306,9 @@ export const BannerBuilder = ({
         titleMetadata={getBannerStatus(bannerStatus)}
         subtitle={typeInfo.subtitle}
         primaryAction={{
-          content: "Save",
-          disabled: false,
+          content: isSaving ? "Saving..." : "Save",
+          disabled: isSaving,
+          loading: isSaving,
           onAction: handleSave,
         }}
         secondaryActions={[
@@ -469,6 +481,15 @@ export const BannerBuilder = ({
           </div>
         </div>
       </Page>
+      
+      {/* Error Toast */}
+      {externalErrorMessage && (
+        <Toast
+          content={externalErrorMessage}
+          error
+          onDismiss={onClearError}
+        />
+      )}
     </Modal>
   );
 };
