@@ -12,7 +12,7 @@ import { useSessionStore } from "@/stores/sessionStore";
 
 const App = ({ Component, pageProps }) => {
   const { storeId, setStoreId } = useSessionStore();
-  
+
   useEffect(() => {
     const fetchStore = async () => {
       try {
@@ -34,7 +34,7 @@ const App = ({ Component, pageProps }) => {
           method: "GET",
           headers,
         });
-        
+
         const data = await res.json();
         console.log(data);
         if (data?.store?.id) {
@@ -60,6 +60,7 @@ const App = ({ Component, pageProps }) => {
             <Link href="/badges">Badges</Link>
             <Link href="/trust-badges">Trust badges</Link>
             <Link href="/banners">Banners</Link>
+            <Link href="/billing">Billing</Link>
           </ui-nav-menu>
           <AppLayout>
             <Component {...pageProps} />

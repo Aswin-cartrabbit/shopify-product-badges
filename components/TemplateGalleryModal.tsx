@@ -1,5 +1,4 @@
 import {
-  Modal,
   Text,
   BlockStack,
   InlineStack,
@@ -15,6 +14,7 @@ import {
 } from "@shopify/polaris";
 import { useState } from "react";
 import { imageTemplates, textTemplates } from "@/utils/templateData";
+import { Modal, TitleBar } from "@shopify/app-bridge-react";
 
 interface TemplateGalleryModalProps {
   isOpen: boolean;
@@ -23,22 +23,40 @@ interface TemplateGalleryModalProps {
   templateType?: "text" | "image"; // New prop to specify template type
 }
 
-const TemplateGalleryModal = ({ isOpen, onClose, onSelect, templateType = "image" }: TemplateGalleryModalProps) => {
+const TemplateGalleryModal = ({
+  isOpen,
+  onClose,
+  onSelect,
+  templateType = "image",
+}: TemplateGalleryModalProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
 
   // Use the appropriate templates based on type
-  const predefinedTemplates = templateType === "text" ? textTemplates : imageTemplates;
+  const predefinedTemplates =
+    templateType === "text" ? textTemplates : imageTemplates;
 
-  const categories = ["All", "Sales", "New", "Christmas", "Black friday", "Stock", "Shipping", "Popular"];
+  const categories = [
+    "All",
+    "Sales",
+    "New",
+    "Christmas",
+    "Black friday",
+    "Stock",
+    "Shipping",
+    "Popular",
+  ];
 
-  const filteredTemplates = predefinedTemplates.filter(template => {
-    const searchText = templateType === "text" 
-      ? (template as any).text?.toLowerCase() 
-      : (template as any).alt?.toLowerCase();
+  const filteredTemplates = predefinedTemplates.filter((template) => {
+    const searchText =
+      templateType === "text"
+        ? (template as any).text?.toLowerCase()
+        : (template as any).alt?.toLowerCase();
     const matchesSearch = searchText?.includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === "All" || (template.category && template.category.includes(selectedCategory));
+    const matchesCategory =
+      selectedCategory === "All" ||
+      (template.category && template.category.includes(selectedCategory));
     return matchesSearch && matchesCategory;
   });
 
@@ -59,41 +77,14 @@ const TemplateGalleryModal = ({ isOpen, onClose, onSelect, templateType = "image
     setSelectedTemplate(null);
   };
 
-  if (!isOpen) return null;
-
   return (
     <div
       style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: "rgba(0, 0, 0, 0.5)",
-        zIndex: 10000,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "2rem",
+        zIndex: 999999999999999,
       }}
-      onClick={handleCancel}
     >
-      <div
-        style={{
-          backgroundColor: "white",
-          borderRadius: "8px",
-          maxWidth: "800px",
-          maxHeight: "80vh",
-          width: "100%",
-          overflowY: "auto",
-          padding: "1.5rem",
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
-          <Text variant="headingLg" as="h2">Template gallery</Text>
-          <Button onClick={handleCancel}>✕</Button>
-        </div>
+      <Modal open={true} onHide={handleCancel} variant="base">
+        <TitleBar>Template gallery</TitleBar>
         <BlockStack gap="400">
           {/* Search */}
           <TextField
@@ -105,8 +96,6 @@ const TemplateGalleryModal = ({ isOpen, onClose, onSelect, templateType = "image
             autoComplete="off"
           />
 
-        
-
           {/* Category filters */}
           <Box>
             <InlineStack gap="200" wrap>
@@ -115,7 +104,9 @@ const TemplateGalleryModal = ({ isOpen, onClose, onSelect, templateType = "image
                   key={category}
                   pressed={selectedCategory === category}
                   onClick={() => setSelectedCategory(category)}
-                  variant={selectedCategory === category ? "primary" : "secondary"}
+                  variant={
+                    selectedCategory === category ? "primary" : "secondary"
+                  }
                 >
                   {category}
                 </Button>
@@ -126,16 +117,22 @@ const TemplateGalleryModal = ({ isOpen, onClose, onSelect, templateType = "image
           {/* Template Grid */}
           <Grid>
             {filteredTemplates.map((template) => (
-              <Grid.Cell key={template.id} columnSpan={{ xs: 6, sm: 3, md: 2, lg: 2, xl: 2 }}>
+              <Grid.Cell
+                key={template.id}
+                columnSpan={{ xs: 6, sm: 3, md: 2, lg: 2, xl: 2 }}
+              >
                 <Card>
-                  <div 
-                    style={{ 
+                  <div
+                    style={{
                       cursor: "pointer",
                       textAlign: "center",
-                      border: selectedTemplate?.id === template.id ? "1px solid #0454F6" : "1px solid transparent",
+                      border:
+                        selectedTemplate?.id === template.id
+                          ? "1px solid #0454F6"
+                          : "1px solid transparent",
                       borderRadius: "8px",
                       transition: "all 0.3s ease",
-                      padding: "4px"
+                      padding: "4px",
                     }}
                     className="template-card-hover"
                     onClick={() => handleTemplateSelect(template)}
@@ -184,18 +181,20 @@ const TemplateGalleryModal = ({ isOpen, onClose, onSelect, templateType = "image
                               overflow: "visible", // Allow clip-path to show properly
                               textOverflow: "clip",
                               // Ensure the text is properly positioned within shaped containers
-                              
-                              boxSizing: "border-box"
+
+                              boxSizing: "border-box",
                             }}
                           >
-                            <span style={{
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              width: "100%",
-                              height: "100%",
-                              textAlign: "center"
-                            }}>
+                            <span
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                width: "100%",
+                                height: "100%",
+                                textAlign: "center",
+                              }}
+                            >
                               {(template as any).text}
                             </span>
                           </div>
@@ -220,11 +219,19 @@ const TemplateGalleryModal = ({ isOpen, onClose, onSelect, templateType = "image
                               style={{
                                 width: "60px",
                                 height: "30px",
-                                backgroundColor: template.category?.includes("Sales") ? "#dc2626" : 
-                                               template.category?.includes("New") ? "#16a34a" :
-                                               template.category?.includes("Christmas") ? "#dc2626" :
-                                               template.category?.includes("Black friday") ? "#000000" :
-                                               "#3b82f6",
+                                backgroundColor: template.category?.includes(
+                                  "Sales"
+                                )
+                                  ? "#dc2626"
+                                  : template.category?.includes("New")
+                                    ? "#16a34a"
+                                    : template.category?.includes("Christmas")
+                                      ? "#dc2626"
+                                      : template.category?.includes(
+                                            "Black friday"
+                                          )
+                                        ? "#000000"
+                                        : "#3b82f6",
                                 borderRadius: "4px",
                                 display: "none",
                                 alignItems: "center",
@@ -240,35 +247,39 @@ const TemplateGalleryModal = ({ isOpen, onClose, onSelect, templateType = "image
                         )}
                       </div>
                     </Box>
-                    
+
                     {/* Selection indicator */}
                     {selectedTemplate?.id === template.id && (
                       <Box paddingBlockStart="100">
-                        <div style={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          gap: "4px"
-                        }}>
-                          <div style={{
-                            width: "16px",
-                            height: "16px",
-                            backgroundColor: "#0454F6",
-                            borderRadius: "50%",
+                        <div
+                          style={{
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
-                            color: "white",
-                            fontSize: "12px",
-                            fontWeight: "bold"
-                          }}>
+                            gap: "4px",
+                          }}
+                        >
+                          <div
+                            style={{
+                              width: "16px",
+                              height: "16px",
+                              backgroundColor: "#0454F6",
+                              borderRadius: "50%",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              color: "white",
+                              fontSize: "12px",
+                              fontWeight: "bold",
+                            }}
+                          >
                             ✓
                           </div>
                           <Badge tone="info">Selected</Badge>
                         </div>
                       </Box>
                     )}
-                    
+
                     {/* Template Name */}
                     {/* <Text variant="bodySm" as="p" alignment="center">
                       {templateType === "text" ? (template as any).text : (template as any).alt}
@@ -281,9 +292,9 @@ const TemplateGalleryModal = ({ isOpen, onClose, onSelect, templateType = "image
 
           {/* Use template button */}
           <Box paddingBlockStart="400">
-            <Button 
-              fullWidth 
-              variant="primary" 
+            <Button
+              fullWidth
+              variant="primary"
               disabled={!selectedTemplate}
               onClick={handleUseTemplate}
             >
@@ -291,8 +302,24 @@ const TemplateGalleryModal = ({ isOpen, onClose, onSelect, templateType = "image
             </Button>
           </Box>
         </BlockStack>
-      </div>
+      </Modal>
     </div>
+
+    //     {/* <div
+    //       style={{
+    //         display: "flex",
+    //         justifyContent: "space-between",
+    //         alignItems: "center",
+    //         marginBottom: "1rem",
+    //       }}
+    //     >
+    //       <Text variant="headingLg" as="h2">
+    //         Template gallery
+    //       </Text>
+    //       <Button onClick={handleCancel}>✕</Button>
+    //     </div> */}
+    //   </div>
+    // </div>
   );
 };
 

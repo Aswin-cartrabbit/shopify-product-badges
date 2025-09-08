@@ -34,8 +34,9 @@ model stores {
   isActive Boolean @default(false)
 
   // Relationships
-  sessions          session[]
-  visual_components visual_components[]
+  sessions             session[]
+  visual_components    visual_components[]
+  billing_transactions billing_transactions[]
 
   @@index([id])
   @@index([isActive])
@@ -93,4 +94,24 @@ model visual_components {
   @@index([createdAt])
   @@index([updatedAt])
   @@map("visual_components")
+}
+
+model billing_transactions {
+  id          String    @id @default(uuid()) @db.Uuid
+  storeId     String    @db.Uuid
+  chargeId    String    @unique // Shopify charge id
+  planName    String
+  status      String // ACTIVE, CANCELLED, etc.
+  price       Float
+  currency    String
+  interval    String
+  isTest      Boolean   @default(false)
+  activatedAt DateTime  @default(now())
+  cancelledAt DateTime?
+
+  store stores @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@index([storeId])
+  @@index([status])
+  @@map("billing_transactions")
 }
