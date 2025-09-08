@@ -55,7 +55,8 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^7.7.1",
-    "zustand": "^5.0.8"
+    "zustand": "^5.0.8",
+    "@types/node": "^24.3.0"
   },
   "devDependencies": {
     "@iarna/toml": "^2.2.5",
