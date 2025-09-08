@@ -368,6 +368,7 @@ export default function CreateTrustBadge() {
               justifyContent: "center",
               alignItems: "center"
             }}>
+              {/* Render icons if available */}
               {template.icons?.slice(0, 4).map((icon, index) => (
                 <div key={icon.id || index} style={{
                   width: "40px",
@@ -390,7 +391,8 @@ export default function CreateTrustBadge() {
                   />
                 </div>
               ))}
-              {template.images?.slice(0, 4).map((image, index) => (
+              {/* Render images if available and no icons */}
+              {!template.icons && template.images?.slice(0, 4).map((image, index) => (
                 <div key={image.id || index} style={{
                   width: "40px",
                   height: "40px",
