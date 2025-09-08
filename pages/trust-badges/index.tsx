@@ -8,6 +8,7 @@ import {
   Toast,
   Modal,
   EmptyState,
+  Spinner,
 } from "@shopify/polaris";
 import { useRouter } from "next/router";
 import { useState, useEffect, useRef } from "react";
@@ -241,6 +242,7 @@ export default function TrustBadges() {
             </BlockStack>
             <Button
               variant="primary"
+              // onClick={() => router.push("/trust-badges/create")}
               onClick={handleOpenTemplateModal}
             >
               Create trust badge
@@ -252,7 +254,8 @@ export default function TrustBadges() {
         {loading ? (
           <Card>
             <div style={{ textAlign: "center", padding: "40px" }}>
-              <Text as="p">Loading trust badges...</Text>
+              <Spinner size="large" />
+              <Text as="p">Loading...</Text>
             </div>
           </Card>
         ) : trustBadges.length === 0 ? (
