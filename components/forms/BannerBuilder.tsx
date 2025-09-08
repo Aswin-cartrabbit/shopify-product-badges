@@ -33,12 +33,12 @@ export const BannerBuilder = ({
   const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState<boolean>(true);
   
-  const getBannerStatus = (status: "DRAFT" | "ACTIVE") => {
+  const getBannerStatus = (status: "Active" | "Inactive") => {
     switch (status) {
-      case "DRAFT":
-        return <Badge tone="attention">Draft</Badge>;
-      case "ACTIVE":
+      case "Active":
         return <Badge tone="success">Active</Badge>;
+      case "Inactive":
+        return <Badge tone="attention">Draft</Badge>;
     }
   };
 
@@ -228,7 +228,7 @@ export const BannerBuilder = ({
         fullWidth
         backAction={{ content: "Banners", onAction: handleCancel }}
         title={formData.name}
-        titleMetadata={getBannerStatus("ACTIVE")}
+        titleMetadata={getBannerStatus(bannerStatus)}
         subtitle={typeInfo.subtitle}
         primaryAction={{
           content: "Save",
@@ -242,19 +242,19 @@ export const BannerBuilder = ({
           },
         ]}
       >
-
-
         {/* Custom Tab Implementation */}
         <div style={{ marginBottom: "1rem" }}>
-          <div style={{
-            display: "flex",
-            gap: "4px",
-            backgroundColor: "#f6f6f7",
-            padding: "4px",
-            borderRadius: "12px",
-            width: "fit-content",
-            maxWidth: "100%"
-          }}>
+          <div
+            style={{
+              display: "flex",
+              gap: "4px",
+              backgroundColor: "#f6f6f7",
+              padding: "4px",
+              borderRadius: "12px",
+              width: "fit-content",
+              maxWidth: "100%",
+            }}
+          >
             <button
               style={{
                 padding: "10px 16px",
@@ -266,11 +266,12 @@ export const BannerBuilder = ({
                 fontSize: "14px",
                 cursor: "pointer",
                 transition: "all 0.2s ease",
-                boxShadow: selectedTab === 0 ? "0 1px 3px rgba(0, 0, 0, 0.1)" : "none",
+                boxShadow:
+                  selectedTab === 0 ? "0 1px 3px rgba(0, 0, 0, 0.1)" : "none",
                 minWidth: "auto",
                 display: "flex",
                 alignItems: "center",
-                gap: "6px"
+                gap: "6px",
               }}
               onClick={() => handleTabChange(0)}
             >
@@ -288,11 +289,12 @@ export const BannerBuilder = ({
                 fontSize: "14px",
                 cursor: "pointer",
                 transition: "all 0.2s ease",
-                boxShadow: selectedTab === 1 ? "0 1px 3px rgba(0, 0, 0, 0.1)" : "none",
+                boxShadow:
+                  selectedTab === 1 ? "0 1px 3px rgba(0, 0, 0, 0.1)" : "none",
                 minWidth: "auto",
                 display: "flex",
                 alignItems: "center",
-                gap: "6px"
+                gap: "6px",
               }}
               onClick={() => handleTabChange(1)}
             >
@@ -301,7 +303,7 @@ export const BannerBuilder = ({
             </button>
           </div>
         </div>
-        
+
         <div
           style={{
             display: "grid",
@@ -312,24 +314,24 @@ export const BannerBuilder = ({
         >
           <div>
             {/* Content Tab */}
-            <div style={{ display: selectedTab === 0 ? 'block' : 'none' }}>
-              <BannerContentForm 
+            <div style={{ display: selectedTab === 0 ? "block" : "none" }}>
+              <BannerContentForm
                 data={formData}
                 onChange={handleContentChange}
                 bannerType={bannerType}
               />
             </div>
-            
+
             {/* Design Tab */}
-            <div style={{ display: selectedTab === 1 ? 'block' : 'none' }}>
-              <BannerDesignForm 
+            <div style={{ display: selectedTab === 1 ? "block" : "none" }}>
+              <BannerDesignForm
                 data={formData}
                 onChange={handleDesignChange}
                 bannerType={bannerType}
               />
             </div>
           </div>
-          
+
           {/* Preview Section */}
           <div
             style={{
@@ -339,7 +341,7 @@ export const BannerBuilder = ({
               overflow: "auto",
             }}
           >
-                     <div style={{ marginBottom: "16px" }}>
+            <div style={{ marginBottom: "16px" }}>
               <Card>
                 <div
                   style={{
@@ -394,11 +396,7 @@ export const BannerBuilder = ({
             </div>
             <Card>
               {/* Banner Name and Status in Preview Area */}
-                <BannerPreview 
-                  key={`${formData.content?.useButton}-${formData.content?.showCloseButton}`}
-                  bannerData={formData}
-                  bannerType={bannerType}
-                />
+              <BannerPreview bannerData={formData} bannerType={bannerType} />
             </Card>
           </div>
         </div>

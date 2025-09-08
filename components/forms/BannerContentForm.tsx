@@ -14,6 +14,7 @@ import {
   FormLayout
 } from "@shopify/polaris";
 import { useState, useCallback } from "react";
+import { DatePicker } from '@shopify/polaris';
 import { QuestionCircleIcon, CalendarTimeIcon } from "@shopify/polaris-icons";
 import { DateTimePicker } from "../pickers/DateTimePicker";
 
@@ -29,6 +30,28 @@ const BannerContentForm = ({ data, onChange, bannerType }: BannerContentFormProp
   const [showCustomerConditions, setShowCustomerConditions] = useState(false);
   const [showSchedule, setShowSchedule] = useState(false);
   const [showTranslation, setShowTranslation] = useState(false);
+
+  // DatePicker state for schedule
+  const [startDateState, setStartDateState] = useState({
+    month: data?.schedule?.startDateTime ? new Date(data.schedule.startDateTime).getMonth() + 1 : new Date().getMonth() + 1,
+    year: data?.schedule?.startDateTime ? new Date(data.schedule.startDateTime).getFullYear() : new Date().getFullYear()
+  });
+  const [endDateState, setEndDateState] = useState({
+    month: data?.schedule?.endDateTime ? new Date(data.schedule.endDateTime).getMonth() + 1 : new Date().getMonth() + 1,
+    year: data?.schedule?.endDateTime ? new Date(data.schedule.endDateTime).getFullYear() : new Date().getFullYear()
+  });
+  const [selectedStartDates, setSelectedStartDates] = useState({
+    start: data?.schedule?.startDateTime ? new Date(data.schedule.startDateTime) : new Date(),
+    end: data?.schedule?.startDateTime ? new Date(data.schedule.startDateTime) : new Date(),
+  });
+  const [selectedEndDates, setSelectedEndDates] = useState({
+    start: data?.schedule?.endDateTime ? new Date(data.schedule.endDateTime) : new Date(),
+    end: data?.schedule?.endDateTime ? new Date(data.schedule.endDateTime) : new Date(),
+  });
+  const [showStartDatePicker, setShowStartDatePicker] = useState(false);
+  const [showEndDatePicker, setShowEndDatePicker] = useState(false);
+  const [showStartCheckbox, setShowStartCheckbox] = useState(false);
+  const [showEndCheckbox, setShowEndCheckbox] = useState(false);
 
   const TooltipIcon = ({ content }: { content: string }) => (
     <Tooltip content={content}>
@@ -67,6 +90,16 @@ const BannerContentForm = ({ data, onChange, bannerType }: BannerContentFormProp
     onChange?.({ [page]: checked });
   }, [onChange]);
 
+  const handleStartMonthChange = useCallback(
+    (month: number, year: number) => setStartDateState({month, year}),
+    [],
+  );
+
+  const handleEndMonthChange = useCallback(
+    (month: number, year: number) => setEndDateState({month, year}),
+    [],
+  );
+
   return (
     <BlockStack gap="400">
       {/* Banner Content Section */}
@@ -100,14 +133,18 @@ const BannerContentForm = ({ data, onChange, bannerType }: BannerContentFormProp
 
             {/* Link Options */}
             <BlockStack gap="200">
-              <Text variant="bodyMd" as="p">Link behavior</Text>
+              <Text variant="bodyMd" as="p">
+                Link behavior
+              </Text>
               <BlockStack gap="200">
                 <RadioButton
                   label="Open link in new tab."
                   checked={linkOption === "new_tab"}
                   id="new_tab"
                   name="link_option"
-                  onChange={(checked) => handleLinkOptionChange(checked, "new_tab")}
+                  onChange={(checked) =>
+                    handleLinkOptionChange(checked, "new_tab")
+                  }
                 />
                 {/* <RadioButton
                   label={
@@ -134,7 +171,7 @@ const BannerContentForm = ({ data, onChange, bannerType }: BannerContentFormProp
                 checked={data?.content?.useButton || false}
                 onChange={handleUseButtonChange}
               />
-              
+
               {/* Show button text input when useButton is checked */}
               {data?.content?.useButton && (
                 <div style={{ marginLeft: "24px" }}>
@@ -148,7 +185,7 @@ const BannerContentForm = ({ data, onChange, bannerType }: BannerContentFormProp
                   />
                 </div>
               )}
-              
+
               <Checkbox
                 label='Show close button "X"'
                 checked={data?.content?.showCloseButton || false}
@@ -162,59 +199,73 @@ const BannerContentForm = ({ data, onChange, bannerType }: BannerContentFormProp
       {/* Page Display Section */}
       <Card>
         <BlockStack gap="400">
-          <Button
+          {/* <Button
             variant="plain"
             textAlign="left"
             icon={showPageDisplay ? "chevron-down" : "chevron-right"}
             onClick={() => setShowPageDisplay(!showPageDisplay)}
           >
             Page display
-          </Button>
+          </Button> */}
 
-          <Collapsible
+          <BlockStack gap="200">
+            <Text variant="headingSm" as="h3">
+              Page display
+            </Text>
+          </BlockStack>
+
+          {/* <Collapsible
             open={showPageDisplay}
             id="page-display-collapsible"
             transition={{ duration: '500ms', timingFunction: 'ease-in-out' }}
-          >
-            <BlockStack gap="300">
-              <Text variant="bodyMd" as="p" tone="subdued">
-                Choose where to display this banner
-              </Text>
-              
-              <BlockStack gap="200">
-                <Checkbox
-                  label="Home pages"
-                  checked={data?.display?.homePages || true}
-                  onChange={(checked) => handlePageDisplayChange('homePages', checked)}
-                />
-                <Checkbox
-                  label="Collection pages"
-                  checked={data?.display?.collectionPages || false}
-                  onChange={(checked) => handlePageDisplayChange('collectionPages', checked)}
-                />
-                <Checkbox
-                  label="Product pages"
-                  checked={data?.display?.productPages || false}
-                  onChange={(checked) => handlePageDisplayChange('productPages', checked)}
-                />
-                <Checkbox
-                  label={
-                    <InlineStack gap="100">
-                      <Text as="span">Specific pages</Text>
-                      <Badge tone="magic">Growth</Badge>
-                    </InlineStack>
-                  }
-                  checked={data?.display?.specificPages || false}
-                  onChange={(checked) => handlePageDisplayChange('specificPages', checked)}
-                />
-              </BlockStack>
+          > */}
+          <BlockStack gap="300">
+            <Text variant="bodyMd" as="p" tone="subdued">
+              Choose where to display this banner
+            </Text>
+
+            <BlockStack gap="200">
+              <Checkbox
+                label="Home pages"
+                checked={data?.display?.homePages || false}
+                onChange={(checked) =>
+                  handlePageDisplayChange("homePages", checked)
+                }
+              />
+              <Checkbox
+                label="Collection pages"
+                checked={data?.display?.collectionPages || false}
+                onChange={(checked) =>
+                  handlePageDisplayChange("collectionPages", checked)
+                }
+              />
+              <Checkbox
+                label="Product pages"
+                checked={data?.display?.productPages || false}
+                onChange={(checked) =>
+                  handlePageDisplayChange("productPages", checked)
+                }
+              />
+              {/* <Checkbox
+                label={
+                  <InlineStack gap="100">
+                    <Text as="span">Specific pages</Text>
+                    <Badge tone="magic">Growth</Badge>
+                  </InlineStack>
+                }
+                checked={data?.display?.specificPages || false}
+                onChange={(checked) =>
+                  handlePageDisplayChange("specificPages", checked)
+                }
+              /> */}
             </BlockStack>
-          </Collapsible>
+          </BlockStack>
+          {/* </Collapsible> */}
         </BlockStack>
       </Card>
 
       {/* Customer Conditions Section */}
-      <Card>
+      {/* <Card>
         <BlockStack gap="400">
           <InlineStack gap="200" align="start">
             <Button
@@ -231,81 +282,137 @@ const BannerContentForm = ({ data, onChange, bannerType }: BannerContentFormProp
           <Collapsible
             open={showCustomerConditions}
             id="customer-conditions-collapsible"
-            transition={{ duration: '500ms', timingFunction: 'ease-in-out' }}
+            transition={{ duration: "500ms", timingFunction: "ease-in-out" }}
           >
             <BlockStack gap="300">
               <Text variant="bodyMd" as="p" tone="subdued">
                 Set conditions for when to show this banner to customers
               </Text>
-              
+
               <Text variant="bodyMd" as="p">
                 Customer targeting options will be available here.
               </Text>
             </BlockStack>
           </Collapsible>
         </BlockStack>
-      </Card>
+      </Card> */}
 
-      {/* Schedule Section */}
+      {/* Schedule Section - Using DisplayForm style */}
       <Card>
         <BlockStack gap="400">
-          <Button
+          {/* <Button
             variant="plain"
             textAlign="left"
             icon={showSchedule ? "chevron-down" : "chevron-right"}
             onClick={() => setShowSchedule(!showSchedule)}
           >
             Schedule
-          </Button>
+          </Button> */}
 
-          <Collapsible
+          {/* <Collapsible
             open={showSchedule}
             id="schedule-collapsible"
             transition={{ duration: '500ms', timingFunction: 'ease-in-out' }}
-          >
-            <BlockStack gap="400">
-              <BlockStack gap="300">
-                <Checkbox
-                  label="Start date"
-                  checked={data?.schedule?.startDate || false}
-                  onChange={(checked) => onChange?.({ startDate: checked })}
-                />
-                {data?.schedule?.startDate && (
-                  <div style={{ marginLeft: "24px" }}>
-                    <DateTimePicker
-                      dateLabel="Start Date"
-                      timeLabel="Start Time"
-                      onChange={(value) => onChange?.({ startDateTime: value })}
-                      initialValue={data?.schedule?.startDateTime || undefined}
-                    />
-                  </div>
-                )}
-              </BlockStack>
+          > */}
+          <BlockStack gap="200">
+            <Text variant="headingSm" as="h3">
+              Scheduled Display
+            </Text>
 
-              <BlockStack gap="300">
-                <Checkbox
-                  label="End date"
-                  checked={data?.schedule?.endDate || false}
-                  onChange={(checked) => onChange?.({ endDate: checked })}
-                />
-                {data?.schedule?.endDate && (
-                  <div style={{ marginLeft: "24px" }}>
-                    <DateTimePicker
-                      dateLabel="End Date"
-                      timeLabel="End Time"
-                      onChange={(value) => onChange?.({ endDateTime: value })}
-                      initialValue={data?.schedule?.endDateTime || undefined}
-                    />
-                  </div>
-                )}
-              </BlockStack>
-            </BlockStack>
-          </Collapsible>
+            <InlineStack align="space-between" blockAlign="center">
+              <Text variant="bodyMd" as="p">
+                Start Date
+              </Text>
+              <Checkbox
+                label={
+                  data?.schedule?.startDateTime
+                    ? new Date(data.schedule.startDateTime).toLocaleDateString()
+                    : "Start Date"
+                }
+                checked={showStartCheckbox}
+                onChange={(checked) => {
+                  setShowStartCheckbox(checked);
+                  setShowStartDatePicker(checked);
+                  if (checked) {
+                    // Don't auto-set to current time - let user pick date
+                  } else {
+                    onChange?.({ startDateTime: undefined });
+                  }
+                }}
+              />
+            </InlineStack>
+
+            {showStartDatePicker && (
+              <DatePicker
+                month={startDateState.month}
+                year={startDateState.year}
+                onChange={(dates) => {
+                  setSelectedStartDates(dates);
+                  const timestamp = dates.start.getTime();
+                  console.log(
+                    "Start date selected:",
+                    dates.start,
+                    "Timestamp:",
+                    timestamp
+                  );
+                  onChange?.({ startDateTime: timestamp });
+                  setShowStartDatePicker(false);
+                }}
+                onMonthChange={handleStartMonthChange}
+                selected={selectedStartDates}
+              />
+            )}
+
+            <InlineStack align="space-between" blockAlign="center">
+              <Text variant="bodyMd" as="p">
+                End Date
+              </Text>
+              <Checkbox
+                label={
+                  data?.schedule?.endDateTime
+                    ? new Date(data.schedule.endDateTime).toLocaleDateString()
+                    : "End Date"
+                }
+                checked={showEndCheckbox}
+                onChange={(checked) => {
+                  setShowEndCheckbox(checked);
+                  setShowEndDatePicker(checked);
+                  if (checked) {
+                    // Don't auto-set to current time - let user pick date
+                  } else {
+                    onChange?.({ endDateTime: undefined });
+                  }
+                }}
+              />
+            </InlineStack>
+
+            {showEndDatePicker && (
+              <DatePicker
+                month={endDateState.month}
+                year={endDateState.year}
+                onChange={(dates) => {
+                  setSelectedEndDates(dates);
+                  const timestamp = dates.start.getTime();
+                  console.log(
+                    "End date selected:",
+                    dates.start,
+                    "Timestamp:",
+                    timestamp
+                  );
+                  onChange?.({ endDateTime: timestamp });
+                  setShowEndDatePicker(false);
+                }}
+                onMonthChange={handleEndMonthChange}
+                selected={selectedEndDates}
+              />
+            )}
+          </BlockStack>
+          {/* </Collapsible> */}
         </BlockStack>
       </Card>
 
       {/* Translation Section */}
-      <Card>
+      {/* <Card>
         <BlockStack gap="400">
           <Button
             variant="plain"
@@ -319,14 +426,12 @@ const BannerContentForm = ({ data, onChange, bannerType }: BannerContentFormProp
           <Collapsible
             open={showTranslation}
             id="translation-collapsible"
-            transition={{ duration: '500ms', timingFunction: 'ease-in-out' }}
+            transition={{ duration: "500ms", timingFunction: "ease-in-out" }}
           >
             <BlockStack gap="300">
-              <Button variant="plain">
-                Add translations
-              </Button>
+              <Button variant="plain">Add translations</Button>
               <Badge tone="info">Unlimited</Badge>
-              
+
               <Text variant="bodyMd" as="p" tone="subdued">
                 Add translations for different languages.{" "}
                 <Button variant="plain">Read more</Button>
@@ -334,7 +439,7 @@ const BannerContentForm = ({ data, onChange, bannerType }: BannerContentFormProp
             </BlockStack>
           </Collapsible>
         </BlockStack>
-      </Card>
+      </Card> */}
     </BlockStack>
   );
 };

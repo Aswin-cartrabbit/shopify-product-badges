@@ -24,19 +24,25 @@ const BannerPreview = ({ bannerData, bannerType }: BannerPreviewProps) => {
     if (bannerType === "countdown") {
       return (
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px" }}>
-          <Text as="span" variant="bodyLg" fontWeight="medium">
-            FLASH SALE ENDS IN
-          </Text>
+           <span 
+             style={{
+               fontSize: `${design.textSize || 16}px`,
+               fontWeight: "500",
+               color: "inherit"
+             }}
+           >
+             FLASH SALE ENDS IN
+           </span>
           <div style={{ 
             display: "flex", 
             gap: "8px", 
-            fontSize: "18px",
+            fontSize: `${(design.textSize || 16) + 2}px`,
             fontWeight: "bold"
           }}>
             <span>00 : 03 : 48</span>
           </div>
           <div style={{
-            fontSize: "12px",
+            fontSize: `${Math.max(10, (design.textSize || 16) - 4)}px`,
             opacity: 0.8
           }}>
             Hours    Minutes    Seconds
@@ -47,16 +53,69 @@ const BannerPreview = ({ bannerData, bannerType }: BannerPreviewProps) => {
 
     if (bannerType === "slider") {
       return (
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
-          <Button size="slim" variant="plain">
-            ←
-          </Button>
-          <Text as="span" variant="bodyMd" fontWeight="medium">
-            {content.text || "NEW DEALS THIS MONTH"}
-          </Text>
-          <Button size="slim" variant="plain">
-            →
-          </Button>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            width: "100%",
+            gap: "12px",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              width: "100%",
+            }}
+          >
+            <Button size="slim" variant="plain">
+              ←
+            </Button>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+              <span 
+                style={{
+                  fontSize: `${design.textSize || 16}px`,
+                  fontWeight: "500",
+                  color: "inherit"
+                }}
+              >
+                {content.text || "NEW DEALS THIS MONTH"}
+              </span>
+              {content.useButton && (
+                <div
+                  style={{
+                    backgroundColor: design.buttonBackgroundColor || "#000000",
+                    color: design.buttonTextColor || "#ffffff",
+                    border: `${design.buttonBorderSize || 0}px solid ${design.buttonBorderColor || "#000000"}`,
+                    borderRadius: `${design.buttonCornerRadius || 8}px`,
+                    fontSize: `${design.buttonTextSize || 16}px`,
+                    padding: "8px 16px",
+                    cursor: "pointer",
+                    display: "inline-block",
+                  }}
+                >
+                  {content.buttonText || "Shop now!"}
+                </div>
+              )}
+            </div>
+            <Button size="slim" variant="plain">
+              →
+            </Button>
+          </div>
+          {content.showCloseButton && (
+            <div
+              style={{
+                color: design.closeIconColor || "#ffffff",
+                cursor: "pointer",
+                fontSize: "20px",
+                fontWeight: "bold",
+              }}
+            >
+              ×
+            </div>
+          )}
         </div>
       );
     }
@@ -64,9 +123,15 @@ const BannerPreview = ({ bannerData, bannerType }: BannerPreviewProps) => {
     return (
       <div style={{ display: "flex", alignItems: "center", justifyContent: content.showCloseButton ? "space-between" : "center", gap: "12px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <Text as="span" variant="bodyMd" fontWeight="medium">
-            {content.text || "Deco banner"}
-          </Text>
+           <span 
+             style={{
+               fontSize: `${design.textSize || 16}px`,
+               fontWeight: "500",
+               color: "inherit"
+             }}
+           >
+             {content.text || "Deco banner"}
+           </span>
           {content.useButton && (
             <div
               style={{
@@ -142,16 +207,20 @@ const BannerPreview = ({ bannerData, bannerType }: BannerPreviewProps) => {
           overflow: "hidden",
           backgroundColor: "#ffffff",
           minHeight: "400px",
-          position: "relative"
+          position: "relative",
+          display: "flex",
+          flexDirection: "column"
         }}
       >
-        {/* Banner Preview */}
-        <div style={bannerStyle}>
-          {getBannerContent()}
-        </div>
+        {/* Banner Preview - Top Position */}
+        {(!bannerData?.design?.position || bannerData?.design?.position === "top") && (
+          <div style={bannerStyle}>
+            {getBannerContent()}
+          </div>
+        )}
 
         {/* Mock Website Content */}
-        <div style={{ padding: "20px" }}>
+        <div style={{ padding: "20px", flex: 1 }}>
           {/* Mock Navigation */}
           <div style={{
             display: "flex",
@@ -200,10 +269,17 @@ const BannerPreview = ({ bannerData, bannerType }: BannerPreviewProps) => {
             </div>
           </div>
         </div>
+
+        {/* Banner Preview - Bottom Position */}
+        {bannerData?.design?.position === "bottom" && (
+          <div style={bannerStyle}>
+            {getBannerContent()}
+          </div>
+        )}
       </div>
 
       {/* Position Indicator */}
-      {bannerData?.design?.position && (
+      {/* {bannerData?.design?.position && (
         <Card>
           <BlockStack gap="200">
             <Text variant="bodyMd" as="p" fontWeight="medium">
@@ -216,7 +292,7 @@ const BannerPreview = ({ bannerData, bannerType }: BannerPreviewProps) => {
             )}
           </BlockStack>
         </Card>
-      )}
+      )} */}
     </BlockStack>
   );
 };
