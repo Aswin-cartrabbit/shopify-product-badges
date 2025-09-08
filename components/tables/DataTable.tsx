@@ -20,7 +20,7 @@ import {
   useSetIndexFiltersMode,
 } from "@shopify/polaris";
 
-import { DeleteIcon } from "@shopify/polaris-icons";
+import { DeleteIcon, EditIcon } from "@shopify/polaris-icons";
 import { useRouter } from "next/router";
 
 import { useCallback, useEffect, useState } from "react";
@@ -301,6 +301,7 @@ export function DataTable({
       // Add filters based on current tab and applied filters
       if (selected === 1) params.append("status", "ACTIVE"); // Active tab
       if (selected === 2) params.append("status", "INACTIVE"); // Inactive tab
+      if (selected === 3) params.append("status", "DRAFT"); // Draft tab
 
       // Add applied filters
       if (componentType && !isEmpty(componentType)) {
@@ -489,9 +490,9 @@ export function DataTable({
   // Helper functions for badges
   const getStatusBadge = (status) => {
     const statusConfig = {
-      ACTIVE: { progress: "complete", children: "Active" },
-      INACTIVE: { progress: "incomplete", children: "Inactive" },
-      DRAFT: { progress: "partiallyComplete", children: "Draft" },
+      ACTIVE: { progress: "complete", children: "Active", tone:"success" },
+      INACTIVE: { progress: "incomplete", children: "Inactive", tone:"critical" },
+      DRAFT: { progress: "partiallyComplete", children: "Draft", tone:"attention" },
     };
     return (
       <Badge {...statusConfig[status]}>
@@ -561,6 +562,34 @@ export function DataTable({
       });
     } finally {
       setDeletingId(null);
+    }
+  };
+
+  // Edit function
+  const handleEdit = (component) => {
+    const componentType = type.toLowerCase();
+    
+    console.log('Editing component:', component.id);
+
+    // Navigate to the appropriate edit page based on component type
+    if (componentType === 'trust_badge') {
+      // For trust badges, use the new page with edit mode
+      router.push({
+        pathname: '/trust-badges/new',
+        query: {
+          edit: 'true',
+          id: component.id
+        }
+      });
+    } else {
+      // For badges and labels, go to the new page with edit mode
+      router.push({
+        pathname: `/${componentType}s/new`,
+        query: {
+          edit: 'true',
+          id: component.id
+        }
+      });
     }
   };
 
@@ -724,14 +753,22 @@ export function DataTable({
               height: "70px", 
               display: "flex", 
               alignItems: "center",
+              gap: "8px",
               padding: "15px 0"
             }}>
+              <Button
+                variant="plain"
+                icon={EditIcon}
+                onClick={() => handleEdit(component)}
+                accessibilityLabel={`Edit ${component.name}`}
+              />
               <Button
                 variant="plain"
                 icon={DeleteIcon}
                 onClick={() => handleDelete(component.id, component.name)}
                 loading={deletingId === component.id}
                 disabled={deletingId === component.id}
+                accessibilityLabel={`Delete ${component.name}`}
               />
             </div>
           </IndexTable.Cell>
@@ -759,13 +796,26 @@ export function DataTable({
             </Text>
           </IndexTable.Cell>
           <IndexTable.Cell>
-            <Button
-              variant="plain"
-              icon={DeleteIcon}
-              onClick={() => handleDelete(component.id, component.name)}
-              loading={deletingId === component.id}
-              disabled={deletingId === component.id}
-            />
+            <div style={{ 
+              display: "flex", 
+              alignItems: "center",
+              gap: "8px"
+            }}>
+              <Button
+                variant="plain"
+                icon={EditIcon}
+                onClick={() => handleEdit(component)}
+                accessibilityLabel={`Edit ${component.name}`}
+              />
+              <Button
+                variant="plain"
+                icon={DeleteIcon}
+                onClick={() => handleDelete(component.id, component.name)}
+                loading={deletingId === component.id}
+                disabled={deletingId === component.id}
+                accessibilityLabel={`Delete ${component.name}`}
+              />
+            </div>
           </IndexTable.Cell>
         </>
       )}

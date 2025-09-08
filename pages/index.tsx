@@ -1,5 +1,13 @@
 import ReviewBanner from "@/components/banners/ReviewBanner";
 import isInitialLoad from "@/utils/middleware/isInitialLoad";
+import ThemeEmbedBanner from "@/components/ThemeEmbedBanner";
+import NotifyBanner from "@/components/NotifyBanner";
+import { useThemeEmbedStatus } from "@/components/hooks/useThemeEmbedStatus";
+import { 
+  redirectToThemeEditor, 
+  getEmbedBannerDismissalStatus, 
+  setEmbedBannerDismissalStatus 
+} from "@/utils/themeEmbedHelper";
 import {
   Page,
   Card,
@@ -10,6 +18,7 @@ import {
   Icon,
   TextField,
   Tooltip,
+  Spinner,
 } from "@shopify/polaris";
 import { 
   SearchIcon, 
@@ -20,7 +29,7 @@ import {
   NotificationIcon
 } from "@shopify/polaris-icons";
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 export async function getServerSideProps(context) {
   //DO NOT REMOVE THIS.
@@ -29,6 +38,51 @@ export async function getServerSideProps(context) {
 export default function Dashboard() {
   const [searchValue, setSearchValue] = useState("");
   const router = useRouter();
+  
+  // Theme embed checking logic
+  const { isLoading, error, embedStatus, checkStatus } = useThemeEmbedStatus();
+  const [isDismissed, setIsDismissed] = useState(() => {
+    // Initialize with localStorage value to prevent flash
+    if (typeof window !== "undefined") {
+      return getEmbedBannerDismissalStatus();
+    }
+    return false;
+  });
+
+  const shouldShowEmbedBanner = !isLoading && 
+    !error && 
+    embedStatus && 
+    !embedStatus.hasAppEmbedEnabled && 
+    !isDismissed;
+
+  const handleDismiss = useCallback(() => {
+    if (isDismissed) {
+      return; // Prevent duplicate dismissals
+    }
+    
+    setIsDismissed(true);
+    setEmbedBannerDismissalStatus(true);
+  }, [isDismissed]);
+
+  const handleEnable = () => {
+    // Use the helper function to redirect to theme editor
+    const themeId = embedStatus?.activeTheme?.id;
+    redirectToThemeEditor(undefined, themeId);
+  };
+
+  // Check if banner was previously dismissed
+  useEffect(() => {
+    const dismissed = getEmbedBannerDismissalStatus();
+    setIsDismissed(dismissed);
+  }, []);
+
+  // Reset dismissal ONLY when embed status changes from disabled to enabled
+  useEffect(() => {
+    if (embedStatus?.hasAppEmbedEnabled === true) {
+      setIsDismissed(false);
+      setEmbedBannerDismissalStatus(false);
+    }
+  }, [embedStatus?.hasAppEmbedEnabled]);
 
   const activeElements = [
     {
@@ -76,29 +130,31 @@ export default function Dashboard() {
   const recommendedApps = [
     {
       id: "1",
-      name: "Retainful Email Marketing, SMS",
+      name: "Retainful",
       description:
-        "Retainful combines email marketing, SMS and WhatsApp automation in one platform for Shopify stores",
+        "Drive more revenue with connected email, SMS, and WhatsApp marketing automation that turn one-time buyers into repeat customers. All in one platform. Zero extra work.",
+      src: "https://www.retainful.com/wp-content/uploads/2025/02/retainful-logo.png",
       link: "Try Retainful Free",
-      href: "https://retainful.com"
+      href: "https://retainful.com",
     },
     {
       id: "2",
-      name: "Retainful Email Marketing, SMS",
+      name: "Afflr",
       description:
-        "Retainful combines email marketing, SMS and WhatsApp automation in one platform for Shopify stores",
-      link: "Try Retainful Free",
-      href: "https://retainful.com"
+        "The best Shopify affiliate marketing app to launch affiliate & referral programs in minutes. Automate sign-ups, track sales and commissions, and manage payouts easily.",
+      src: "https://afflr.io/wp-content/uploads/2024/03/cropped-Afflr-Favicon.png",
+      link: "Try Afflr Free",
+      href: "https://afflr.io",
     },
     {
       id: "3",
-      name: "Retainful Email Marketing, SMS",
+      name: "Yoko",
       description:
-        "Retainful combines email marketing, SMS and WhatsApp automation in one platform for Shopify stores",
-      link: "Try Retainful Free",
-      href: "https://retainful.com"
-    }
-    
+        "Unify your customer engagement with one platform. Collect reviews, reward loyalty, and drive referrals – all without extra apps or complex setups.",
+      src: "https://yuko.so/wp-content/uploads/2025/06/Yuko-Fav-Icon.png",
+      link: "Try Yoko Free",
+      href: "https://yoko.so",
+    },
   ];
 
   return (
@@ -108,6 +164,43 @@ export default function Dashboard() {
       minHeight: "100vh"
     }}>
       <div style={{ maxWidth: "900px", margin: "0 auto" }}>
+        {/* Theme Embed Status Messages */}
+        {isLoading && (
+          <div style={{ 
+            textAlign: "center", 
+            padding: "20px",
+            marginBottom: "24px",
+            backgroundColor: "#fff",
+            borderRadius: "8px",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.1)"
+          }}>
+            <Spinner size="small" /> 
+            <Text as="p">Checking theme configuration...</Text>
+          </div>
+        )}
+        
+        {error && !isLoading && (
+          <div style={{ marginBottom: "24px" }}>
+            <NotifyBanner
+              title="Unable to check theme configuration"
+              tone="critical"
+              description={`Error: ${error}. Some features may not work correctly.`}
+              onDismiss={handleDismiss}
+            />
+          </div>
+        )}
+        
+        {shouldShowEmbedBanner && (
+          <div style={{ marginBottom: "24px" }}>
+            <ThemeEmbedBanner 
+              key="theme-embed-banner"
+              onDismiss={handleDismiss}
+              onEnable={handleEnable}
+              activeTheme={embedStatus?.activeTheme}
+            />
+          </div>
+        )}
+
         {/* Header */}
         <div style={{ marginBottom: "24px" }}>
           <InlineStack align="space-between" blockAlign="center">
@@ -189,6 +282,8 @@ export default function Dashboard() {
         {/* Marketing/Recommended Apps Section */}
         <div style={{ marginTop: "24px" }}>
           <Card>
+            <BlockStack gap="400">
+            <Text as="h2" variant="headingLg" fontWeight="medium">Recommended apps</Text>
             <InlineStack gap="100" blockAlign="center" align="space-evenly">
               {recommendedApps.map((item) => {
                 const { id, name, description, link, href } = item;
@@ -201,11 +296,11 @@ export default function Dashboard() {
                   >
                     <Card>
                       <BlockStack gap="200">
-                        <InlineStack align="start" gap="200" wrap={false}>
+                        <InlineStack align="start" gap="300" wrap={false}>
                           <img
-                            src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAALVBMVEVHcEz4XBv4XBv4XBv4XBv4Wxr4XBr////4UgL6mXz/7ej7sJr5d0n6hWD9yrx1fS3IAAAABnRSTlMA6qjLPQR0YhwDAAAApElEQVQ4jdWT3RLFEAyEQzWJn3r/x60yQzWcXJ+9MWY/YWIDUOSsQSFjHTSdh3SbjrP6i9O9ykNsz9ca5f5fPqIDOzbMErDQX8Apehacge57IgqMjD6mFzKAUAC6KkeZF8BjkE91ocg7IDcgaABtgahVwAb4LcApTG+UQGnYxcs+jNJTx1cA/jHQvvvr4xyYLEO3iNwko4dWjb06OProqcOrjP8NtG8YZ7x6OSQAAAAASUVORK5CYII="
+                            src={item.src}
                             alt=""
-                            style={{ width: "32px", height: "32px" }}
+                            style={{ width: "32px", height: "30px" }}
                           />
                           <Text fontWeight="semibold" as="p" alignment="start">
                             {name}
@@ -214,13 +309,19 @@ export default function Dashboard() {
                         <Text tone="subdued" as="p">
                           {description}
                         </Text>
-                        <Button variant="plain" onClick={() => window.open(href, '_blank')}>{link}</Button>
+                        <Button
+                          variant="plain"
+                          onClick={() => window.open(href, "_blank")}
+                        >
+                          {link}
+                        </Button>
                       </BlockStack>
                     </Card>
                   </div>
                 );
               })}
             </InlineStack>
+            </BlockStack>
           </Card>
         </div>
       </div>

@@ -52,12 +52,10 @@ const BannerDesignForm = ({
     [onChange]
   );
 
-  const handleSliderChange = useCallback(
-    (property: string, value: number) => {
-      onChange?.({ [property]: value });
-    },
-    [onChange]
-  );
+  const handleSliderChange = useCallback((property: string, value: number | [number, number]) => {
+    const numericValue = Array.isArray(value) ? value[0] : value;
+    onChange?.({ [property]: numericValue });
+  }, [onChange]);
 
   return (
     <BlockStack gap="400">
@@ -65,7 +63,7 @@ const BannerDesignForm = ({
       <Card>
         <BlockStack gap="400">
           <InlineStack gap="200" align="start">
-            <Icon source={QuestionCircleIcon} tone="subdued" />
+            {/* <Icon source={QuestionCircleIcon} tone="subdued" /> */}
             <Text variant="headingMd" as="h3" tone="base">
               Position
             </Text>
@@ -86,7 +84,7 @@ const BannerDesignForm = ({
               name="banner_position"
               onChange={(checked) => handlePositionChange(checked, "bottom")}
             />
-            <RadioButton
+            {/* <RadioButton
               label="Other position (Add block)"
               checked={data?.design?.position === "other"}
               id="position_other"
@@ -105,7 +103,7 @@ const BannerDesignForm = ({
               }
               checked={data?.design?.sticky || false}
               onChange={handleStickyChange}
-            />
+            /> */}
           </BlockStack>
         </BlockStack>
       </Card>
@@ -113,25 +111,26 @@ const BannerDesignForm = ({
       {/* Banner Design Section */}
       <Card>
         <BlockStack gap="400">
-          <Button
+          {/* <Button
             variant="plain"
             textAlign="left"
             icon={showBannerDesign ? "chevron-down" : "chevron-right"}
             onClick={() => setShowBannerDesign(!showBannerDesign)}
           >
-            <InlineStack gap="200">
-              <Icon source={QuestionCircleIcon} tone="subdued" />
-              <Text variant="headingMd" as="h3" tone="base">
-                Banner design
-              </Text>
-            </InlineStack>
-          </Button>
+            Banner design
+          </Button> */}
 
-          <Collapsible
+          <BlockStack gap="200">
+            <Text variant="headingSm" as="h3">
+              Banner Design
+            </Text>
+          </BlockStack>
+
+          {/* <Collapsible
             open={showBannerDesign}
             id="banner-design-collapsible"
             transition={{ duration: "500ms", timingFunction: "ease-in-out" }}
-          >
+          > */}
             <BlockStack gap="400">
               {/* Color Pickers */}
               <BlockStack gap="300">
@@ -139,12 +138,12 @@ const BannerDesignForm = ({
                   <Text variant="bodyMd" as="p" fontWeight="medium">
                     Background color
                   </Text>
-                  <Text variant="bodySm" tone="subdued">
+                  {/* <Text variant="bodySm" as="span" tone="subdued">
                     {data?.design?.backgroundColor || "#A7A7A7"}
-                  </Text>
+                  </Text> */}
                   <div style={{ marginTop: "8px" }}>
                     <ColorPickerInput
-                      color={data?.design?.backgroundColor || "#A7A7A7"}
+                      value={data?.design?.backgroundColor || "#A7A7A7"}
                       onChange={(color) =>
                         handleColorChange("backgroundColor", color)
                       }
@@ -156,12 +155,12 @@ const BannerDesignForm = ({
                   <Text variant="bodyMd" as="p" fontWeight="medium">
                     Banner text color
                   </Text>
-                  <Text as="p" variant="bodySm" tone="subdued">
+                  {/* <Text variant="bodySm" as="span" tone="subdued">
                     {data?.design?.textColor || "#000000"}
-                  </Text>
+                  </Text> */}
                   <div style={{ marginTop: "8px" }}>
                     <ColorPickerInput
-                      color={data?.design?.textColor || "#000000"}
+                      value={data?.design?.textColor || "#000000"}
                       onChange={(color) =>
                         handleColorChange("textColor", color)
                       }
@@ -173,12 +172,12 @@ const BannerDesignForm = ({
                   <Text variant="bodyMd" as="p" fontWeight="medium">
                     Close icon color
                   </Text>
-                  <Text variant="bodySm" tone="subdued">
+                  {/* <Text variant="bodySm" as="span" tone="subdued">
                     {data?.design?.closeIconColor || "#ffffff"}
-                  </Text>
+                  </Text> */}
                   <div style={{ marginTop: "8px" }}>
                     <ColorPickerInput
-                      color={data?.design?.closeIconColor || "#ffffff"}
+                      value={data?.design?.closeIconColor || "#ffffff"}
                       onChange={(color) =>
                         handleColorChange("closeIconColor", color)
                       }
@@ -220,32 +219,31 @@ const BannerDesignForm = ({
                 />
               </BlockStack>
             </BlockStack>
-          </Collapsible>
+          {/* </Collapsible> */}
         </BlockStack>
       </Card>
 
       {/* Button Section */}
       <Card>
         <BlockStack gap="400">
-          <Button
+          {/* <Button
             variant="plain"
             textAlign="left"
             icon={showButton ? "chevron-down" : "chevron-right"}
             onClick={() => setShowButton(!showButton)}
           >
-            <InlineStack gap="200">
-              <Icon source={QuestionCircleIcon} tone="subdued" />
-              <Text variant="headingMd" as="h3" tone="base">
-                Button
-              </Text>
-            </InlineStack>
-          </Button>
+            Button
+          </Button> */}
 
-          <Collapsible
+          <BlockStack gap="200">
+            <Text variant="headingSm" as="h3">Button Design</Text>
+          </BlockStack>
+
+          {/* <Collapsible
             open={showButton}
             id="button-collapsible"
             transition={{ duration: "500ms", timingFunction: "ease-in-out" }}
-          >
+          > */}
             <BlockStack gap="400">
               {/* Button Color Pickers */}
               <BlockStack gap="300">
@@ -253,12 +251,12 @@ const BannerDesignForm = ({
                   <Text variant="bodyMd" as="p" fontWeight="medium">
                     Button background color
                   </Text>
-                  <Text variant="bodySm" tone="subdued">
+                  {/* <Text variant="bodySm" as="span" tone="subdued">
                     {data?.design?.buttonBackgroundColor || "#000000"}
-                  </Text>
+                  </Text> */}
                   <div style={{ marginTop: "8px" }}>
                     <ColorPickerInput
-                      color={data?.design?.buttonBackgroundColor || "#000000"}
+                      value={data?.design?.buttonBackgroundColor || "#000000"}
                       onChange={(color) =>
                         handleColorChange("buttonBackgroundColor", color)
                       }
@@ -270,12 +268,12 @@ const BannerDesignForm = ({
                   <Text variant="bodyMd" as="p" fontWeight="medium">
                     Button text color
                   </Text>
-                  <Text variant="bodySm" tone="subdued">
+                  {/* <Text variant="bodySm" as="span" tone="subdued">
                     {data?.design?.buttonTextColor || "#ffffff"}
-                  </Text>
+                  </Text> */}
                   <div style={{ marginTop: "8px" }}>
                     <ColorPickerInput
-                      color={data?.design?.buttonTextColor || "#ffffff"}
+                      value={data?.design?.buttonTextColor || "#ffffff"}
                       onChange={(color) =>
                         handleColorChange("buttonTextColor", color)
                       }
@@ -287,12 +285,12 @@ const BannerDesignForm = ({
                   <Text variant="bodyMd" as="p" fontWeight="medium">
                     Button border color
                   </Text>
-                  <Text variant="bodySm" tone="subdued">
+                  {/* <Text variant="bodySm" as="span" tone="subdued">
                     {data?.design?.buttonBorderColor || "#000000"}
-                  </Text>
+                  </Text> */}
                   <div style={{ marginTop: "8px" }}>
                     <ColorPickerInput
-                      color={data?.design?.buttonBorderColor || "#000000"}
+                      value={data?.design?.buttonBorderColor || "#000000"}
                       onChange={(color) =>
                         handleColorChange("buttonBorderColor", color)
                       }
@@ -340,14 +338,14 @@ const BannerDesignForm = ({
                 />
               </BlockStack>
             </BlockStack>
-          </Collapsible>
+          {/* </Collapsible> */}
         </BlockStack>
       </Card>
 
       {/* Help Section */}
       <Card>
         <BlockStack gap="200">
-          <Text variant="bodyMd">
+          <Text variant="bodyMd" as="p">
             About Banner? <Button variant="plain">See Banner docs</Button> or{" "}
             <Button variant="plain">Contact us</Button>.
           </Text>

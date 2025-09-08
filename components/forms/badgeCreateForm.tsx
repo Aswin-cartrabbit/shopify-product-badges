@@ -73,32 +73,81 @@ export const BadgeBuilder = ({
         return <Badge tone="success">Active</Badge>;
     }
   };
-  const [name, setName] = useState(`Your ${type.toLowerCase()}`);
+  // Determine if this is edit mode vs template selection mode
+  const isEditMode = selectedTemplate && selectedTemplate.id && selectedTemplate.name && selectedTemplate.design;
+  
+  const [name, setName] = useState(() => {
+    if (isEditMode) {
+      return selectedTemplate.name;
+    }
+    return selectedTemplate?.text || selectedTemplate?.alt || `Your ${type.toLowerCase()}`;
+  });
+  
   const [componentType, setComponentType] = useState(type);
-  const [currentStatus, setCurrentStatus] = useState<"DRAFT" | "ACTIVE">("ACTIVE");
+  const [currentStatus, setCurrentStatus] = useState<"DRAFT" | "ACTIVE">(() => {
+    if (isEditMode) {
+      return selectedTemplate.status || "ACTIVE";
+    }
+    return "ACTIVE";
+  });
 
   const [selectedTab, setSelectedTab] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [formData, setFormData] = useState<any>({
-    name: selectedTemplate?.text || selectedTemplate?.alt || name,
-    type: componentType,
-    design: selectedTemplate || {},
-    display: {},
-    placement: {},
-    settings: {}
+  
+  const [formData, setFormData] = useState<any>(() => {
+    if (isEditMode) {
+      return {
+        name: selectedTemplate.name,
+        type: selectedTemplate.type || componentType,
+        design: selectedTemplate.design || {},
+        display: selectedTemplate.display || {},
+        placement: selectedTemplate.settings?.placement || {},
+        settings: selectedTemplate.settings || {}
+      };
+    }
+    
+    return {
+      name: selectedTemplate?.text || selectedTemplate?.alt || `New ${componentType.toLowerCase()}`,
+      type: componentType,
+      design: selectedTemplate || {},
+      display: {},
+      placement: {},
+      settings: {}
+    };
   });
+
+  console.log('isEditMode:', isEditMode);
+  console.log('selectedTemplate:', selectedTemplate);
+  console.log('formData:', formData);
 
   // Update formData when selectedTemplate changes
   useEffect(() => {
     if (selectedTemplate) {
-      setFormData(prev => ({
-        ...prev,
-        name: selectedTemplate.text || selectedTemplate.alt || `New ${componentType.toLowerCase()}`,
-        design: selectedTemplate
-      }));
-      setName(selectedTemplate.text || selectedTemplate.alt || `New ${componentType.toLowerCase()}`);
+      if (isEditMode) {
+        // Edit mode: use database structure
+        console.log('Updating formData for edit mode');
+        setFormData({
+          name: selectedTemplate.name,
+          type: selectedTemplate.type || componentType,
+          design: selectedTemplate.design || {},
+          display: selectedTemplate.display || {},
+          placement: selectedTemplate.settings?.placement || {},
+          settings: selectedTemplate.settings || {}
+        });
+        setName(selectedTemplate.name);
+        setCurrentStatus(selectedTemplate.status || "ACTIVE");
+      } else {
+        // Template selection mode: use template structure
+        console.log('Updating formData for template selection mode');
+        setFormData(prev => ({
+          ...prev,
+          name: selectedTemplate.text || selectedTemplate.alt || `New ${componentType.toLowerCase()}`,
+          design: selectedTemplate
+        }));
+        setName(selectedTemplate.text || selectedTemplate.alt || `New ${componentType.toLowerCase()}`);
+      }
     }
-  }, [selectedTemplate, componentType]);
+  }, [selectedTemplate, componentType, isEditMode]);
 
   const { updateContent, updateDesign, clearBadge } = useBadgeStore();
 
@@ -119,48 +168,76 @@ export const BadgeBuilder = ({
       // Clear previous badge data to avoid state issues - only on first load
       clearBadge();
       
-      // For text templates
-      if (selectedTemplate.text && !selectedTemplate.src) {
-        updateContent("text", selectedTemplate.text);
-        updateContent("icon", "");
-        updateContent("iconUploaded", false);
+      if (isEditMode) {
+        // Edit mode: Initialize from database structure
+        console.log('Initializing badge store for edit mode');
         
-        if (selectedTemplate.style) {
-          // Convert template styles to badge store format
-          if (selectedTemplate.style.background || selectedTemplate.style.backgroundColor) {
-            updateDesign("color", selectedTemplate.style.backgroundColor || selectedTemplate.style.background);
-            updateDesign("background", "solid");
-          }
-          
-          if (selectedTemplate.style.borderRadius) {
-            const radius = typeof selectedTemplate.style.borderRadius === 'string' 
-              ? parseInt(selectedTemplate.style.borderRadius.replace('px', '')) 
-              : parseInt(selectedTemplate.style.borderRadius);
-            updateDesign("cornerRadius", radius || 0);
-          }
-          
-          // Handle clip-path as shape
-          if (selectedTemplate.style.clipPath) {
-            updateDesign("shape", `clip-path: ${selectedTemplate.style.clipPath}`);
-          }
-          
-          // Set template identifier
-          updateDesign("template", `Template_${selectedTemplate.id}`);
+        // Initialize content from settings
+        if (selectedTemplate.settings?.content) {
+          const content = selectedTemplate.settings.content;
+          updateContent("text", content.text || "");
+          updateContent("icon", content.src || content.icon || "");
+          updateContent("iconUploaded", !!content.iconUploaded);
+          updateContent("alt", content.alt || "");
+          updateContent("textColor", content.textColor || "#000000");
+          updateContent("contentType", content.contentType || "text");
         }
-      }
-      
-      // For image templates
-      if (selectedTemplate.src) {
-        updateContent("icon", selectedTemplate.src);
-        updateContent("iconUploaded", true);
-        updateContent("text", selectedTemplate.alt || "");
-        // No shapes for image templates
-        updateDesign("shape", "");
+        
+        // Initialize design from design object
+        if (selectedTemplate.design) {
+          const design = selectedTemplate.design;
+          Object.keys(design).forEach(key => {
+            updateDesign(key as any, design[key]);
+          });
+        }
+        
+      } else {
+        // Template selection mode: Initialize from template structure
+        console.log('Initializing badge store for template selection mode');
+        
+        // For text templates
+        if (selectedTemplate.text && !selectedTemplate.src) {
+          updateContent("text", selectedTemplate.text);
+          updateContent("icon", "");
+          updateContent("iconUploaded", false);
+          
+          if (selectedTemplate.style) {
+            // Convert template styles to badge store format
+            if (selectedTemplate.style.background || selectedTemplate.style.backgroundColor) {
+              updateDesign("color", selectedTemplate.style.backgroundColor || selectedTemplate.style.background);
+              updateDesign("background", "solid");
+            }
+            
+            if (selectedTemplate.style.borderRadius) {
+              const radius = typeof selectedTemplate.style.borderRadius === 'string' 
+                ? parseInt(selectedTemplate.style.borderRadius.replace('px', '')) 
+                : parseInt(selectedTemplate.style.borderRadius);
+              updateDesign("cornerRadius", radius || 0);
+            }
+            
+            // Handle clip-path as shape
+            if (selectedTemplate.style.clipPath) {
+              updateDesign("shape", `clip-path: ${selectedTemplate.style.clipPath}`);
+            }
+            
+            // Set template identifier
+            updateDesign("template", `Template_${selectedTemplate.id}`);
+          }
+        }
+        
+        // For image templates
+        if (selectedTemplate.src) {
+          updateContent("icon", selectedTemplate.src);
+          updateContent("iconUploaded", true);
+          updateContent("text", selectedTemplate.alt || "");
+          // No shapes for image templates
+          updateDesign("shape", "");
+        }
       }
       
       setHasInitializedTemplate(true);
     }
-  }, [selectedTemplate?.id, hasInitializedTemplate, updateContent, updateDesign, clearBadge]);
+  }, [selectedTemplate?.id, hasInitializedTemplate, isEditMode, updateContent, updateDesign, clearBadge]);
 
   const handleTabChange = useCallback(
     (selectedTabIndex: any) => {
@@ -488,7 +565,7 @@ export const BadgeBuilder = ({
                 }}
               >
                 <ContentForm
-                  data={selectedTemplate}
+                  data={isEditMode ? formData.settings || {} : selectedTemplate}
                   onChange={(data) => {
                     setFormData(prev => ({ ...prev, ...data }));
                   }}
@@ -507,7 +584,7 @@ export const BadgeBuilder = ({
                       }
                     }));
                   }}
-                  selectedTemplate={selectedTemplate}
+                  selectedTemplate={isEditMode ? formData.design : selectedTemplate}
                   type={componentType}
                 />
               </div>

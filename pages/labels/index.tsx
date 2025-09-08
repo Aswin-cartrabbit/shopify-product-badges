@@ -18,7 +18,6 @@ export default function Labels() {
     <div
       style={{
         padding: "20px 24px",
-        backgroundColor: "#f6f6f7",
         minHeight: "100vh",
       }}
     >

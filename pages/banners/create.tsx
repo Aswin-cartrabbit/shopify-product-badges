@@ -5,24 +5,35 @@ import {
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { BannerBuilder } from "../../components/forms/BannerBuilder";
+import { getBannerTemplateById } from "@/utils/bannerTemplateData";
 
 export default function BannerCreate() {
   const router = useRouter();
-  const { type } = router.query;
+  const { type, template } = router.query;
   const [bannerType, setBannerType] = useState<string>("");
+  const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
 
   useEffect(() => {
-    if (type) {
+    if (template) {
+      // Load template by ID
+      const templateData = getBannerTemplateById(template as string);
+      if (templateData) {
+        console.log('Template loaded:', templateData);
+        setSelectedTemplate(templateData);
+        setBannerType(templateData.type);
+      } else {
+        console.error('Template not found:', template);
+        setBannerType('fixed'); // fallback
+      }
+    } else if (type) {
       setBannerType(type as string);
+    } else {
+      // Default to 'fixed' banner type if no type is specified
+      setBannerType('fixed');
     }
-  }, [type]);
+  }, [type, template]);
 
 
-
-  const handleSave = (bannerData: any) => {
-    console.log("Banner saved:", bannerData);
-    router.push('/banners');
-  };
 
   const handleCancel = () => {
     router.back();
@@ -51,7 +62,7 @@ export default function BannerCreate() {
   return (
     <BannerBuilder 
       bannerType={bannerType as "countdown" | "fixed" | "automatic" | "slider"}
-      onSave={handleSave}
+      selectedTemplate={selectedTemplate}
       onCancel={handleCancel}
     />
   );

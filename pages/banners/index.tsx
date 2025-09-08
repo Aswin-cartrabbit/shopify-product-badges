@@ -1,3 +1,4 @@
+import { DataTable } from "@/components/tables/DataTable";
 import {
   Page,
   Card,
@@ -8,13 +9,39 @@ import {
   EmptyState,
   Modal,
   Badge,
+  Tabs,
 } from "@shopify/polaris";
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { bannerTemplates, getBannerTemplatesByCategory, getBannerTemplatesByType, bannerCategories, bannerTypes as bannerTypeOptions } from "@/utils/bannerTemplateData";
 
 export default function Banners() {
   const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [banners, setBanners] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedTab, setSelectedTab] = useState(0);
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [selectedType, setSelectedType] = useState("All");
+
+  // Fetch existing banners
+  useEffect(() => {
+    const fetchBanners = async () => {
+      try {
+        const response = await fetch('/api/badge?type=BANNER');
+        if (response.ok) {
+          const result = await response.json();
+          setBanners(result.data?.components || []);
+        }
+      } catch (error) {
+        console.error('Error fetching banners:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBanners();
+  }, []);
 
   const bannerTypes = [
     {
@@ -50,15 +77,208 @@ export default function Banners() {
     router.push(route);
   };
 
+  const handleTemplateSelect = (templateId: string) => {
+    // Navigate to banner create page with template ID
+    router.push({
+      pathname: "/banners/create",
+      query: { 
+        template: templateId
+      }
+    });
+  };
+
+  const tabs = [
+    {
+      id: "templates",
+      content: "Templates",
+      accessibilityLabel: "Banner Templates",
+      panelID: "templates-panel",
+    },
+    {
+      id: "scratch",
+      content: "From Scratch",
+      accessibilityLabel: "Create from Scratch",
+      panelID: "scratch-panel",
+    },
+  ];
+
+  const renderBannerTemplates = () => {
+    // Get filtered templates based on selected filters
+    let filteredTemplates = bannerTemplates;
+    
+    if (selectedCategory !== "All") {
+      filteredTemplates = getBannerTemplatesByCategory(selectedCategory);
+    }
+    
+    if (selectedType !== "All") {
+      filteredTemplates = filteredTemplates.filter(template => template.type === selectedType);
+    }
+
+    return (
+      <>
+        <style>{`
+          .banner-scroll-container::-webkit-scrollbar {
+            width: 6px;
+          }
+          .banner-scroll-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 6px;
+          }
+          .banner-scroll-container::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 6px;
+          }
+          .banner-scroll-container::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+          }
+        `}</style>
+        <div 
+          className="banner-scroll-container"
+          style={{ 
+            display: "grid", 
+            gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", 
+            gap: "20px",
+            width: "100%",
+            maxHeight: "600px",
+            overflowY: "auto",
+            padding: "10px 20px 10px 5px",
+            scrollBehavior: "smooth"
+          }}>
+        {filteredTemplates.map((template) => (
+          <Card key={template.id} padding="400">
+            <div style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "12px",
+              minHeight: "200px"
+            }}>
+              {/* Template Preview */}
+              <div style={{
+                width: "100%",
+                height: "80px",
+                backgroundColor: template.design.style.backgroundColor,
+                borderRadius: "8px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: template.design.style.textColor,
+                fontSize: "12px",
+                fontWeight: template.design.style.fontWeight,
+                overflow: "hidden",
+                position: "relative"
+              }}>
+                <div style={{ textAlign: "center", padding: "8px" }}>
+                  <div style={{ fontWeight: "bold", marginBottom: "4px" }}>
+                    {template.design.content.title}
+                  </div>
+                  {template.design.content.message && (
+                    <div style={{ fontSize: "10px", opacity: 0.9 }}>
+                      {template.design.content.message}
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              {/* Template Info */}
+              <div style={{ flex: 1 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
+                  <Badge tone={
+                    template.type === "countdown" ? "critical" :
+                    template.type === "fixed" ? "info" :
+                    template.type === "automatic" ? "attention" : "success"
+                  }>
+                    {template.type.charAt(0).toUpperCase() + template.type.slice(1)}
+                  </Badge>
+                </div>
+                
+                <Text as="h3" variant="bodyMd" fontWeight="semibold">
+                  {template.title}
+                </Text>
+                <Text as="p" variant="bodySm" tone="subdued">
+                  {template.description}
+                </Text>
+              </div>
+              
+              {/* Select Button */}
+              <Button 
+                variant="primary"
+                onClick={() => handleTemplateSelect(template.id)}
+                size="medium"
+                fullWidth
+              >
+                Use Template
+              </Button>
+            </div>
+          </Card>
+        ))}
+        </div>
+      </>
+    );
+  };
+
+  const renderBannerTypes = () => {
+    return (
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))",
+        gap: "16px",
+        padding: "20px"
+      }}>
+        {bannerTypes.map((type) => (
+          <Card key={type.id} padding="400">
+            <div style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: "16px",
+              minHeight: "180px",
+              justifyContent: "center"
+            }}>
+              <div style={{
+                width: "100%",
+                height: "100px",
+                backgroundColor: "#f6f6f7",
+                borderRadius: "8px",
+                backgroundImage: `url(${type.image})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center"
+              }}></div>
+              
+              <div style={{ textAlign: "center", width: "100%" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", marginBottom: "8px" }}>
+                  <Text as="h3" variant="bodyMd" fontWeight="semibold">
+                    {type.title}
+                  </Text>
+                  {type.tag && (
+                    <Badge tone="info">{type.tag}</Badge>
+                  )}
+                </div>
+                
+                <Button 
+                  variant="primary"
+                  onClick={() => handleBannerTypeSelect(type.route)}
+                  size="medium"
+                  fullWidth
+                >
+                  Create
+                </Button>
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div style={{ 
       padding: "20px 24px", 
-      backgroundColor: "#f6f6f7", 
       minHeight: "100vh"
     }}>
       <div style={{ maxWidth: "1000px", margin: "0 auto", padding: "0 60px" }}>
         {/* Header */}
         <div style={{ marginBottom: "24px" }}>
+        <InlineStack align="start">
           <BlockStack gap="200">
             <Text as="h1" variant="headingXl" fontWeight="medium">
               Banners
@@ -70,163 +290,101 @@ export default function Banners() {
               </Button>
             </Text>
           </BlockStack>
+          <div style={{ marginLeft: "auto" }}>
+              <Button
+                variant="primary"
+                onClick={() => setIsModalOpen(true)}
+                accessibilityLabel="Create a new banner"
+              >
+                Create banner
+              </Button>
+            </div>
+          </InlineStack>
         </div>
 
-        {/* Banner Gallery */}
-        <Card padding="500">
-          <div style={{ marginBottom: "24px" }}>
-            <Text as="h2" variant="headingMd" fontWeight="medium">
-              Banner gallery
-            </Text>
-          </div>
-          
-          <div style={{ 
-            display: "grid", 
-            gridTemplateColumns: "repeat(2, 1fr)", 
-            gap: "20px"
-          }}>
-            {/* Banner Template 1 - Loyalty Program */}
-            <Card padding="0">
-              <div style={{
-                background: "linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)",
-                color: "white",
-                padding: "20px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                minHeight: "80px"
-              }}>
-                <Text as="span" variant="bodyMd" fontWeight="medium">
-                  Start Earning Rewards with our Loyalty Program
-                </Text>
-                <Button size="slim" variant="monochromePlain">
-                  Join now
-                </Button>
-              </div>
-                             <div style={{ padding: "12px", textAlign: "center" }}>
-                 <Button variant="primary">Select</Button>
-                </div>
-            </Card>
+        {/* Main Content */}
 
-            {/* Banner Template 2 - Back to School */}
-            <Card padding="0">
-              <div style={{
-                background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
-                color: "white",
-                padding: "20px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                minHeight: "80px"
-              }}>
-                <Text as="span" variant="bodyMd" fontWeight="medium">
-                  BACK TO SCHOOL - FREE SHIPPING FOR ORDER $50+ 🎒
-                </Text>
-              </div>
-                             <div style={{ padding: "12px", textAlign: "center" }}>
-                 <Button variant="primary">Select</Button>
-                </div>
-            </Card>
+        
+        {loading ? (
+          <Card>
+            <div style={{ textAlign: "center", padding: "40px" }}>
+              <Text as="p">Loading...</Text>
+            </div>
+          </Card>
+        ) : banners.length === 0 ? (
+          /* Show templates when no banners exist */
+           <Card padding="500">
+           <div style={{ marginBottom: "24px" }}>
+             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+               <div>
+                 <Text as="h2" variant="headingMd" fontWeight="medium">
+                   Banner gallery
+                 </Text>
+                 <Text as="p" variant="bodySm" tone="subdued">
+                   {(() => {
+                     let count = bannerTemplates.length;
+                     if (selectedCategory !== "All") {
+                       count = getBannerTemplatesByCategory(selectedCategory).length;
+                     }
+                     if (selectedType !== "All") {
+                       const filtered = selectedCategory !== "All" 
+                         ? getBannerTemplatesByCategory(selectedCategory)
+                         : bannerTemplates;
+                       count = filtered.filter(template => template.type === selectedType).length;
+                     }
+                     return `${count} templates available`;
+                   })()}
+                 </Text>
+               </div>
+               <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+                 <Text as="span" variant="bodySm" tone="subdued">Filter by:</Text>
+                 <select 
+                   value={selectedCategory} 
+                   onChange={(e) => setSelectedCategory(e.target.value)}
+                   style={{
+                     padding: "6px 12px",
+                     borderRadius: "6px",
+                     border: "1px solid #d1d5db",
+                     backgroundColor: "white",
+                     fontSize: "14px"
+                   }}
+                 >
+                   {bannerCategories.map((category) => (
+                     <option key={category} value={category}>{category}</option>
+                   ))}
+                 </select>
+                 <select 
+                   value={selectedType} 
+                   onChange={(e) => setSelectedType(e.target.value)}
+                   style={{
+                     padding: "6px 12px",
+                     borderRadius: "6px",
+                     border: "1px solid #d1d5db",
+                     backgroundColor: "white",
+                     fontSize: "14px"
+                   }}
+                 >
+                   {bannerTypeOptions.map((type) => (
+                     <option key={type} value={type}>
+                       {type.charAt(0).toUpperCase() + type.slice(1)}
+                     </option>
+                   ))}
+                 </select>
+               </div>
+             </div>
+           </div>
 
-            {/* Banner Template 3 - 20% Off */}
-            <Card padding="0">
-              <div style={{
-                background: "linear-gradient(135deg, #f97316 0%, #ea580c 100%)",
-                color: "white",
-                padding: "20px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                minHeight: "80px"
-              }}>
-                <div>
-                  <Text as="span" variant="bodyMd" fontWeight="medium">
-                    20% Off Everything
-                  </Text>
-                  <div style={{ display: "flex", gap: "8px", marginTop: "8px", fontSize: "14px" }}>
-                    <span>01 Days</span>
-                    <span>12 Hrs</span>
-                    <span>23 Mins</span>
-                    <span>12 Secs</span>
-                  </div>
-                </div>
-                <Button size="slim" variant="monochromePlain">
-                  Get deals now
-                </Button>
-              </div>
-                             <div style={{ padding: "12px", textAlign: "center" }}>
-                 <Button variant="primary">Select</Button>
-                </div>
-            </Card>
+           {renderBannerTemplates()}
 
-            {/* Banner Template 4 - Collection */}
-            <Card padding="0">
-              <div style={{
-                background: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
-                color: "white",
-                padding: "20px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                minHeight: "80px"
-              }}>
-                <Text as="span" variant="bodyMd" fontWeight="medium">
-                  Explore Collection For Him!
-                </Text>
-                <Button size="slim" variant="monochromePlain">
-                  Discover now
-                </Button>
-              </div>
-                             <div style={{ padding: "12px", textAlign: "center" }}>
-                 <Button variant="primary">Select</Button>
-                </div>
-            </Card>
+           </Card>
+        ) : (
+          /* Show DataTable when banners exist */
+          <DataTable type="BANNER" />
+        )}
 
-            {/* Banner Template 5 - Free Shipping */}
-            <Card padding="0">
-              <div style={{
-                background: "linear-gradient(135deg, #84cc16 0%, #65a30d 100%)",
-                color: "white",
-                padding: "20px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                minHeight: "80px"
-              }}>
-                <Text as="span" variant="bodyMd" fontWeight="medium">
-                  Free Shipping on Orders Over $50!
-                </Text>
-                <Button size="slim" variant="monochromePlain">
-                  Shop now
-                </Button>
-              </div>
-                             <div style={{ padding: "12px", textAlign: "center" }}>
-                 <Button variant="primary">Select</Button>
-                </div>
-            </Card>
 
-            {/* Banner Template 6 - Create Your Own */}
-            <Card padding="0">
-              <div style={{
-                background: "#f3f4f6",
-                color: "#6b7280",
-                padding: "20px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                minHeight: "80px",
-                border: "2px dashed #d1d5db"
-              }}>
-                <Text as="span" variant="bodyMd" fontWeight="medium">
-                  Create your own design
-                </Text>
-              </div>
-              <div style={{ padding: "12px", textAlign: "center" }}>
-                <Button variant="primary" onClick={() => setIsModalOpen(true)}>Select</Button>
-              </div>
-            </Card>
-          </div>
-        </Card>
+
+
       </div>
 
       {/* Banner Type Selection Modal */}

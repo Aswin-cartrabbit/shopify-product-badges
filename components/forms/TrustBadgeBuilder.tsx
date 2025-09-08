@@ -23,16 +23,25 @@ interface TrustBadgeBuilderProps {
   selectedTemplate?: any;
   onSave?: (data: any) => void;
   onCancel?: () => void;
+  isSaving?: boolean;
+  errorMessage?: string | null;
+  onClearError?: () => void;
 }
 
 export const TrustBadgeBuilder = ({ 
   selectedTemplate, 
   onSave,
-  onCancel 
+  onCancel,
+  isSaving = false,
+  errorMessage: externalErrorMessage = null,
+  onClearError
 }: TrustBadgeBuilderProps) => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(true);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
+  
+  // Use external error message if provided, otherwise use internal
+  const displayErrorMessage = externalErrorMessage || errorMessage;
   
   const getBadges = (status: "DRAFT" | "ACTIVE") => {
     switch (status) {
@@ -122,8 +131,14 @@ export const TrustBadgeBuilder = ({
   );
 
   const handleSave = async () => {
-    setIsLoading(true);
+    // Use external loading state if provided, otherwise use internal
+    if (!isSaving) {
+      setIsLoading(true);
+    }
     setErrorMessage("");
+    if (onClearError) {
+      onClearError();
+    }
     
     try {
       console.log("=== HANDLE SAVE DEBUG ===");
@@ -131,20 +146,21 @@ export const TrustBadgeBuilder = ({
       console.log("formData.content:", JSON.stringify(formData.content, null, 2));
       console.log("formData.content.icons:", JSON.stringify(formData.content?.icons, null, 2));
       console.log("formData.content.icons length:", formData.content?.icons?.length);
+      console.log("selectedTemplate (for edit check):", selectedTemplate);
       
       // Structure the payload to match the API expectations
       const payload: any = {
         name: formData.name || name,
         type: "TRUST_BADGE", // Using uppercase as defined in ComponentType enum
         design: {
-          // Map content to design structure for templates field
+          // Map content to design.templates structure for database
           content: {
             ...formData.content,
             icons: formData.content?.icons || [] // Ensure icons array is explicitly set
           }
         },
         display: {
-          // Map placement and settings to display structure for rules field
+          // Map placement and settings to display structure for database
           placement: formData.placement,
           ...formData.settings
         },
@@ -152,56 +168,52 @@ export const TrustBadgeBuilder = ({
         status: currentStatus
       };
 
-      // Always use POST for new badges (no edit functionality for now)
-
       console.log("Final payload:", JSON.stringify(payload, null, 2));
       console.log("Payload design.content.icons:", JSON.stringify(payload.design.content?.icons, null, 2));
       console.log("Payload design.content.icons length:", payload.design.content?.icons?.length);
       console.log("=========================");
 
-      // Always use POST for new badges
-      const method = 'POST';
-      
-      // Always make the API call first
-      const response = await fetch('/api/badge/create', {
-        method: method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
-
-      console.log("API response status:", response.status);
-      
-      if (response.ok) {
-        const result = await response.json();
-        console.log('Trust badge created successfully:', result);
-        
-        // Call parent's onSave handler if provided (for refresh logic)
-        if (onSave) {
-          await onSave(payload);
-        }
-        
-        // Close modal after successful save
-        setIsModalOpen(false);
+      // Call parent's onSave handler if provided (handles API call and navigation)
+      if (onSave) {
+        await onSave(payload);
       } else {
-        const error = await response.json();
-        console.error('Failed to create trust badge:', error);
-        setErrorMessage(error.message || 'Failed to create trust badge');
+        // Fallback: direct API call (for backward compatibility)
+        const response = await fetch('/api/badge/create', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        });
+
+        console.log("API response status:", response.status);
+        
+        if (response.ok) {
+          const result = await response.json();
+          console.log('Trust badge created successfully:', result);
+          
+          // Close modal after successful save
+          setIsModalOpen(false);
+        } else {
+          const error = await response.json();
+          console.error('Failed to create trust badge:', error);
+          setErrorMessage(error.message || 'Failed to create trust badge');
+        }
       }
     } catch (error) {
       console.error('Error creating trust badge:', error);
       setErrorMessage('An unexpected error occurred while creating the trust badge');
     } finally {
-      setIsLoading(false);
+      if (!isSaving) {
+        setIsLoading(false);
+      }
     }
   };
 
   const handleCancel = () => {
+    setIsModalOpen(false);
     if (onCancel) {
       onCancel();
-    } else {
-      setIsModalOpen(false);
     }
   };
 
@@ -250,19 +262,22 @@ export const TrustBadgeBuilder = ({
   };
 
   return (
-    <Modal variant="max" open={isModalOpen}>
+    <Modal variant="max" open={isModalOpen} onHide={handleCancel}>
       <TitleBar title="Trust Badge Editor" />
       <Page
         fullWidth
-        backAction={{ content: "Trust Badges", url: "#" }}
+        backAction={{
+          content: "Trust Badges",
+          onAction: handleCancel,
+        }}
         title="Trust Badge Editor"
         titleMetadata={getBadges(currentStatus)}
         subtitle="Customize your trust badge"
         primaryAction={{
-          content: isLoading ? "Saving..." : "Save",
-          disabled: isLoading,
+          content: (isSaving || isLoading) ? "Saving..." : "Save",
+          disabled: isSaving || isLoading,
           onAction: handleSave,
-          loading: isLoading,
+          loading: isSaving || isLoading,
         }}
         secondaryActions={[
           {
@@ -332,10 +347,15 @@ export const TrustBadgeBuilder = ({
         ]}
       >
         {/* Error Banner */}
-        {errorMessage && (
+        {displayErrorMessage && (
           <div style={{ marginBottom: "12px" }}>
-            <Banner tone="critical" onDismiss={() => setErrorMessage("")}>
-              {errorMessage}
+            <Banner tone="critical" onDismiss={() => {
+              setErrorMessage("");
+              if (onClearError) {
+                onClearError();
+              }
+            }}>
+              {displayErrorMessage}
             </Banner>
           </div>
         )}

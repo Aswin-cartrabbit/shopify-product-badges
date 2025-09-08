@@ -5,10 +5,12 @@ const NotifyBanner = ({
   title,
   tone,
   description,
+  onDismiss,
 }: {
   title: string;
   tone: BannerTone;
   description: string;
+  onDismiss: () => void;
 }) => {
   return (
     <Banner
@@ -16,7 +18,7 @@ const NotifyBanner = ({
       tone={tone}
       action={{ content: "Edit variant weights", url: "" }}
       secondaryAction={{ content: "Learn more", url: "" }}
-      onDismiss={() => {}}
+      onDismiss={onDismiss}
     >
       <p>{description}</p>
     </Banner>

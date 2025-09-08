@@ -9,42 +9,54 @@ import {
   TextField,
   InlineStack,
   Select,
+  ButtonGroup,
+  Toast,
 } from "@shopify/polaris";
 import { useCallback, useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import BannerContentForm from "./BannerContentForm";
 import BannerDesignForm from "./BannerDesignForm";
 import BannerPreview from "../BannerPreview";
-import { Modal, TitleBar } from '@shopify/app-bridge-react';
+import { Modal, TitleBar } from "@shopify/app-bridge-react";
 import { EditIcon, ContentIcon } from "@shopify/polaris-icons";
 
 interface BannerBuilderProps {
   bannerType?: "countdown" | "fixed" | "automatic" | "slider";
+  selectedTemplate?: any;
   onSave?: (data: any) => void;
   onCancel?: () => void;
+  isSaving?: boolean;
+  errorMessage?: string | null;
+  onClearError?: () => void;
 }
 
-export const BannerBuilder = ({ 
+export const BannerBuilder = ({
   bannerType = "fixed",
+  selectedTemplate,
   onSave,
-  onCancel 
+  onCancel,
+  isSaving = false,
+  errorMessage: externalErrorMessage = null,
+  onClearError
 }: BannerBuilderProps) => {
   const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState<boolean>(true);
-  
-  const getBannerStatus = (status: "DRAFT" | "ACTIVE") => {
+
+  const getBannerStatus = (status: "Active" | "Inactive") => {
     switch (status) {
-      case "DRAFT":
-        return <Badge tone="attention">Draft</Badge>;
-      case "ACTIVE":
+      case "Active":
         return <Badge tone="success">Active</Badge>;
+      case "Inactive":
+        return <Badge tone="attention">Draft</Badge>;
     }
   };
 
   const [bannerName, setBannerName] = useState(`Deco banner`);
-  const [bannerStatus, setBannerStatus] = useState<"Active" | "Inactive">("Active");
+  const [bannerStatus, setBannerStatus] = useState<"Active" | "Inactive">(
+    "Active"
+  );
   const [selectedTab, setSelectedTab] = useState<number>(0);
-  
+
   const [formData, setFormData] = useState<any>({
     name: bannerName,
     type: bannerType,
@@ -53,6 +65,7 @@ export const BannerBuilder = ({
       link: "",
       openInNewTab: true,
       useButton: false,
+      buttonText: "Shop now!",
       showCloseButton: false,
     },
     display: {
@@ -61,10 +74,7 @@ export const BannerBuilder = ({
       productPages: false,
       specificPages: false,
     },
-    schedule: {
-      startDate: false,
-      endDate: false,
-    },
+    schedule: undefined,
     design: {
       position: "top",
       sticky: false,
@@ -80,27 +90,87 @@ export const BannerBuilder = ({
       buttonTextSize: 16,
       buttonBorderSize: 0,
       buttonCornerRadius: 8,
-    }
+    },
   });
 
-  const handleTabChange = useCallback(
-    (selectedTabIndex: number) => {
-      console.log("Tab changed to:", selectedTabIndex);
-      setSelectedTab(selectedTabIndex);
-    },
-    []
-  );
+  // Update formData when selectedTemplate changes
+  useEffect(() => {
+    if (selectedTemplate) {
+      console.log("Updating formData with selectedTemplate:", selectedTemplate);
+
+      setFormData(prev => ({
+        ...prev,
+        name: selectedTemplate.title || selectedTemplate.name || prev.name,
+        type: selectedTemplate.type || prev.type,
+        content: {
+          ...prev.content,
+          text: selectedTemplate.design.content.title || prev.content.text,
+          message: selectedTemplate.design.content.message || "",
+          buttonText: selectedTemplate.design.content.buttonText || prev.content.buttonText,
+          link: selectedTemplate.design.content.buttonUrl || prev.content.link,
+          countdown: {
+            enabled: selectedTemplate.design.content.countdown?.enabled || false,
+            type: "specific_date",
+            targetDate: "Mon Jul 29 2024",
+            targetTime: "05:09:31 PM", 
+            autoResponsive: false,
+            labels: {
+              days: "Days",
+              hours: "Hrs", 
+              minutes: "Mins",
+              seconds: "Secs"
+            },
+            action: "do_nothing",
+            ...selectedTemplate.design.content.countdown
+          },
+          images: selectedTemplate.design.content.images || prev.content.images,
+        },
+        design: {
+          ...prev.design,
+          ...selectedTemplate.design.style,
+          ...selectedTemplate.design.position,
+          backgroundColor: selectedTemplate.design.style.backgroundColor || prev.design.backgroundColor,
+          textColor: selectedTemplate.design.style.textColor || prev.design.textColor,
+          fontSize: parseInt(selectedTemplate.design.style.fontSize) || prev.design.textSize,
+          padding: parseInt(selectedTemplate.design.style.padding) || prev.design.padding,
+          borderRadius: parseInt(selectedTemplate.design.style.borderRadius) || prev.design.borderRadius,
+          position: selectedTemplate.design.position.placement || prev.design.position,
+          sticky: selectedTemplate.design.position.sticky !== undefined ? selectedTemplate.design.position.sticky : prev.design.sticky,
+        }
+      }));
+
+      setBannerName(selectedTemplate.title || selectedTemplate.name || bannerName);
+    }
+  }, [selectedTemplate]);
+
+  const handleTabChange = useCallback((selectedTabIndex: number) => {
+    setSelectedTab(selectedTabIndex);
+  }, []);
 
   const handleSave = async () => {
+    if (onClearError) {
+      onClearError();
+    }
+    
     try {
+      // Transform banner data to match the existing badge API structure
       const payload = {
         name: formData.name || bannerName,
-        type: bannerType,
-        content: formData.content,
-        display: formData.display,
-        schedule: formData.schedule,
-        design: formData.design,
-        status: "DRAFT"
+        description: `${bannerType.charAt(0).toUpperCase() + bannerType.slice(1)} banner`,
+        type: "BANNER", // Use BANNER type for the existing API
+        design: {
+          // Map banner design data to the expected format
+          ...formData.design,
+          bannerType: bannerType, // Store banner type in design
+          content: formData.content, // Store content in design
+          schedule: formData.schedule, // Store schedule in design
+        },
+        display: formData.display, // This maps to 'rules' in the API
+        settings: {
+          bannerType: bannerType,
+          version: "1.0",
+        },
+        status: bannerStatus === "Active" ? "ACTIVE" : "DRAFT",
       };
 
       console.log("Saving banner payload:", payload);
@@ -108,50 +178,88 @@ export const BannerBuilder = ({
       if (onSave) {
         onSave(payload);
       } else {
-        // Default API call
-        const response = await fetch('/api/banner/create', {
-          method: 'POST',
+        // Use existing badge API endpoint
+        const response = await fetch("/api/badge/create", {
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify(payload),
         });
 
         if (response.ok) {
-          console.log("Banner created successfully");
+          const result = await response.json();
+          console.log("Banner created successfully:", result);
           setIsModalOpen(false);
-          router.push('/banners');
+          router.push("/banners");
         } else {
-          console.error("Failed to create banner");
+          const errorData = await response.json();
+          console.error("Failed to create banner:", errorData);
+          alert(
+            `Failed to create banner: ${errorData.message || "Unknown error"}`
+          );
         }
       }
     } catch (error) {
       console.error("Error creating banner:", error);
+      alert("An error occurred while saving the banner. Please try again.");
     }
   };
 
   const handleCancel = () => {
+    setIsModalOpen(false);
     if (onCancel) {
       onCancel();
     } else {
-      setIsModalOpen(false);
-      router.push('/banners');
+      router.push("/banners");
     }
   };
 
-  const handleContentChange = (contentData: any) => {
-    setFormData(prev => ({
-      ...prev,
-      content: { ...prev.content, ...contentData },
-      display: { ...prev.display, ...contentData },
-      schedule: { ...prev.schedule, ...contentData }
-    }));
+  const handleContentChange = (data: any) => {
+    setFormData((prev) => {
+      const newFormData = { ...prev };
+
+      // Handle content updates
+      if (
+        data.text !== undefined ||
+        data.link !== undefined ||
+        data.openInNewTab !== undefined ||
+        data.useButton !== undefined ||
+        data.buttonText !== undefined ||
+        data.showCloseButton !== undefined ||
+        data.countdown !== undefined
+      ) {
+        newFormData.content = { ...prev.content, ...data };
+      }
+
+      // Handle display updates
+      if (
+        data.homePages !== undefined ||
+        data.collectionPages !== undefined ||
+        data.productPages !== undefined ||
+        data.specificPages !== undefined
+      ) {
+        newFormData.display = { ...prev.display, ...data };
+      }
+
+      // Handle schedule updates
+      if (
+        data.startDate !== undefined ||
+        data.endDate !== undefined ||
+        data.startDateTime !== undefined ||
+        data.endDateTime !== undefined
+      ) {
+        newFormData.schedule = { ...prev.schedule, ...data };
+      }
+
+      return newFormData;
+    });
   };
 
   const handleDesignChange = (designData: any) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      design: { ...prev.design, ...designData }
+      design: { ...prev.design, ...designData },
     }));
   };
 
@@ -161,27 +269,27 @@ export const BannerBuilder = ({
         return {
           title: "Countdown Banner Editor",
           subtitle: "Create urgency with countdown timers",
-          tag: "Growth"
+          tag: "Growth",
         };
       case "fixed":
         return {
-          title: "Fixed Banner Editor", 
-          subtitle: "Display consistent promotional messages"
+          title: "Fixed Banner Editor",
+          subtitle: "Display consistent promotional messages",
         };
       case "automatic":
         return {
           title: "Automatic Banner Editor",
-          subtitle: "Rotate through multiple messages automatically"
+          subtitle: "Rotate through multiple messages automatically",
         };
       case "slider":
         return {
           title: "Slider Banner Editor",
-          subtitle: "Let users navigate through banner content"
+          subtitle: "Let users navigate through banner content",
         };
       default:
         return {
           title: "Banner Editor",
-          subtitle: "Create and customize your banner"
+          subtitle: "Create and customize your banner",
         };
     }
   };
@@ -189,17 +297,18 @@ export const BannerBuilder = ({
   const typeInfo = getBannerTypeInfo(bannerType);
 
   return (
-    <Modal variant="max" open={isModalOpen}>
+    <Modal variant="max" open={isModalOpen} onHide={handleCancel}>
       <TitleBar title={typeInfo.title} />
       <Page
         fullWidth
         backAction={{ content: "Banners", onAction: handleCancel }}
         title={formData.name}
-        titleMetadata={getBannerStatus("ACTIVE")}
+        titleMetadata={getBannerStatus(bannerStatus)}
         subtitle={typeInfo.subtitle}
         primaryAction={{
-          content: "Save",
-          disabled: false,
+          content: isSaving ? "Saving..." : "Save",
+          disabled: isSaving,
+          loading: isSaving,
           onAction: handleSave,
         }}
         secondaryActions={[
@@ -209,175 +318,178 @@ export const BannerBuilder = ({
           },
         ]}
       >
-
-
-        {/* Custom Tab Implementation */}
-        <div style={{ marginBottom: "1rem" }}>
-          <div style={{
-            display: "flex",
-            gap: "4px",
-            backgroundColor: "#f6f6f7",
-            padding: "4px",
-            borderRadius: "12px",
-            width: "fit-content",
-            maxWidth: "100%"
-          }}>
-            <button
+        <div style={{ marginBottom: "16px" }}>
+          {/* Custom Tab Implementation */}
+          <div style={{ marginBottom: "1rem" }}>
+            <div
               style={{
-                padding: "10px 16px",
-                borderRadius: "8px",
-                border: "none",
-                backgroundColor: selectedTab === 0 ? "#ffffff" : "transparent",
-                color: selectedTab === 0 ? "#1a1a1a" : "#6b7280",
-                fontWeight: selectedTab === 0 ? "600" : "500",
-                fontSize: "14px",
-                cursor: "pointer",
-                transition: "all 0.2s ease",
-                boxShadow: selectedTab === 0 ? "0 1px 3px rgba(0, 0, 0, 0.1)" : "none",
-                minWidth: "auto",
                 display: "flex",
-                alignItems: "center",
-                gap: "6px"
+                gap: "4px",
+                backgroundColor: "#f6f6f7",
+                padding: "4px",
+                borderRadius: "12px",
+                width: "fit-content",
+                maxWidth: "100%",
               }}
-              onClick={() => handleTabChange(0)}
             >
-              <Icon source={ContentIcon} tone="base" />
-              Content
-            </button>
-            <button
-              style={{
-                padding: "10px 16px",
-                borderRadius: "8px",
-                border: "none",
-                backgroundColor: selectedTab === 1 ? "#ffffff" : "transparent",
-                color: selectedTab === 1 ? "#1a1a1a" : "#6b7280",
-                fontWeight: selectedTab === 1 ? "600" : "500",
-                fontSize: "14px",
-                cursor: "pointer",
-                transition: "all 0.2s ease",
-                boxShadow: selectedTab === 1 ? "0 1px 3px rgba(0, 0, 0, 0.1)" : "none",
-                minWidth: "auto",
-                display: "flex",
-                alignItems: "center",
-                gap: "6px"
-              }}
-              onClick={() => handleTabChange(1)}
-            >
-              <Icon source={EditIcon} tone="base" />
-              Design
-            </button>
-          </div>
-        </div>
-        
-        <div
-          style={{
-            display: "grid",
-            gap: "1rem",
-            gridTemplateColumns: "25% 75%",
-            alignItems: "flex-start",
-          }}
-        >
-          <div>
-            {/* Content Tab */}
-            <div style={{ display: selectedTab === 0 ? 'block' : 'none' }}>
-              <BannerContentForm 
-                data={formData}
-                onChange={handleContentChange}
-                bannerType={bannerType}
-              />
-            </div>
-            
-            {/* Design Tab */}
-            <div style={{ display: selectedTab === 1 ? 'block' : 'none' }}>
-              <BannerDesignForm 
-                data={formData}
-                onChange={handleDesignChange}
-                bannerType={bannerType}
-              />
+              <button
+                style={{
+                  padding: "10px 16px",
+                  borderRadius: "8px",
+                  border: "none",
+                  backgroundColor:
+                    selectedTab === 0 ? "#ffffff" : "transparent",
+                  color: selectedTab === 0 ? "#1a1a1a" : "#6b7280",
+                  fontWeight: selectedTab === 0 ? "600" : "500",
+                  fontSize: "14px",
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
+                  boxShadow:
+                    selectedTab === 0 ? "0 1px 3px rgba(0, 0, 0, 0.1)" : "none",
+                  minWidth: "auto",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                }}
+                onClick={() => handleTabChange(0)}
+              >
+                <Icon source={ContentIcon} tone="base" />
+                Content
+              </button>
+              <button
+                style={{
+                  padding: "10px 16px",
+                  borderRadius: "8px",
+                  border: "none",
+                  backgroundColor:
+                    selectedTab === 1 ? "#ffffff" : "transparent",
+                  color: selectedTab === 1 ? "#1a1a1a" : "#6b7280",
+                  fontWeight: selectedTab === 1 ? "600" : "500",
+                  fontSize: "14px",
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
+                  boxShadow:
+                    selectedTab === 1 ? "0 1px 3px rgba(0, 0, 0, 0.1)" : "none",
+                  minWidth: "auto",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                }}
+                onClick={() => handleTabChange(1)}
+              >
+                <Icon source={EditIcon} tone="base" />
+                Design
+              </button>
             </div>
           </div>
-          
-          {/* Preview Section */}
+
           <div
             style={{
-              position: "sticky",
-              top: "1rem",
-              height: "calc(100vh - 2rem)",
-              overflow: "auto",
+              display: "grid",
+              gap: "1rem",
+              gridTemplateColumns: "25% 75%",
+              alignItems: "flex-start",
             }}
           >
-            <Card>
-              {/* Banner Name and Status in Preview Area */}
-              <BlockStack gap="400">
-                <InlineStack gap="400" align="space-between">
-                  <div style={{ flex: 1 }}>
-                    <TextField
-                      label=""
-                      value={bannerName}
-                      onChange={(value) => {
-                        setBannerName(value);
-                        setFormData(prev => ({ ...prev, name: value }));
-                      }}
-                      placeholder="Enter banner name"
-                      autoComplete="off"
-                    />
-                  </div>
-                  
-                  {/* Status Tabs */}
-                  <div style={{
-                    display: "flex",
-                    gap: "2px",
-                    backgroundColor: "#f6f6f7",
-                    padding: "2px",
-                    borderRadius: "8px",
-                    width: "fit-content"
-                  }}>
-                    <button
-                      style={{
-                        padding: "8px 16px",
-                        borderRadius: "6px",
-                        border: "none",
-                        backgroundColor: bannerStatus === "Active" ? "#00a047" : "transparent",
-                        color: bannerStatus === "Active" ? "#ffffff" : "#6b7280",
-                        fontWeight: "500",
-                        fontSize: "14px",
-                        cursor: "pointer",
-                        transition: "all 0.2s ease",
-                        minWidth: "auto"
-                      }}
-                      onClick={() => setBannerStatus("Active")}
-                    >
-                      Active
-                    </button>
-                    <button
-                      style={{
-                        padding: "8px 16px",
-                        borderRadius: "6px",
-                        border: "none",
-                        backgroundColor: bannerStatus === "Inactive" ? "#6b7280" : "transparent",
-                        color: bannerStatus === "Inactive" ? "#ffffff" : "#6b7280",
-                        fontWeight: "500",
-                        fontSize: "14px",
-                        cursor: "pointer",
-                        transition: "all 0.2s ease",
-                        minWidth: "auto"
-                      }}
-                      onClick={() => setBannerStatus("Inactive")}
-                    >
-                      Inactive
-                    </button>
-                  </div>
-                </InlineStack>
-                
-                <BannerPreview 
-                  bannerData={formData}
+            <div>
+              {/* Content Tab */}
+              <div style={{ display: selectedTab === 0 ? "block" : "none" }}>
+                <BannerContentForm
+                  data={formData}
+                  onChange={handleContentChange}
                   bannerType={bannerType}
                 />
-              </BlockStack>
-            </Card>
+              </div>
+
+              {/* Design Tab */}
+              <div style={{ display: selectedTab === 1 ? "block" : "none" }}>
+                <BannerDesignForm
+                  data={formData}
+                  onChange={handleDesignChange}
+                  bannerType={bannerType}
+                />
+              </div>
+            </div>
+
+            {/* Preview Section */}
+            <div
+              style={{
+                position: "sticky",
+                top: "1rem",
+                height: "calc(100vh - 2rem)",
+                overflow: "auto",
+              }}
+            >
+              <div style={{ marginBottom: "16px" }}>
+                <Card>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "start",
+                      gap: "16px",
+                    }}
+                  >
+                    {/* Label Name Input */}
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "16px",
+                      }}
+                    >
+                      <TextField
+                        label=""
+                        value={formData.name || bannerName}
+                        onChange={(value) => {
+                          setBannerName(value);
+                          setFormData({ ...formData, name: value });
+                        }}
+                        placeholder="Deco Label"
+                        autoComplete="off"
+                      />
+
+                      {/* Status Toggle */}
+                      <div style={{ minWidth: "200px" }}>
+                        <ButtonGroup variant="segmented">
+                          <Button
+                            pressed={bannerStatus === "Active"}
+                            onClick={() => setBannerStatus("Active")}
+                          >
+                            Active
+                          </Button>
+                          <Button
+                            pressed={bannerStatus === "Inactive"}
+                            onClick={() => setBannerStatus("Inactive")}
+                          >
+                            Inactive
+                          </Button>
+                        </ButtonGroup>
+                      </div>
+                    </div>
+
+                    {/* Support Button */}
+                    <Button variant="secondary">Support</Button>
+                  </div>
+                </Card>
+              </div>
+              <Card>
+                {/* Banner Name and Status in Preview Area */}
+                <BannerPreview bannerData={formData} bannerType={bannerType} />
+              </Card>
+            </div>
           </div>
         </div>
       </Page>
+      
+      {/* Error Toast */}
+      {externalErrorMessage && (
+        <Toast
+          content={externalErrorMessage}
+          error
+          onDismiss={onClearError}
+        />
+      )}
     </Modal>
   );
 };
