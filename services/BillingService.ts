@@ -45,7 +45,7 @@ export class BillingService {
         variables: {
           name: plan.name,
           returnUrl,
-          test: process.env.NODE_ENV !== "production",
+          test: true, // process.env.NODE_ENV !== "production",
           lineItems: [
             {
               plan: {
