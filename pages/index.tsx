@@ -1,13 +1,5 @@
 import ReviewBanner from "@/components/banners/ReviewBanner";
 import isInitialLoad from "@/utils/middleware/isInitialLoad";
-import ThemeEmbedBanner from "@/components/ThemeEmbedBanner";
-import NotifyBanner from "@/components/NotifyBanner";
-import { useThemeEmbedStatus } from "@/components/hooks/useThemeEmbedStatus";
-import { 
-  redirectToThemeEditor, 
-  getEmbedBannerDismissalStatus, 
-  setEmbedBannerDismissalStatus 
-} from "@/utils/themeEmbedHelper";
 import {
   Page,
   Card,
@@ -18,18 +10,17 @@ import {
   Icon,
   TextField,
   Tooltip,
-  Spinner,
 } from "@shopify/polaris";
-import { 
-  SearchIcon, 
+import {
+  SearchIcon,
   InfoIcon,
   StarFilledIcon,
   DiscountIcon,
   CheckIcon,
-  NotificationIcon
+  NotificationIcon,
 } from "@shopify/polaris-icons";
 import { useRouter } from "next/router";
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 
 export async function getServerSideProps(context) {
   //DO NOT REMOVE THIS.
@@ -38,51 +29,6 @@ export async function getServerSideProps(context) {
 export default function Dashboard() {
   const [searchValue, setSearchValue] = useState("");
   const router = useRouter();
-  
-  // Theme embed checking logic
-  const { isLoading, error, embedStatus, checkStatus } = useThemeEmbedStatus();
-  const [isDismissed, setIsDismissed] = useState(() => {
-    // Initialize with localStorage value to prevent flash
-    if (typeof window !== "undefined") {
-      return getEmbedBannerDismissalStatus();
-    }
-    return false;
-  });
-
-  const shouldShowEmbedBanner = !isLoading && 
-    !error && 
-    embedStatus && 
-    !embedStatus.hasAppEmbedEnabled && 
-    !isDismissed;
-
-  const handleDismiss = useCallback(() => {
-    if (isDismissed) {
-      return; // Prevent duplicate dismissals
-    }
-    
-    setIsDismissed(true);
-    setEmbedBannerDismissalStatus(true);
-  }, [isDismissed]);
-
-  const handleEnable = () => {
-    // Use the helper function to redirect to theme editor
-    const themeId = embedStatus?.activeTheme?.id;
-    redirectToThemeEditor(undefined, themeId);
-  };
-
-  // Check if banner was previously dismissed
-  useEffect(() => {
-    const dismissed = getEmbedBannerDismissalStatus();
-    setIsDismissed(dismissed);
-  }, []);
-
-  // Reset dismissal ONLY when embed status changes from disabled to enabled
-  useEffect(() => {
-    if (embedStatus?.hasAppEmbedEnabled === true) {
-      setIsDismissed(false);
-      setEmbedBannerDismissalStatus(false);
-    }
-  }, [embedStatus?.hasAppEmbedEnabled]);
 
   const activeElements = [
     {
@@ -93,38 +39,42 @@ export default function Dashboard() {
       iconBg: "#E3F2FD",
       iconColor: "#1976D2",
       onClick: () => router.push("/labels/create"),
-      tooltip: "Create custom labels for your products to highlight features, promotions, or categories."
+      tooltip:
+        "Create custom labels for your products to highlight features, promotions, or categories.",
     },
     {
-      id: "2", 
+      id: "2",
       title: "Badges",
       subtitle: "Create badge",
       icon: DiscountIcon,
       iconBg: "#E3F2FD",
       iconColor: "#1976D2",
       onClick: () => router.push("/badges/create"),
-      tooltip: "Design eye-catching badges to showcase discounts, new arrivals, or special offers."
+      tooltip:
+        "Design eye-catching badges to showcase discounts, new arrivals, or special offers.",
     },
     {
       id: "3",
-      title: "Trust badges", 
+      title: "Trust badges",
       subtitle: "Create trust badge",
       icon: CheckIcon,
       iconBg: "#E3F2FD",
       iconColor: "#1976D2",
       onClick: () => router.push("/trust-badges"),
-      tooltip: "Build customer confidence with trust badges showing security, guarantees, or certifications."
+      tooltip:
+        "Build customer confidence with trust badges showing security, guarantees, or certifications.",
     },
     {
       id: "4",
       title: "Banners",
-      subtitle: "Create banner", 
+      subtitle: "Create banner",
       icon: NotificationIcon,
       iconBg: "#E3F2FD",
       iconColor: "#1976D2",
       onClick: () => router.push("/banners"),
-      tooltip: "Create promotional banners to announce sales, free shipping, or important notifications."
-    }
+      tooltip:
+        "Create promotional banners to announce sales, free shipping, or important notifications.",
+    },
   ];
 
   const recommendedApps = [
@@ -158,49 +108,14 @@ export default function Dashboard() {
   ];
 
   return (
-    <div style={{ 
-      padding: "20px 24px", 
-      backgroundColor: "#f6f6f7", 
-      minHeight: "100vh"
-    }}>
+    <div
+      style={{
+        padding: "20px 24px",
+        backgroundColor: "#f6f6f7",
+        minHeight: "100vh",
+      }}
+    >
       <div style={{ maxWidth: "900px", margin: "0 auto" }}>
-        {/* Theme Embed Status Messages */}
-        {isLoading && (
-          <div style={{ 
-            textAlign: "center", 
-            padding: "20px",
-            marginBottom: "24px",
-            backgroundColor: "#fff",
-            borderRadius: "8px",
-            boxShadow: "0 1px 3px rgba(0,0,0,0.1)"
-          }}>
-            <Spinner size="small" /> 
-            <Text as="p">Checking theme configuration...</Text>
-          </div>
-        )}
-        
-        {error && !isLoading && (
-          <div style={{ marginBottom: "24px" }}>
-            <NotifyBanner
-              title="Unable to check theme configuration"
-              tone="critical"
-              description={`Error: ${error}. Some features may not work correctly.`}
-              onDismiss={handleDismiss}
-            />
-          </div>
-        )}
-        
-        {shouldShowEmbedBanner && (
-          <div style={{ marginBottom: "24px" }}>
-            <ThemeEmbedBanner 
-              key="theme-embed-banner"
-              onDismiss={handleDismiss}
-              onEnable={handleEnable}
-              activeTheme={embedStatus?.activeTheme}
-            />
-          </div>
-        )}
-
         {/* Header */}
         <div style={{ marginBottom: "24px" }}>
           <InlineStack align="space-between" blockAlign="center">
@@ -232,34 +147,38 @@ export default function Dashboard() {
             <Text as="h2" variant="headingLg" fontWeight="medium">
               Active elements
             </Text>
-            
-            <div style={{ 
-              display: "grid", 
-              gridTemplateColumns: "repeat(2, 1fr)", 
-              gap: "12px",
-              width: "100%"
-            }}>
+
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(2, 1fr)",
+                gap: "12px",
+                width: "100%",
+              }}
+            >
               {activeElements.map((element) => (
                 <Card key={element.id} padding="400">
                   <InlineStack align="space-between" blockAlign="center">
                     <InlineStack gap="300" blockAlign="center">
-                      <div style={{
-                        width: "40px",
-                        height: "40px", 
-                        backgroundColor: element.iconBg,
-                        borderRadius: "8px",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center"
-                      }}>
+                      <div
+                        style={{
+                          width: "40px",
+                          height: "40px",
+                          backgroundColor: element.iconBg,
+                          borderRadius: "8px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
                         <Icon source={element.icon} tone="base" />
                       </div>
                       <BlockStack gap="100">
                         <Text as="h3" variant="bodyMd" fontWeight="semibold">
                           {element.title}
                         </Text>
-                        <Button 
-                          variant="plain" 
+                        <Button
+                          variant="plain"
                           onClick={element.onClick}
                           textAlign="left"
                         >
@@ -283,44 +202,50 @@ export default function Dashboard() {
         <div style={{ marginTop: "24px" }}>
           <Card>
             <BlockStack gap="400">
-            <Text as="h2" variant="headingLg" fontWeight="medium">Recommended apps</Text>
-            <InlineStack gap="100" blockAlign="center" align="space-evenly">
-              {recommendedApps.map((item) => {
-                const { id, name, description, link, href } = item;
-                return (
-                  <div
-                    key={id}
-                    style={{
-                      width: "30%",
-                    }}
-                  >
-                    <Card>
-                      <BlockStack gap="200">
-                        <InlineStack align="start" gap="300" wrap={false}>
-                          <img
-                            src={item.src}
-                            alt=""
-                            style={{ width: "32px", height: "30px" }}
-                          />
-                          <Text fontWeight="semibold" as="p" alignment="start">
-                            {name}
+              <Text as="h2" variant="headingLg" fontWeight="medium">
+                Recommended apps
+              </Text>
+              <InlineStack gap="100" blockAlign="center" align="space-evenly">
+                {recommendedApps.map((item) => {
+                  const { id, name, description, link, href } = item;
+                  return (
+                    <div
+                      key={id}
+                      style={{
+                        width: "30%",
+                      }}
+                    >
+                      <Card>
+                        <BlockStack gap="200">
+                          <InlineStack align="start" gap="300" wrap={false}>
+                            <img
+                              src={item.src}
+                              alt=""
+                              style={{ width: "32px", height: "30px" }}
+                            />
+                            <Text
+                              fontWeight="semibold"
+                              as="p"
+                              alignment="start"
+                            >
+                              {name}
+                            </Text>
+                          </InlineStack>
+                          <Text tone="subdued" as="p">
+                            {description}
                           </Text>
-                        </InlineStack>
-                        <Text tone="subdued" as="p">
-                          {description}
-                        </Text>
-                        <Button
-                          variant="plain"
-                          onClick={() => window.open(href, "_blank")}
-                        >
-                          {link}
-                        </Button>
-                      </BlockStack>
-                    </Card>
-                  </div>
-                );
-              })}
-            </InlineStack>
+                          <Button
+                            variant="plain"
+                            onClick={() => window.open(href, "_blank")}
+                          >
+                            {link}
+                          </Button>
+                        </BlockStack>
+                      </Card>
+                    </div>
+                  );
+                })}
+              </InlineStack>
             </BlockStack>
           </Card>
         </div>
