@@ -21,12 +21,14 @@ import { EditIcon, ContentIcon } from "@shopify/polaris-icons";
 
 interface BannerBuilderProps {
   bannerType?: "countdown" | "fixed" | "automatic" | "slider";
+  selectedTemplate?: any;
   onSave?: (data: any) => void;
   onCancel?: () => void;
 }
 
 export const BannerBuilder = ({
   bannerType = "fixed",
+  selectedTemplate,
   onSave,
   onCancel,
 }: BannerBuilderProps) => {
@@ -83,6 +85,56 @@ export const BannerBuilder = ({
       buttonCornerRadius: 8,
     },
   });
+
+  // Update formData when selectedTemplate changes
+  useEffect(() => {
+    if (selectedTemplate) {
+      console.log("Updating formData with selectedTemplate:", selectedTemplate);
+
+      setFormData(prev => ({
+        ...prev,
+        name: selectedTemplate.title || selectedTemplate.name || prev.name,
+        type: selectedTemplate.type || prev.type,
+        content: {
+          ...prev.content,
+          text: selectedTemplate.design.content.title || prev.content.text,
+          message: selectedTemplate.design.content.message || "",
+          buttonText: selectedTemplate.design.content.buttonText || prev.content.buttonText,
+          link: selectedTemplate.design.content.buttonUrl || prev.content.link,
+          countdown: {
+            enabled: selectedTemplate.design.content.countdown?.enabled || false,
+            type: "specific_date",
+            targetDate: "Mon Jul 29 2024",
+            targetTime: "05:09:31 PM", 
+            autoResponsive: false,
+            labels: {
+              days: "Days",
+              hours: "Hrs", 
+              minutes: "Mins",
+              seconds: "Secs"
+            },
+            action: "do_nothing",
+            ...selectedTemplate.design.content.countdown
+          },
+          images: selectedTemplate.design.content.images || prev.content.images,
+        },
+        design: {
+          ...prev.design,
+          ...selectedTemplate.design.style,
+          ...selectedTemplate.design.position,
+          backgroundColor: selectedTemplate.design.style.backgroundColor || prev.design.backgroundColor,
+          textColor: selectedTemplate.design.style.textColor || prev.design.textColor,
+          fontSize: parseInt(selectedTemplate.design.style.fontSize) || prev.design.textSize,
+          padding: parseInt(selectedTemplate.design.style.padding) || prev.design.padding,
+          borderRadius: parseInt(selectedTemplate.design.style.borderRadius) || prev.design.borderRadius,
+          position: selectedTemplate.design.position.placement || prev.design.position,
+          sticky: selectedTemplate.design.position.sticky !== undefined ? selectedTemplate.design.position.sticky : prev.design.sticky,
+        }
+      }));
+
+      setBannerName(selectedTemplate.title || selectedTemplate.name || bannerName);
+    }
+  }, [selectedTemplate]);
 
   const handleTabChange = useCallback((selectedTabIndex: number) => {
     setSelectedTab(selectedTabIndex);
@@ -144,10 +196,10 @@ export const BannerBuilder = ({
   };
 
   const handleCancel = () => {
+    setIsModalOpen(false);
     if (onCancel) {
       onCancel();
     } else {
-      setIsModalOpen(false);
       router.push("/banners");
     }
   };
@@ -163,7 +215,8 @@ export const BannerBuilder = ({
         data.openInNewTab !== undefined ||
         data.useButton !== undefined ||
         data.buttonText !== undefined ||
-        data.showCloseButton !== undefined
+        data.showCloseButton !== undefined ||
+        data.countdown !== undefined
       ) {
         newFormData.content = { ...prev.content, ...data };
       }
@@ -233,7 +286,7 @@ export const BannerBuilder = ({
   const typeInfo = getBannerTypeInfo(bannerType);
 
   return (
-    <Modal variant="max" open={isModalOpen}>
+    <Modal variant="max" open={isModalOpen} onHide={handleCancel}>
       <TitleBar title={typeInfo.title} />
       <Page
         fullWidth

@@ -196,6 +196,225 @@ const BannerContentForm = ({ data, onChange, bannerType }: BannerContentFormProp
         </BlockStack>
       </Card>
 
+      {/* Countdown Timer Section - Only show for countdown banners */}
+      {bannerType === "countdown" && (
+        <Card>
+          <BlockStack gap="400">
+            <InlineStack gap="200" align="space-between">
+              <Text variant="headingMd" as="h3">
+                <InlineStack gap="200" align="center">
+                  <Icon source={CalendarTimeIcon} tone="base" />
+                  <Text variant="headingMd" as="span">Countdown Timer</Text>
+                </InlineStack>
+              </Text>
+            </InlineStack>
+
+            <FormLayout>
+              <BlockStack gap="400">
+                {/* Show countdown on banner checkbox */}
+                <Checkbox
+                  label="Show countdown on banner"
+                  checked={data?.content?.countdown?.enabled || false}
+                  onChange={(checked) => onChange?.({ 
+                    countdown: { 
+                      ...data?.content?.countdown, 
+                      enabled: checked 
+                    } 
+                  })}
+                  helpText="Check for this box to show countdown timer on banner"
+                />
+
+                {data?.content?.countdown?.enabled && (
+                  <div style={{ marginLeft: "24px" }}>
+                    <BlockStack gap="300">
+                      {/* Auto responsive */}
+                      <Checkbox
+                        label="Auto responsive"
+                        checked={data?.content?.countdown?.autoResponsive || false}
+                        onChange={(checked) => onChange?.({ 
+                          countdown: { 
+                            ...data?.content?.countdown, 
+                            autoResponsive: checked 
+                          } 
+                        })}
+                      />
+
+                      {/* Countdown type selection */}
+                      <BlockStack gap="200">
+                        <RadioButton
+                          label="Count down to a specific date"
+                          checked={data?.content?.countdown?.type === "specific_date" || !data?.content?.countdown?.type}
+                          id="specific_date"
+                          name="countdown_type"
+                          onChange={(checked) => {
+                            if (checked) {
+                              onChange?.({ 
+                                countdown: { 
+                                  ...data?.content?.countdown, 
+                                  type: "specific_date" 
+                                } 
+                              });
+                            }
+                          }}
+                        />
+
+                        {/* Date/Time picker for specific date */}
+                        {(data?.content?.countdown?.type === "specific_date" || !data?.content?.countdown?.type) && (
+                          <div style={{ marginLeft: "24px" }}>
+                            <InlineStack gap="200">
+                              <div style={{ flex: 1 }}>
+                                <TextField
+                                  label=""
+                                  value={data?.content?.countdown?.targetDate || "Mon Jul 29 2024"}
+                                  onChange={(value) => onChange?.({ 
+                                    countdown: { 
+                                      ...data?.content?.countdown, 
+                                      targetDate: value 
+                                    } 
+                                  })}
+                                  placeholder="Select date"
+                                  autoComplete="off"
+                                />
+                              </div>
+                              <div style={{ flex: 1 }}>
+                                <TextField
+                                  label=""
+                                  value={data?.content?.countdown?.targetTime || "05:09:31 PM"}
+                                  onChange={(value) => onChange?.({ 
+                                    countdown: { 
+                                      ...data?.content?.countdown, 
+                                      targetTime: value 
+                                    } 
+                                  })}
+                                  placeholder="Select time"
+                                  autoComplete="off"
+                                />
+                              </div>
+                            </InlineStack>
+                          </div>
+                        )}
+
+                        <RadioButton
+                          label="Fixed times (Minute)"
+                          checked={data?.content?.countdown?.type === "fixed_time"}
+                          id="fixed_time"
+                          name="countdown_type"
+                          onChange={(checked) => {
+                            if (checked) {
+                              onChange?.({ 
+                                countdown: { 
+                                  ...data?.content?.countdown, 
+                                  type: "fixed_time" 
+                                } 
+                              });
+                            }
+                          }}
+                        />
+                      </BlockStack>
+
+                      {/* Time labels */}
+                      <BlockStack gap="200">
+                        <Text variant="bodyMd" as="p">Time labels</Text>
+                        <InlineStack gap="200">
+                          <TextField
+                            label=""
+                            value={data?.content?.countdown?.labels?.days || "Days"}
+                            onChange={(value) => onChange?.({ 
+                              countdown: { 
+                                ...data?.content?.countdown, 
+                                labels: {
+                                  ...data?.content?.countdown?.labels,
+                                  days: value
+                                }
+                              } 
+                            })}
+                            placeholder="Days"
+                            autoComplete="off"
+                          />
+                          <TextField
+                            label=""
+                            value={data?.content?.countdown?.labels?.hours || "Hrs"}
+                            onChange={(value) => onChange?.({ 
+                              countdown: { 
+                                ...data?.content?.countdown, 
+                                labels: {
+                                  ...data?.content?.countdown?.labels,
+                                  hours: value
+                                }
+                              } 
+                            })}
+                            placeholder="Hrs"
+                            autoComplete="off"
+                          />
+                          <TextField
+                            label=""
+                            value={data?.content?.countdown?.labels?.minutes || "Mins"}
+                            onChange={(value) => onChange?.({ 
+                              countdown: { 
+                                ...data?.content?.countdown, 
+                                labels: {
+                                  ...data?.content?.countdown?.labels,
+                                  minutes: value
+                                }
+                              } 
+                            })}
+                            placeholder="Mins"
+                            autoComplete="off"
+                          />
+                          <TextField
+                            label=""
+                            value={data?.content?.countdown?.labels?.seconds || "Secs"}
+                            onChange={(value) => onChange?.({ 
+                              countdown: { 
+                                ...data?.content?.countdown, 
+                                labels: {
+                                  ...data?.content?.countdown?.labels,
+                                  seconds: value
+                                }
+                              } 
+                            })}
+                            placeholder="Secs"
+                            autoComplete="off"
+                          />
+                        </InlineStack>
+                      </BlockStack>
+
+                      {/* When time ends */}
+                      <BlockStack gap="200">
+                        <Text variant="bodyMd" as="p">When time ends</Text>
+                        <select
+                          value={data?.content?.countdown?.action || "do_nothing"}
+                          onChange={(e) => onChange?.({ 
+                            countdown: { 
+                              ...data?.content?.countdown, 
+                              action: e.target.value 
+                            } 
+                          })}
+                          style={{
+                            padding: "8px 12px",
+                            border: "1px solid #c9cccf",
+                            borderRadius: "6px",
+                            fontSize: "14px",
+                            backgroundColor: "#ffffff",
+                            color: "#202223",
+                            width: "100%"
+                          }}
+                        >
+                          <option value="do_nothing">Do nothing</option>
+                          <option value="hide_banner">Hide banner</option>
+                          <option value="show_message">Show custom message</option>
+                          <option value="redirect">Redirect to URL</option>
+                        </select>
+                      </BlockStack>
+                    </BlockStack>
+                  </div>
+                )}
+              </BlockStack>
+            </FormLayout>
+          </BlockStack>
+        </Card>
+      )}
+
       {/* Page Display Section */}
       <Card>
         <BlockStack gap="400">
