@@ -14,15 +14,13 @@ export default function BannerCreate() {
   useEffect(() => {
     if (type) {
       setBannerType(type as string);
+    } else {
+      // Default to 'fixed' banner type if no type is specified
+      setBannerType('fixed');
     }
   }, [type]);
 
 
-
-  const handleSave = (bannerData: any) => {
-    console.log("Banner saved:", bannerData);
-    router.push('/banners');
-  };
 
   const handleCancel = () => {
     router.back();
@@ -51,7 +49,6 @@ export default function BannerCreate() {
   return (
     <BannerBuilder 
       bannerType={bannerType as "countdown" | "fixed" | "automatic" | "slider"}
-      onSave={handleSave}
       onCancel={handleCancel}
     />
   );
