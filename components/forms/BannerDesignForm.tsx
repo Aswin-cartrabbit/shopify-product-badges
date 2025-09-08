@@ -38,8 +38,9 @@ const BannerDesignForm = ({ data, onChange, bannerType }: BannerDesignFormProps)
     onChange?.({ [colorType]: color });
   }, [onChange]);
 
-  const handleSliderChange = useCallback((property: string, value: number) => {
-    onChange?.({ [property]: value });
+  const handleSliderChange = useCallback((property: string, value: number | [number, number]) => {
+    const numericValue = Array.isArray(value) ? value[0] : value;
+    onChange?.({ [property]: numericValue });
   }, [onChange]);
 
   return (
@@ -102,12 +103,7 @@ const BannerDesignForm = ({ data, onChange, bannerType }: BannerDesignFormProps)
             icon={showBannerDesign ? "chevron-down" : "chevron-right"}
             onClick={() => setShowBannerDesign(!showBannerDesign)}
           >
-            <InlineStack gap="200">
-              <Icon source={QuestionCircleIcon} tone="subdued" />
-              <Text variant="headingMd" as="h3" tone="base">
-                Banner design
-              </Text>
-            </InlineStack>
+            Banner design
           </Button>
 
           <Collapsible
@@ -122,12 +118,12 @@ const BannerDesignForm = ({ data, onChange, bannerType }: BannerDesignFormProps)
                   <Text variant="bodyMd" as="p" fontWeight="medium">
                     Background color
                   </Text>
-                  <Text variant="bodySm" tone="subdued">
+                  <Text variant="bodySm" as="span" tone="subdued">
                     {data?.design?.backgroundColor || "#A7A7A7"}
                   </Text>
                   <div style={{ marginTop: "8px" }}>
                     <ColorPickerInput
-                      color={data?.design?.backgroundColor || "#A7A7A7"}
+                      value={data?.design?.backgroundColor || "#A7A7A7"}
                       onChange={(color) => handleColorChange("backgroundColor", color)}
                     />
                   </div>
@@ -137,12 +133,12 @@ const BannerDesignForm = ({ data, onChange, bannerType }: BannerDesignFormProps)
                   <Text variant="bodyMd" as="p" fontWeight="medium">
                     Banner text color
                   </Text>
-                  <Text variant="bodySm" tone="subdued">
+                  <Text variant="bodySm" as="span" tone="subdued">
                     {data?.design?.textColor || "#000000"}
                   </Text>
                   <div style={{ marginTop: "8px" }}>
                     <ColorPickerInput
-                      color={data?.design?.textColor || "#000000"}
+                      value={data?.design?.textColor || "#000000"}
                       onChange={(color) => handleColorChange("textColor", color)}
                     />
                   </div>
@@ -152,12 +148,12 @@ const BannerDesignForm = ({ data, onChange, bannerType }: BannerDesignFormProps)
                   <Text variant="bodyMd" as="p" fontWeight="medium">
                     Close icon color
                   </Text>
-                  <Text variant="bodySm" tone="subdued">
+                  <Text variant="bodySm" as="span" tone="subdued">
                     {data?.design?.closeIconColor || "#ffffff"}
                   </Text>
                   <div style={{ marginTop: "8px" }}>
                     <ColorPickerInput
-                      color={data?.design?.closeIconColor || "#ffffff"}
+                      value={data?.design?.closeIconColor || "#ffffff"}
                       onChange={(color) => handleColorChange("closeIconColor", color)}
                     />
                   </div>
@@ -210,12 +206,7 @@ const BannerDesignForm = ({ data, onChange, bannerType }: BannerDesignFormProps)
             icon={showButton ? "chevron-down" : "chevron-right"}
             onClick={() => setShowButton(!showButton)}
           >
-            <InlineStack gap="200">
-              <Icon source={QuestionCircleIcon} tone="subdued" />
-              <Text variant="headingMd" as="h3" tone="base">
-                Button
-              </Text>
-            </InlineStack>
+            Button
           </Button>
 
           <Collapsible
@@ -230,12 +221,12 @@ const BannerDesignForm = ({ data, onChange, bannerType }: BannerDesignFormProps)
                   <Text variant="bodyMd" as="p" fontWeight="medium">
                     Button background color
                   </Text>
-                  <Text variant="bodySm" tone="subdued">
+                  <Text variant="bodySm" as="span" tone="subdued">
                     {data?.design?.buttonBackgroundColor || "#000000"}
                   </Text>
                   <div style={{ marginTop: "8px" }}>
                     <ColorPickerInput
-                      color={data?.design?.buttonBackgroundColor || "#000000"}
+                      value={data?.design?.buttonBackgroundColor || "#000000"}
                       onChange={(color) => handleColorChange("buttonBackgroundColor", color)}
                     />
                   </div>
@@ -245,12 +236,12 @@ const BannerDesignForm = ({ data, onChange, bannerType }: BannerDesignFormProps)
                   <Text variant="bodyMd" as="p" fontWeight="medium">
                     Button text color
                   </Text>
-                  <Text variant="bodySm" tone="subdued">
+                  <Text variant="bodySm" as="span" tone="subdued">
                     {data?.design?.buttonTextColor || "#ffffff"}
                   </Text>
                   <div style={{ marginTop: "8px" }}>
                     <ColorPickerInput
-                      color={data?.design?.buttonTextColor || "#ffffff"}
+                      value={data?.design?.buttonTextColor || "#ffffff"}
                       onChange={(color) => handleColorChange("buttonTextColor", color)}
                     />
                   </div>
@@ -260,12 +251,12 @@ const BannerDesignForm = ({ data, onChange, bannerType }: BannerDesignFormProps)
                   <Text variant="bodyMd" as="p" fontWeight="medium">
                     Button border color
                   </Text>
-                  <Text variant="bodySm" tone="subdued">
+                  <Text variant="bodySm" as="span" tone="subdued">
                     {data?.design?.buttonBorderColor || "#000000"}
                   </Text>
                   <div style={{ marginTop: "8px" }}>
                     <ColorPickerInput
-                      color={data?.design?.buttonBorderColor || "#000000"}
+                      value={data?.design?.buttonBorderColor || "#000000"}
                       onChange={(color) => handleColorChange("buttonBorderColor", color)}
                     />
                   </div>
@@ -312,7 +303,7 @@ const BannerDesignForm = ({ data, onChange, bannerType }: BannerDesignFormProps)
       {/* Help Section */}
       <Card>
         <BlockStack gap="200">
-          <Text variant="bodyMd">
+          <Text variant="bodyMd" as="p">
             About Banner?{" "}
             <Button variant="plain">
               See Banner docs

@@ -55,6 +55,10 @@ const BannerContentForm = ({ data, onChange, bannerType }: BannerContentFormProp
     onChange?.({ useButton: checked });
   }, [onChange]);
 
+  const handleButtonTextChange = useCallback((value: string) => {
+    onChange?.({ buttonText: value });
+  }, [onChange]);
+
   const handleShowCloseButtonChange = useCallback((checked: boolean) => {
     onChange?.({ showCloseButton: checked });
   }, [onChange]);
@@ -82,6 +86,7 @@ const BannerContentForm = ({ data, onChange, bannerType }: BannerContentFormProp
               placeholder="Enter banner text"
               multiline={2}
               helpText="This text will appear in your banner"
+              autoComplete="off"
             />
 
             <TextField
@@ -90,6 +95,7 @@ const BannerContentForm = ({ data, onChange, bannerType }: BannerContentFormProp
               onChange={handleLinkChange}
               placeholder="https://example.com"
               helpText="Add a link to make your banner clickable"
+              autoComplete="off"
             />
 
             {/* Link Options */}
@@ -103,7 +109,7 @@ const BannerContentForm = ({ data, onChange, bannerType }: BannerContentFormProp
                   name="link_option"
                   onChange={(checked) => handleLinkOptionChange(checked, "new_tab")}
                 />
-                <RadioButton
+                {/* <RadioButton
                   label={
                     <InlineStack gap="100">
                       <Text as="span">Open link in the same tab.</Text>
@@ -117,7 +123,7 @@ const BannerContentForm = ({ data, onChange, bannerType }: BannerContentFormProp
                   name="link_option"
                   onChange={(checked) => handleLinkOptionChange(checked, "same_tab")}
                   disabled
-                />
+                /> */}
               </BlockStack>
             </BlockStack>
 
@@ -128,6 +134,21 @@ const BannerContentForm = ({ data, onChange, bannerType }: BannerContentFormProp
                 checked={data?.content?.useButton || false}
                 onChange={handleUseButtonChange}
               />
+              
+              {/* Show button text input when useButton is checked */}
+              {data?.content?.useButton && (
+                <div style={{ marginLeft: "24px" }}>
+                  <TextField
+                    label="Button text"
+                    value={data?.content?.buttonText || "Shop now!"}
+                    onChange={handleButtonTextChange}
+                    placeholder="Enter button text"
+                    helpText="This text will appear on your button"
+                    autoComplete="off"
+                  />
+                </div>
+              )}
+              
               <Checkbox
                 label='Show close button "X"'
                 checked={data?.content?.showCloseButton || false}
@@ -147,12 +168,7 @@ const BannerContentForm = ({ data, onChange, bannerType }: BannerContentFormProp
             icon={showPageDisplay ? "chevron-down" : "chevron-right"}
             onClick={() => setShowPageDisplay(!showPageDisplay)}
           >
-            <InlineStack gap="200">
-              <Icon source={QuestionCircleIcon} tone="subdued" />
-              <Text variant="headingMd" as="h3" tone="base">
-                Page display
-              </Text>
-            </InlineStack>
+            Page display
           </Button>
 
           <Collapsible
@@ -161,7 +177,7 @@ const BannerContentForm = ({ data, onChange, bannerType }: BannerContentFormProp
             transition={{ duration: '500ms', timingFunction: 'ease-in-out' }}
           >
             <BlockStack gap="300">
-              <Text variant="bodyMd" tone="subdued">
+              <Text variant="bodyMd" as="p" tone="subdued">
                 Choose where to display this banner
               </Text>
               
@@ -200,20 +216,17 @@ const BannerContentForm = ({ data, onChange, bannerType }: BannerContentFormProp
       {/* Customer Conditions Section */}
       <Card>
         <BlockStack gap="400">
-          <Button
-            variant="plain"
-            textAlign="left"
-            icon={showCustomerConditions ? "chevron-down" : "chevron-right"}
-            onClick={() => setShowCustomerConditions(!showCustomerConditions)}
-          >
-            <InlineStack gap="200">
-              <Icon source={QuestionCircleIcon} tone="subdued" />
-              <Text variant="headingMd" as="h3" tone="base">
-                Customer conditions
-              </Text>
-              <Badge tone="magic">Growth</Badge>
-            </InlineStack>
-          </Button>
+          <InlineStack gap="200" align="start">
+            <Button
+              variant="plain"
+              textAlign="left"
+              icon={showCustomerConditions ? "chevron-down" : "chevron-right"}
+              onClick={() => setShowCustomerConditions(!showCustomerConditions)}
+            >
+              Customer conditions
+            </Button>
+            <Badge tone="magic">Growth</Badge>
+          </InlineStack>
 
           <Collapsible
             open={showCustomerConditions}
@@ -221,11 +234,11 @@ const BannerContentForm = ({ data, onChange, bannerType }: BannerContentFormProp
             transition={{ duration: '500ms', timingFunction: 'ease-in-out' }}
           >
             <BlockStack gap="300">
-              <Text variant="bodyMd" tone="subdued">
+              <Text variant="bodyMd" as="p" tone="subdued">
                 Set conditions for when to show this banner to customers
               </Text>
               
-              <Text variant="bodyMd">
+              <Text variant="bodyMd" as="p">
                 Customer targeting options will be available here.
               </Text>
             </BlockStack>
@@ -242,12 +255,7 @@ const BannerContentForm = ({ data, onChange, bannerType }: BannerContentFormProp
             icon={showSchedule ? "chevron-down" : "chevron-right"}
             onClick={() => setShowSchedule(!showSchedule)}
           >
-            <InlineStack gap="200">
-              <Icon source={CalendarTimeIcon} tone="subdued" />
-              <Text variant="headingMd" as="h3" tone="base">
-                Schedule
-              </Text>
-            </InlineStack>
+            Schedule
           </Button>
 
           <Collapsible
@@ -305,12 +313,7 @@ const BannerContentForm = ({ data, onChange, bannerType }: BannerContentFormProp
             icon={showTranslation ? "chevron-down" : "chevron-right"}
             onClick={() => setShowTranslation(!showTranslation)}
           >
-            <InlineStack gap="200">
-              <Icon source={QuestionCircleIcon} tone="subdued" />
-              <Text variant="headingMd" as="h3" tone="base">
-                Translation
-              </Text>
-            </InlineStack>
+            Translation
           </Button>
 
           <Collapsible
@@ -321,10 +324,10 @@ const BannerContentForm = ({ data, onChange, bannerType }: BannerContentFormProp
             <BlockStack gap="300">
               <Button variant="plain">
                 Add translations
-                <Badge tone="info">Unlimited</Badge>
               </Button>
+              <Badge tone="info">Unlimited</Badge>
               
-              <Text variant="bodyMd" tone="subdued">
+              <Text variant="bodyMd" as="p" tone="subdued">
                 Add translations for different languages.{" "}
                 <Button variant="plain">Read more</Button>
               </Text>

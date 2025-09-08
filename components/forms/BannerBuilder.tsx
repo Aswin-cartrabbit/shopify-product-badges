@@ -9,6 +9,7 @@ import {
   TextField,
   InlineStack,
   Select,
+  ButtonGroup,
 } from "@shopify/polaris";
 import { useCallback, useState, useEffect } from "react";
 import { useRouter } from "next/router";
@@ -53,6 +54,7 @@ export const BannerBuilder = ({
       link: "",
       openInNewTab: true,
       useButton: false,
+      buttonText: "Shop now!",
       showCloseButton: false,
     },
     display: {
@@ -83,9 +85,9 @@ export const BannerBuilder = ({
     }
   });
 
+
   const handleTabChange = useCallback(
     (selectedTabIndex: number) => {
-      console.log("Tab changed to:", selectedTabIndex);
       setSelectedTab(selectedTabIndex);
     },
     []
@@ -93,13 +95,23 @@ export const BannerBuilder = ({
 
   const handleSave = async () => {
     try {
+      // Transform banner data to match the existing badge API structure
       const payload = {
         name: formData.name || bannerName,
-        type: bannerType,
-        content: formData.content,
-        display: formData.display,
-        schedule: formData.schedule,
-        design: formData.design,
+        description: `${bannerType.charAt(0).toUpperCase() + bannerType.slice(1)} banner`,
+        type: "BANNER", // Use BANNER type for the existing API
+        design: {
+          // Map banner design data to the expected format
+          ...formData.design,
+          bannerType: bannerType, // Store banner type in design
+          content: formData.content, // Store content in design
+          schedule: formData.schedule // Store schedule in design
+        },
+        display: formData.display, // This maps to 'rules' in the API
+        settings: {
+          bannerType: bannerType,
+          version: "1.0"
+        },
         status: "DRAFT"
       };
 
@@ -108,8 +120,8 @@ export const BannerBuilder = ({
       if (onSave) {
         onSave(payload);
       } else {
-        // Default API call
-        const response = await fetch('/api/banner/create', {
+        // Use existing badge API endpoint
+        const response = await fetch('/api/badge/create', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -118,15 +130,19 @@ export const BannerBuilder = ({
         });
 
         if (response.ok) {
-          console.log("Banner created successfully");
+          const result = await response.json();
+          console.log("Banner created successfully:", result);
           setIsModalOpen(false);
           router.push('/banners');
         } else {
-          console.error("Failed to create banner");
+          const errorData = await response.json();
+          console.error("Failed to create banner:", errorData);
+          alert(`Failed to create banner: ${errorData.message || 'Unknown error'}`);
         }
       }
     } catch (error) {
       console.error("Error creating banner:", error);
+      alert("An error occurred while saving the banner. Please try again.");
     }
   };
 
@@ -139,13 +155,30 @@ export const BannerBuilder = ({
     }
   };
 
-  const handleContentChange = (contentData: any) => {
-    setFormData(prev => ({
-      ...prev,
-      content: { ...prev.content, ...contentData },
-      display: { ...prev.display, ...contentData },
-      schedule: { ...prev.schedule, ...contentData }
-    }));
+  const handleContentChange = (data: any) => {
+    setFormData(prev => {
+      const newFormData = { ...prev };
+      
+      // Handle content updates
+      if (data.text !== undefined || data.link !== undefined || data.openInNewTab !== undefined || 
+          data.useButton !== undefined || data.buttonText !== undefined || data.showCloseButton !== undefined) {
+        newFormData.content = { ...prev.content, ...data };
+      }
+      
+      // Handle display updates
+      if (data.homePages !== undefined || data.collectionPages !== undefined || 
+          data.productPages !== undefined || data.specificPages !== undefined) {
+        newFormData.display = { ...prev.display, ...data };
+      }
+      
+      // Handle schedule updates
+      if (data.startDate !== undefined || data.endDate !== undefined || 
+          data.startDateTime !== undefined || data.endDateTime !== undefined) {
+        newFormData.schedule = { ...prev.schedule, ...data };
+      }
+      
+      return newFormData;
+    });
   };
 
   const handleDesignChange = (designData: any) => {
@@ -306,74 +339,66 @@ export const BannerBuilder = ({
               overflow: "auto",
             }}
           >
-            <Card>
-              {/* Banner Name and Status in Preview Area */}
-              <BlockStack gap="400">
-                <InlineStack gap="400" align="space-between">
-                  <div style={{ flex: 1 }}>
+                     <div style={{ marginBottom: "16px" }}>
+              <Card>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "start",
+                    gap: "16px",
+                  }}
+                >
+                  {/* Label Name Input */}
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "16px",
+                    }}
+                  >
                     <TextField
                       label=""
-                      value={bannerName}
+                      value={formData.name || bannerName}
                       onChange={(value) => {
                         setBannerName(value);
-                        setFormData(prev => ({ ...prev, name: value }));
+                        setFormData({ ...formData, name: value });
                       }}
-                      placeholder="Enter banner name"
+                      placeholder="Deco Label"
                       autoComplete="off"
                     />
+
+                    {/* Status Toggle */}
+                    <div style={{ minWidth: "200px" }}>
+                      <ButtonGroup variant="segmented">
+                        <Button
+                          pressed={bannerStatus === "Active"}
+                          onClick={() => setBannerStatus("Active")}
+                        >
+                          Active
+                        </Button>
+                        <Button
+                          pressed={bannerStatus === "Inactive"}
+                          onClick={() => setBannerStatus("Inactive")}
+                        >
+                          Inactive
+                        </Button>
+                      </ButtonGroup>
+                    </div>
                   </div>
-                  
-                  {/* Status Tabs */}
-                  <div style={{
-                    display: "flex",
-                    gap: "2px",
-                    backgroundColor: "#f6f6f7",
-                    padding: "2px",
-                    borderRadius: "8px",
-                    width: "fit-content"
-                  }}>
-                    <button
-                      style={{
-                        padding: "8px 16px",
-                        borderRadius: "6px",
-                        border: "none",
-                        backgroundColor: bannerStatus === "Active" ? "#00a047" : "transparent",
-                        color: bannerStatus === "Active" ? "#ffffff" : "#6b7280",
-                        fontWeight: "500",
-                        fontSize: "14px",
-                        cursor: "pointer",
-                        transition: "all 0.2s ease",
-                        minWidth: "auto"
-                      }}
-                      onClick={() => setBannerStatus("Active")}
-                    >
-                      Active
-                    </button>
-                    <button
-                      style={{
-                        padding: "8px 16px",
-                        borderRadius: "6px",
-                        border: "none",
-                        backgroundColor: bannerStatus === "Inactive" ? "#6b7280" : "transparent",
-                        color: bannerStatus === "Inactive" ? "#ffffff" : "#6b7280",
-                        fontWeight: "500",
-                        fontSize: "14px",
-                        cursor: "pointer",
-                        transition: "all 0.2s ease",
-                        minWidth: "auto"
-                      }}
-                      onClick={() => setBannerStatus("Inactive")}
-                    >
-                      Inactive
-                    </button>
-                  </div>
-                </InlineStack>
-                
+
+                  {/* Support Button */}
+                  <Button variant="secondary">Support</Button>
+                </div>
+              </Card>
+            </div>
+            <Card>
+              {/* Banner Name and Status in Preview Area */}
                 <BannerPreview 
+                  key={`${formData.content?.useButton}-${formData.content?.showCloseButton}`}
                   bannerData={formData}
                   bannerType={bannerType}
                 />
-              </BlockStack>
             </Card>
           </div>
         </div>
