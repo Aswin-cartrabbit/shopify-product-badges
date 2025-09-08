@@ -115,14 +115,18 @@ const handler = async (req, res) => {
         // Find app embed blocks
         appEmbedBlocks = Object.entries(blocks)
           .filter(([blockId, blockInfo]) => {
-            return blockInfo.type && blockInfo.type.includes('/blocks/');
+            const block = blockInfo as any;
+            return block.type && block.type.includes('/blocks/');
           })
-          .map(([blockId, blockInfo]) => ({
-            id: blockId,
-            type: blockInfo.type,
-            disabled: blockInfo.disabled || false,
-            settings: blockInfo.settings || {}
-          }));
+          .map(([blockId, blockInfo]) => {
+            const block = blockInfo as any;
+            return {
+              id: blockId,
+              type: block.type,
+              disabled: block.disabled || false,
+              settings: block.settings || {}
+            };
+          });
       } catch (parseError) {
         console.error("Error parsing settings_data.json:", parseError);
       }

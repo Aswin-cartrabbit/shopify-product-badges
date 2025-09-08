@@ -81,7 +81,8 @@ const handler = async (req, res) => {
     // Look for app embed blocks that match our app
     // The app embed block type typically follows the pattern: "apps/your-app-handle/blocks/embed"
     const appEmbedBlocks = Object.entries(blocks).filter(([blockId, blockInfo]) => {
-      return blockInfo.type && blockInfo.type.includes('/blocks/') && !blockInfo.disabled;
+      const block = blockInfo as any;
+      return block.type && block.type.includes('/blocks/') && !block.disabled;
     });
 
     // Check if any app embed block is related to our app
