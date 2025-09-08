@@ -1,5 +1,13 @@
 import ReviewBanner from "@/components/banners/ReviewBanner";
 import isInitialLoad from "@/utils/middleware/isInitialLoad";
+import ThemeEmbedBanner from "@/components/ThemeEmbedBanner";
+import NotifyBanner from "@/components/NotifyBanner";
+import { useThemeEmbedStatus } from "@/components/hooks/useThemeEmbedStatus";
+import { 
+  redirectToThemeEditor, 
+  getEmbedBannerDismissalStatus, 
+  setEmbedBannerDismissalStatus 
+} from "@/utils/themeEmbedHelper";
 import {
   Page,
   Card,
@@ -10,6 +18,7 @@ import {
   Icon,
   TextField,
   Tooltip,
+  Spinner,
 } from "@shopify/polaris";
 import { 
   SearchIcon, 
@@ -20,7 +29,7 @@ import {
   NotificationIcon
 } from "@shopify/polaris-icons";
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 export async function getServerSideProps(context) {
   //DO NOT REMOVE THIS.
@@ -29,6 +38,51 @@ export async function getServerSideProps(context) {
 export default function Dashboard() {
   const [searchValue, setSearchValue] = useState("");
   const router = useRouter();
+  
+  // Theme embed checking logic
+  const { isLoading, error, embedStatus, checkStatus } = useThemeEmbedStatus();
+  const [isDismissed, setIsDismissed] = useState(() => {
+    // Initialize with localStorage value to prevent flash
+    if (typeof window !== "undefined") {
+      return getEmbedBannerDismissalStatus();
+    }
+    return false;
+  });
+
+  const shouldShowEmbedBanner = !isLoading && 
+    !error && 
+    embedStatus && 
+    !embedStatus.hasAppEmbedEnabled && 
+    !isDismissed;
+
+  const handleDismiss = useCallback(() => {
+    if (isDismissed) {
+      return; // Prevent duplicate dismissals
+    }
+    
+    setIsDismissed(true);
+    setEmbedBannerDismissalStatus(true);
+  }, [isDismissed]);
+
+  const handleEnable = () => {
+    // Use the helper function to redirect to theme editor
+    const themeId = embedStatus?.activeTheme?.id;
+    redirectToThemeEditor(undefined, themeId);
+  };
+
+  // Check if banner was previously dismissed
+  useEffect(() => {
+    const dismissed = getEmbedBannerDismissalStatus();
+    setIsDismissed(dismissed);
+  }, []);
+
+  // Reset dismissal ONLY when embed status changes from disabled to enabled
+  useEffect(() => {
+    if (embedStatus?.hasAppEmbedEnabled === true) {
+      setIsDismissed(false);
+      setEmbedBannerDismissalStatus(false);
+    }
+  }, [embedStatus?.hasAppEmbedEnabled]);
 
   const activeElements = [
     {
@@ -110,6 +164,43 @@ export default function Dashboard() {
       minHeight: "100vh"
     }}>
       <div style={{ maxWidth: "900px", margin: "0 auto" }}>
+        {/* Theme Embed Status Messages */}
+        {isLoading && (
+          <div style={{ 
+            textAlign: "center", 
+            padding: "20px",
+            marginBottom: "24px",
+            backgroundColor: "#fff",
+            borderRadius: "8px",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.1)"
+          }}>
+            <Spinner size="small" /> 
+            <Text as="p">Checking theme configuration...</Text>
+          </div>
+        )}
+        
+        {error && !isLoading && (
+          <div style={{ marginBottom: "24px" }}>
+            <NotifyBanner
+              title="Unable to check theme configuration"
+              tone="critical"
+              description={`Error: ${error}. Some features may not work correctly.`}
+              onDismiss={handleDismiss}
+            />
+          </div>
+        )}
+        
+        {shouldShowEmbedBanner && (
+          <div style={{ marginBottom: "24px" }}>
+            <ThemeEmbedBanner 
+              key="theme-embed-banner"
+              onDismiss={handleDismiss}
+              onEnable={handleEnable}
+              activeTheme={embedStatus?.activeTheme}
+            />
+          </div>
+        )}
+
         {/* Header */}
         <div style={{ marginBottom: "24px" }}>
           <InlineStack align="space-between" blockAlign="center">
