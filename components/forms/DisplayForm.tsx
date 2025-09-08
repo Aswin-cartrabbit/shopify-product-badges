@@ -49,12 +49,12 @@ const DisplayForm = ({ data, onChange, type }: DisplayFormProps) => {
     year: badge.display?.endDateTime ? new Date(badge.display.endDateTime).getFullYear() : new Date().getFullYear()
   });
   const [selectedStartDates, setSelectedStartDates] = useState({
-    start: badge.display?.startDateTime ? new Date(badge.display.startDateTime) : undefined,
-    end: badge.display?.startDateTime ? new Date(badge.display.startDateTime) : undefined,
+    start: badge.display?.startDateTime ? new Date(badge.display.startDateTime) : new Date(),
+    end: badge.display?.startDateTime ? new Date(badge.display.startDateTime) : new Date(),
   });
   const [selectedEndDates, setSelectedEndDates] = useState({
-    start: badge.display?.endDateTime ? new Date(badge.display.endDateTime) : undefined,
-    end: badge.display?.endDateTime ? new Date(badge.display.endDateTime) : undefined,
+    start: badge.display?.endDateTime ? new Date(badge.display.endDateTime) : new Date(),
+    end: badge.display?.endDateTime ? new Date(badge.display.endDateTime) : new Date(),
   });
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
@@ -74,11 +74,7 @@ const DisplayForm = ({ data, onChange, type }: DisplayFormProps) => {
   const handleScheduleToggle = () => {
     updateDisplay("isScheduled", !badge.display.isScheduled);
     if (!badge.display.isScheduled) {
-      // Only set dates if user explicitly enables schedule
-      updateDisplay("startDateTime", undefined);
-      updateDisplay("endDateTime", undefined);
-    } else {
-      // Clear dates when disabling schedule
+      // Don't auto-set dates - let user choose when to schedule
       updateDisplay("startDateTime", undefined);
       updateDisplay("endDateTime", undefined);
     }
@@ -244,7 +240,17 @@ const DisplayForm = ({ data, onChange, type }: DisplayFormProps) => {
               <Text variant="headingSm" as="h3">Schedule</Text>
             </InlineStack>
             <BlockStack gap="200">
-              <Checkbox label="Start date" checked={Boolean(badge.display?.startDateTime)} onChange={(v) => updateDisplay("startDateTime", v ? (badge.display?.startDateTime || Date.now()) : undefined)} />
+              <Checkbox label="Start date" checked={Boolean(badge.display?.startDateTime)} onChange={(v) => {
+                if (v) {
+                  // Only set date when user explicitly enables - don't auto-set to now
+                  setShowStartCheckbox(true);
+                  setShowStartDatePicker(true);
+                } else {
+                  updateDisplay("startDateTime", undefined);
+                  setShowStartCheckbox(false);
+                  setShowStartDatePicker(false);
+                }
+              }} />
               {badge.display?.startDateTime && (
                 <InlineStack gap="200">
                   <div style={{ flex: 1 }}>
@@ -252,7 +258,17 @@ const DisplayForm = ({ data, onChange, type }: DisplayFormProps) => {
                   </div>
                 </InlineStack>
               )}
-              <Checkbox label="End date" checked={Boolean(badge.display?.endDateTime)} onChange={(v) => updateDisplay("endDateTime", v ? (badge.display?.endDateTime || Date.now()) : undefined)} />
+              <Checkbox label="End date" checked={Boolean(badge.display?.endDateTime)} onChange={(v) => {
+                if (v) {
+                  // Only set date when user explicitly enables - don't auto-set to now
+                  setShowEndCheckbox(true);
+                  setShowEndDatePicker(true);
+                } else {
+                  updateDisplay("endDateTime", undefined);
+                  setShowEndCheckbox(false);
+                  setShowEndDatePicker(false);
+                }
+              }} />
               {badge.display?.endDateTime && (
                 <InlineStack gap="200">
                   <div style={{ flex: 1 }}>
@@ -284,7 +300,8 @@ const DisplayForm = ({ data, onChange, type }: DisplayFormProps) => {
                   setShowStartCheckbox(checked);
                   setShowStartDatePicker(checked);
                   if (checked) {
-                    updateDisplay("startDateTime", Date.now());
+                    // Don't auto-set to current time - let user pick date
+                    // updateDisplay("startDateTime", Date.now());
                   } else {
                     updateDisplay("startDateTime", undefined);
                   }
@@ -324,7 +341,8 @@ const DisplayForm = ({ data, onChange, type }: DisplayFormProps) => {
                   setShowEndCheckbox(checked);
                   setShowEndDatePicker(checked);
                   if (checked) {
-                    updateDisplay("endDateTime", Date.now());
+                    // Don't auto-set to current time - let user pick date
+                    // updateDisplay("endDateTime", Date.now());
                   } else {
                     updateDisplay("endDateTime", undefined);
                   }
