@@ -7,6 +7,7 @@ import {
   Select,
 } from "@shopify/polaris";
 import { useState } from "react";
+import CountdownTimer from "./CountdownTimer";
 
 interface BannerPreviewProps {
   bannerData?: any;
@@ -23,7 +24,9 @@ const BannerPreview = ({ bannerData, bannerType }: BannerPreviewProps) => {
     // Handle different banner types
     if (bannerType === "countdown") {
       return (
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: content.showCloseButton ? "space-between" : "center", gap: "12px", width: "100%" }}>
+
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", width: "100%" }}>
            <span 
              style={{
                fontSize: `${design.textSize || 16}px`,
@@ -31,22 +34,86 @@ const BannerPreview = ({ bannerData, bannerType }: BannerPreviewProps) => {
                color: "inherit"
              }}
            >
-             FLASH SALE ENDS IN
+             {content.text || "FLASH SALE ENDS IN"}
            </span>
-          <div style={{ 
-            display: "flex", 
-            gap: "8px", 
-            fontSize: `${(design.textSize || 16) + 2}px`,
-            fontWeight: "bold"
-          }}>
-            <span>00 : 03 : 48</span>
+          
+          {/* Show countdown timer only if enabled */}
+          {content.countdown?.enabled ? (
+            <CountdownTimer
+              targetDate={content.countdown?.targetDate || "Mon Jul 29 2024"}
+              targetTime={content.countdown?.targetTime || "05:09:31 PM"}
+              labels={content.countdown?.labels || {
+                days: "Days",
+                hours: "Hrs",
+                minutes: "Mins",
+                seconds: "Secs"
+              }}
+              style={{
+                fontSize: design.textSize || 16,
+                fontWeight: "bold",
+                color: "inherit"
+              }}
+            />
+          ) : (
+            // Fallback static display when countdown is disabled
+            <>
+              <div style={{ 
+                display: "flex", 
+                width: "100%",
+                gap: "8px", 
+                fontSize: `${(design.textSize || 16) + 2}px`,
+                fontWeight: "bold"
+              }}>
+                <span>00 : 03 : 48</span>
+              </div>
+              <div style={{
+                fontSize: `${Math.max(10, (design.textSize || 16) - 4)}px`,
+                opacity: 0.8
+              }}>
+                Hours    Minutes    Seconds
+              </div>
+            </>
+          )}
+
+          {content.message && (
+            <div style={{
+              fontSize: `${Math.max(12, (design.textSize || 16) - 2)}px`,
+              opacity: 0.9,
+              marginTop: "4px"
+            }}>
+              {content.message}
+            </div>
+          )}
+          {content.useButton && (
+            <div
+              style={{
+                backgroundColor: design.buttonBackgroundColor || "#000000",
+                color: design.buttonTextColor || "#ffffff",
+                border: `${design.buttonBorderSize || 0}px solid ${design.buttonBorderColor || "#000000"}`,
+                borderRadius: `${design.buttonCornerRadius || 8}px`,
+                fontSize: `${design.buttonTextSize || 14}px`,
+                padding: "6px 12px",
+                cursor: "pointer",
+                display: "inline-block",
+                marginTop: "8px"
+              }}
+            >
+              {content.buttonText || "Shop now!"}
+            </div>
+          )}
+        </div>
+        {content.showCloseButton && (
+          <div
+            style={{
+              color: design.closeIconColor || "#ffffff",
+              cursor: "pointer",
+              fontSize: "20px",
+              fontWeight: "bold",
+            }}
+          >
+            ×
           </div>
-          <div style={{
-            fontSize: `${Math.max(10, (design.textSize || 16) - 4)}px`,
-            opacity: 0.8
-          }}>
-            Hours    Minutes    Seconds
-          </div>
+        )}
         </div>
       );
     }
@@ -121,31 +188,42 @@ const BannerPreview = ({ bannerData, bannerType }: BannerPreviewProps) => {
     }
 
     return (
-      <div style={{ display: "flex", alignItems: "center", justifyContent: content.showCloseButton ? "space-between" : "center", gap: "12px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-           <span 
-             style={{
-               fontSize: `${design.textSize || 16}px`,
-               fontWeight: "500",
-               color: "inherit"
-             }}
-           >
-             {content.text || "Deco banner"}
-           </span>
-          {content.useButton && (
-            <div
+      <div style={{ display: "flex", alignItems: "center", justifyContent: content.showCloseButton ? "space-between" : "center", gap: "12px", width: "100%" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px", flexDirection: content.message ? "column" : "row" ,width: "100%"}}>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <span 
               style={{
-                backgroundColor: design.buttonBackgroundColor || "#000000",
-                color: design.buttonTextColor || "#ffffff",
-                border: `${design.buttonBorderSize || 0}px solid ${design.buttonBorderColor || "#000000"}`,
-                borderRadius: `${design.buttonCornerRadius || 8}px`,
-                fontSize: `${design.buttonTextSize || 16}px`,
-                padding: "8px 16px",
-                cursor: "pointer",
-                display: "inline-block",
+                fontSize: `${design.textSize || 16}px`,
+                fontWeight: "500",
+                color: "inherit"
               }}
             >
-              {content.buttonText || "Shop now!"}
+              {content.text || "Deco banner"}
+            </span>
+            {content.useButton && (
+              <div
+                style={{
+                  backgroundColor: design.buttonBackgroundColor || "#000000",
+                  color: design.buttonTextColor || "#ffffff",
+                  border: `${design.buttonBorderSize || 0}px solid ${design.buttonBorderColor || "#000000"}`,
+                  borderRadius: `${design.buttonCornerRadius || 8}px`,
+                  fontSize: `${design.buttonTextSize || 16}px`,
+                  padding: "8px 16px",
+                  cursor: "pointer",
+                  display: "inline-block",
+                }}
+              >
+                {content.buttonText || "Shop now!"}
+              </div>
+            )}
+          </div>
+          {content.message && (
+            <div style={{
+              fontSize: `${Math.max(12, (design.textSize || 16) - 2)}px`,
+              opacity: 0.9,
+              textAlign: "center"
+            }}>
+              {content.message}
             </div>
           )}
         </div>

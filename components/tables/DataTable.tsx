@@ -301,6 +301,7 @@ export function DataTable({
       // Add filters based on current tab and applied filters
       if (selected === 1) params.append("status", "ACTIVE"); // Active tab
       if (selected === 2) params.append("status", "INACTIVE"); // Inactive tab
+      if (selected === 3) params.append("status", "DRAFT"); // Draft tab
 
       // Add applied filters
       if (componentType && !isEmpty(componentType)) {
@@ -489,9 +490,9 @@ export function DataTable({
   // Helper functions for badges
   const getStatusBadge = (status) => {
     const statusConfig = {
-      ACTIVE: { progress: "complete", children: "Active" },
-      INACTIVE: { progress: "incomplete", children: "Inactive" },
-      DRAFT: { progress: "partiallyComplete", children: "Draft" },
+      ACTIVE: { progress: "complete", children: "Active", tone:"success" },
+      INACTIVE: { progress: "incomplete", children: "Inactive", tone:"critical" },
+      DRAFT: { progress: "partiallyComplete", children: "Draft", tone:"attention" },
     };
     return (
       <Badge {...statusConfig[status]}>
@@ -572,8 +573,9 @@ export function DataTable({
 
     // Navigate to the appropriate edit page based on component type
     if (componentType === 'trust_badge') {
+      // For trust badges, use the new page with edit mode
       router.push({
-        pathname: '/trust-badges/index',
+        pathname: '/trust-badges/new',
         query: {
           edit: 'true',
           id: component.id
