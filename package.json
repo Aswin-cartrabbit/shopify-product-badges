@@ -3,12 +3,8 @@
   "version": "2025.07.29",
   "type": "module",
   "author": {
-    "name": "Harshdeep Singh Hura",
-    "url": "https://harshdeephura.com"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/kinngh/shopify-nextjs-prisma-app.git"
+    "name": "logesh & dinesh & Aswin",
+    "url": "https://cartrabbit.com"
   },
   "scripts": {
     "dev": "next dev",
@@ -46,8 +42,6 @@
     "@shopify/app-bridge-react": "^4.2.2",
     "@shopify/polaris": "^13.9.5",
     "@shopify/shopify-api": "^11.14.1",
-    "@types/react": "^19.1.12",
-    "@types/react-dom": "^19.1.9",
     "axios": "^1.11.0",
     "cryptr": "^6.3.0",
     "ioredis": "^5.7.0",
@@ -57,9 +51,7 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^7.7.1",
-    "typescript": "^5.8.3",
-    "zustand": "^5.0.8",
-    "@types/node": "^24.3.0"
+    "zustand": "^5.0.8"
   },
   "devDependencies": {
     "@iarna/toml": "^2.2.5",
