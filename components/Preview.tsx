@@ -44,7 +44,7 @@ export default function getHtmlPreviewCode() {
   const badgeStyles = `
     position: absolute;
     z-index: 10;
-    padding: ${Math.max(2, (design.spacing.insideTop || 8))}px ${Math.max(2, (design.spacing.insideBottom || 8))}px;
+    padding: ${Math.max(2, Number(design.spacing.insideTop) || 8)}px ${Math.max(2, Number(design.spacing.insideBottom) || 8)}px;
     background: ${getBackgroundCSS()};
     color: white;
     font-size: ${calculateFontSize()}px;

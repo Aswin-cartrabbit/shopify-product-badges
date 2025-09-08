@@ -62,36 +62,39 @@ const BannerPreview = ({ bannerData, bannerType }: BannerPreviewProps) => {
     }
 
     return (
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "12px" }}>
-        <Text as="span" variant="bodyMd" fontWeight="medium">
-          {content.text || "Deco banner"}
-        </Text>
-        {content.useButton && (
-          <Button
-            size="slim"
-            variant="plain"
-            style={{
-              backgroundColor: design.buttonBackgroundColor || "#000000",
-              color: design.buttonTextColor || "#ffffff",
-              border: `${design.buttonBorderSize || 0}px solid ${design.buttonBorderColor || "#000000"}`,
-              borderRadius: `${design.buttonCornerRadius || 8}px`,
-              fontSize: `${design.buttonTextSize || 16}px`,
-            }}
-          >
-            Click here
-          </Button>
-        )}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: content.showCloseButton ? "space-between" : "center", gap: "12px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <Text as="span" variant="bodyMd" fontWeight="medium">
+            {content.text || "Deco banner"}
+          </Text>
+          {content.useButton && (
+            <div
+              style={{
+                backgroundColor: design.buttonBackgroundColor || "#000000",
+                color: design.buttonTextColor || "#ffffff",
+                border: `${design.buttonBorderSize || 0}px solid ${design.buttonBorderColor || "#000000"}`,
+                borderRadius: `${design.buttonCornerRadius || 8}px`,
+                fontSize: `${design.buttonTextSize || 16}px`,
+                padding: "8px 16px",
+                cursor: "pointer",
+                display: "inline-block",
+              }}
+            >
+              {content.buttonText || "Shop now!"}
+            </div>
+          )}
+        </div>
         {content.showCloseButton && (
-          <Button
-            size="slim"
-            variant="plain"
+          <div
             style={{
               color: design.closeIconColor || "#ffffff",
-              marginLeft: "auto"
+              cursor: "pointer",
+              fontSize: "20px",
+              fontWeight: "bold",
             }}
           >
             ×
-          </Button>
+          </div>
         )}
       </div>
     );
@@ -157,9 +160,9 @@ const BannerPreview = ({ bannerData, bannerType }: BannerPreviewProps) => {
             borderBottom: "1px solid #e1e3e5",
             marginBottom: "20px"
           }}>
-            <Text variant="bodyMd" fontWeight="medium">Home</Text>
-            <Text variant="bodyMd" fontWeight="medium">Catalog</Text>
-            <Text variant="bodyMd" fontWeight="medium">Contact</Text>
+            <Text variant="bodyMd" as="span" fontWeight="medium">Home</Text>
+            <Text variant="bodyMd" as="span" fontWeight="medium">Catalog</Text>
+            <Text variant="bodyMd" as="span" fontWeight="medium">Contact</Text>
           </div>
 
           {/* Mock Product Content */}
@@ -178,7 +181,7 @@ const BannerPreview = ({ bannerData, bannerType }: BannerPreviewProps) => {
               alignItems: "center",
               justifyContent: "center"
             }}>
-              <Text variant="bodyMd" tone="subdued">Product Image</Text>
+              <Text variant="bodyMd" as="span" tone="subdued">Product Image</Text>
             </div>
 
             {/* Product Info */}
@@ -187,7 +190,7 @@ const BannerPreview = ({ bannerData, bannerType }: BannerPreviewProps) => {
                 <Text variant="headingLg" as="h1">
                   Product name
                 </Text>
-                <Text variant="bodyLg">
+                <Text variant="bodyLg" as="p">
                   $10 USD (Product price)
                 </Text>
                 <Button variant="primary" size="large">
@@ -203,11 +206,11 @@ const BannerPreview = ({ bannerData, bannerType }: BannerPreviewProps) => {
       {bannerData?.design?.position && (
         <Card>
           <BlockStack gap="200">
-            <Text variant="bodyMd" fontWeight="medium">
+            <Text variant="bodyMd" as="p" fontWeight="medium">
               Banner Position: {bannerData.design.position.charAt(0).toUpperCase() + bannerData.design.position.slice(1)}
             </Text>
             {bannerData.design.sticky && (
-              <Text variant="bodySm" tone="subdued">
+              <Text variant="bodySm" as="p" tone="subdued">
                 Sticky: Banner will remain visible while scrolling
               </Text>
             )}
