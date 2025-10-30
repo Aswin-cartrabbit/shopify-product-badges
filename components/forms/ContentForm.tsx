@@ -61,7 +61,7 @@ const ContentForm = ({ data, onChange, type = "BADGE", badgeName, setBadgeName }
     { content: 'Price', value: 'ONLY {price}' },
     { content: 'Day release', value: 'NEW IN {day_release} DAYS' },
     { content: 'Remaining stock', value: 'ONLY {stocks} LEFT' },
-    { content: 'Number of reviews', value: '{reviews} reviews' },
+    { content: 'Number of reviews', value: '{rating_count} reviews' },
     { content: 'Average rating', value: '{average_rating} stars' },
     { content: 'Product metafields', value: '{metafields}' },
   ];
